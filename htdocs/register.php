@@ -16,7 +16,7 @@ if (empty($_REQUEST['form_name']))
 $register = new Form('register',false,false,'form3');
 unset($register->info['uniq']);
 $register->verify();
-$register->reCaptchaCheck();
+//$register->reCaptchaCheck();
 
 if (!empty($_REQUEST['register']) && (empty($_SESSION["register_uniq"]) || $_SESSION["register_uniq"] != $_REQUEST['register']['uniq']))
 	$register->errors[] = 'Page expired.';
@@ -67,7 +67,7 @@ include 'includes/head.php';
 	</div>
 </div>
 <div class="container">
-	<? include 'includes/sidebar_account.php'; ?>
+	<? //include 'includes/sidebar_account.php'; ?>
 	<div class="content_right">
 		<div class="testimonials-4">
 			<? 
