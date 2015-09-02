@@ -66,7 +66,7 @@
 	<script src='https://www.google.com/recaptcha/api.js<?= ((!empty($CFG->language) && $CFG->language != 'en') ? '?hl='.($CFG->language == 'zh' ? 'zh-CN' : $CFG->language) : '') ?>'></script>
 	<? } ?>
 	
-	<?= Lang::url($CFG->self,1); ?>
+	<?= /*Lang::url($CFG->self,1);*/ ?>
 </head>
 
 <body>
@@ -126,6 +126,7 @@
                 <? } else { ?>
                 <li><a href="account.php"><i class="fa fa-user"></i> <?= User::$info['user'] ?></a> | <a href="logout.php?log_out=1&uniq=<?= $_SESSION["logout_uniq"] ?>"><i class="fa fa-unlock"></i> <?= Lang::string('log-out') ?></a></li>
                 <? } ?>
+		<? /*
                 <li class="empty margin-left">
                 	<label for="language_selector"><img src="images/<?= $CFG->language ?>.png" /></label>
                 	<select id="language_selector" class="lang">
@@ -135,6 +136,7 @@
                 		<option value="zh" <?= ($CFG->language == 'zh') ? 'selected="selected"' : '' ?>>中文</option>
                 	</select>
                 </li>
+		*/ ?>
             </ul>
             
         </div>
