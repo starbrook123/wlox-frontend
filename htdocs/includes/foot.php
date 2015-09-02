@@ -75,7 +75,7 @@
     
         <div class="one_half">
         
-            <b>Copyright &copy; 2014 WLOX. All rights reserved.</b>
+            <b>Copyright &copy; 2015 1EX.Trade. All rights reserved.</b>
             
         </div>
     
