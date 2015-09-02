@@ -66,7 +66,7 @@
 	<script src='https://www.google.com/recaptcha/api.js<?= ((!empty($CFG->language) && $CFG->language != 'en') ? '?hl='.($CFG->language == 'zh' ? 'zh-CN' : $CFG->language) : '') ?>'></script>
 	<? } ?>
 	
-	<?= /*Lang::url($CFG->self,1);*/ ?>
+	<? /*Lang::url($CFG->self,1);*/ ?>
 </head>
 
 <body>

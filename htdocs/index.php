@@ -19,6 +19,9 @@ $currencies = $CFG->currencies;
 
 $currencies1 = array();
 foreach ($currency_majors as $currency) {
+	if (empty($currencies[$currency]))
+		continue;
+
 	$currencies1[$currency] = $currencies[$currency];
 	unset($currencies[$currency]);
 }
