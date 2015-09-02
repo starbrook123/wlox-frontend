@@ -137,6 +137,7 @@
                 	</select>
                 </li>
 		*/ ?>
+		<input type="hidden" id="language_selector" value="en" />
             </ul>
             
         </div>

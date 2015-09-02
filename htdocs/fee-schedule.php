@@ -36,7 +36,7 @@ include 'includes/head.php';
 					<th><?= Lang::string('fee-schedule-fee') ?></th>
 					<th>
 						<?= Lang::string('fee-schedule-volume') ?>
-						<span class="graph_options" style="margin-left:5px;">
+						<span class="graph_options" style="display: inline-block; padding: 0px; margin-left: 5px; top: 0px; position: relative;">
 							<span style="margin:0;float:none;display:inline;">
 								<select id="fee_currency">
 								<? 
