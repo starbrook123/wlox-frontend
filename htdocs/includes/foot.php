@@ -37,7 +37,6 @@
              	<li><a href="<?= Lang::url('our-security.php') ?>"><?= Lang::string('our-security') ?></a></li>
              	<li><a href="<?= Lang::url('news.php') ?>"><?= Lang::string('news') ?></a></li>
              	<li><a href="<?= Lang::url('fee-schedule.php') ?>"><?= Lang::string('fee-schedule') ?></a></li>
-             	<li><a href="https://github.com/wlox/wlox/" target="_blank"><?= Lang::string('home-github') ?></a></li>
             </ul>
          </div>
          <? if (User::isLoggedIn()) { ?>

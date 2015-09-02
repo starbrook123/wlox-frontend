@@ -115,8 +115,6 @@
                 <li>|</li>
                 <li><a href="<?= Lang::url('contact.php') ?>"><?= Lang::string('contact') ?></a></li>
                 <li>|</li>
-                <li><a target="_blank" href="https://github.com/wlox/wlox/"><i class="fa fa-github"></i> GitHub</a></li>
-                <li>|</li>
                 <li><a target="_blank" href="https://cryptocapital.co"><img src="images/crypto_logo.png" /></a></li>
             </ul>
         
