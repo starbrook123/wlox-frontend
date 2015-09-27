@@ -1,4 +1,4 @@
-var plot = false;
+var plot,plot1,timeframe,data_res,data_zoom,data,data1,series,series1,axes1,axes1_max,axes1_total,axes_total,p_min_x,p_max_x,p_diff,zl_r,zr_l,min,max,min1,max1,min_y,max_y,bar_width,first_id,last_id,loaded_remaining,data_min,loaded_min,data_loading,last_w;
 
 var ajax_active = false;
 $(document).ajaxStop(function() {
@@ -9,93 +9,420 @@ $(document).ajaxStart(function() {
 	ajax_active = true;
 });
 
-function graphPriceHistory(timeframe,currency) {
-	$("#graph_price_history").append('<div class="tp-loader"></div>');
+var candle_options = {
+	'1min':[60,'1mon'],
+	'3min':[180,'1mon'],
+	'5min':[300,'1mon'],
+	'15min':[900,'1mon'],
+	'30min':[1800,'3mon'],
+	'1h':[3600,'3mon'],
+	'2h':[7200,'3mon'],
+	'4h':[14400,'3mon'],
+	'6h':[21600,'3mon'],
+	'12h':[43200,'6mon'],
+	'1d':[86400,'6mon'],
+	'3d':[259200,'1year'],
+	'1w':[604800,'1year']
+};
+
+function graphPriceHistory() {
+	var currency = $('#graph_price_history_currency').val();
+	timeframe = $('.graph_options a.selected').attr('data-option');
+	$("#graph_candles").append('<div class="tp-loader"></div>');
 	
-	while (!ajax_active) {
-		$.getJSON("includes/ajax.graph.php?timeframe="+timeframe+'&currency='+currency,function(json_data) {
-			plot = $.plot($("#graph_price_history"),[
-	            	{
-	             	data: json_data,
-	                 lines: { show: true, fill: true },
-	                 points: { show: false, fill: false },
-	                 color: '#17D6D6'
-	            	}
-	     	],
-	     	{
-	     		xaxis: {
-	     			mode: "time",
-	     			timeformat: ((timeframe == '1mon' || timeframe == '3mon' || timeframe == '6mon') ? "%b %e" : "%b %y"),
-	     			minTickSize: [1, "day"],
-	     			tickLength: 0
-	     		},
-	     		yaxis: {
-	     			labelWidth:0
-	     		},
-	     		grid: { 
-	     			backgroundColor: '#FFFFFF',
-	     			borderWidth: 1,
-	     			borderColor: '#dddddd',
-	     			hoverable: true
-	     		},
-	     		crosshair: {
-	     			mode:"x",
-	     		    color: "#aaaaaa",
-	     		    lineWidth: 1
-	     		}
-	     	});
+	// options and strings
+	candle_w = 8;
+	candle_line_w = 2;
+	
+	month_abbr = {
+		0:$('#javascript_mon_0').val(),
+		1:$('#javascript_mon_1').val(),
+		2:$('#javascript_mon_2').val(),
+		3:$('#javascript_mon_3').val(),
+		4:$('#javascript_mon_4').val(),
+		5:$('#javascript_mon_5').val(),
+		6:$('#javascript_mon_6').val(),
+		7:$('#javascript_mon_7').val(),
+		8:$('#javascript_mon_8').val(),
+		9:$('#javascript_mon_9').val(),
+		10:$('#javascript_mon_10').val(),
+		11:$('#javascript_mon_11').val(),
+	};
+	
+	$.getJSON("includes/ajax.graph.php?timeframe="+timeframe+'&timeframe1='+candle_options[timeframe][1]+'&currency='+currency,function(json_data) {
+		// parse data
+		parsed = graphFillGaps(json_data.candles,candle_options[timeframe][0],100);
+		data = parsed[0];
+		data1 = json_data.history;
+		c = (data) ? data.length - 1 : 0;
+		c_half = Math.ceil(c - 50);
+		c1 = data1.length;
+		data1.push([data[c][0],data[c][2]]);
+		max = data[c][0];
+		min = data[c_half][0];
+		max_y = parsed[2];
+		min_y = parsed[3];
+		max1 = data1[c1][0];
+		min1 = data1[0][0];
+		bar_width = (candle_options[timeframe][0] * 1000 / 3);
+		first_id = json_data.first_id;
+		last_id = json_data.last_id;
+		loaded_remaining = parsed[4];
+		loaded_min = json_data.candles[0][0];
+		data_min = data[0][0];
+		data_res = data;
+		data_zoom = 1;
+		
+		candlestick_options = {show:true,lineWidth:candle_w+'px',rangeWidth:candle_line_w,downColor:'#e51919',upColor:'#16e758',rangeColor:'#848484',neutralColor:'#848484'};
+		series = $.plot.candlestick.createCandlestick({
+			data:data,
+			candlestick:candlestick_options
+		});
+		
+		series.push({data:parsed[1],bars:{show:true,lineWidth:0,barWidth:bar_width,fillColor:"#f0f0f0",fill:true,align:"center"},yaxis:2});
+		series.reverse();
+		series1 = [{data:data1,color:'#00bdbd',lines:{show:true,lineWidth:1},shadowSize:0}];
+		
+		if (plot) {
+			plot1.getAxes().xaxis.options.min = min1;
+			plot1.getAxes().xaxis.options.max = max1;
+			plot1.setData(series1);
+			plot1.setupGrid();
+			plot1.draw();
 			
-			var date_options = { year: "numeric", month: "short",day: "numeric" };
-			var axes = plot.getAxes();
-			var dataset = plot.getData();
-			var left_offset = 30;
-			var bottom_offset = 50;
-			var flip;
-			var max_x;
-			var currency1 = currency.toUpperCase();
+			axes1 = plot1.getAxes();
+			axes1_max = Math.round(axes1.xaxis.p2c(max1));
+			axes1_total = max1 - min1;
+			axes_total = max - min;
+			p_min_x = Math.ceil(axes1.xaxis.p2c(min)) - 14;
+			p_max_x = Math.ceil(axes1.xaxis.p2c(max)) - 7;
+			p_diff = p_max_x - (p_min_x + 7);
+			zl_r = p_min_x + 7;
+			zr_l = p_max_x - 7;
+			last_w = candle_w;
+			$('.drag_zoom .bg').css('left',zl_r+'px').css('width',((zr_l + 7) - zl_r)+'px');
+			$('.drag_zoom #zl').css('left',p_min_x+'px');
+			$('.drag_zoom #zr').css('left',p_max_x+'px');
 			
-			$("#graph_price_history").bind("plothover", function (event, pos, item) {
-				plot.unhighlight();
-				
-				if (pos.x < axes.xaxis.min || pos.x > axes.xaxis.max || pos.y < axes.yaxis.min || pos.y > axes.yaxis.max) {
-					$('#tooltip').css('display','none');
+			plot.getAxes().xaxis.options.min = min;
+			plot.getAxes().xaxis.options.max = max;
+			plot.getAxes().yaxis.options.min = min_y;
+			plot.getAxes().yaxis.options.max = max_y;
+			plot.setData(series);
+			plot.setupGrid();
+			plot.draw();
+			return false;
+		}
+		
+		// candlestick chart
+		plot = $.plot($("#graph_candles"),series,{
+			series: {candlestick:{active:true}},
+			xaxis: {
+				mode: "time",
+				max: max,
+				min: min,
+     			tickLength: 5,
+     			tickFormatter: function (val, axis) {
+     			    var d = new Date(val);
+     			    if (d.getHours() == 0)
+     			    	return month_abbr[d.getMonth()]+' '+d.getDate();
+     			    else {
+     			    	mins = d.getMinutes().toString();
+     			    	pad = "00";
+     			    	
+     			    	return d.getHours() + ':' + pad.substring(0, pad.length - mins.length) + mins;
+     			    }
+     			}
+     		},
+     		yaxes: [{
+ 		    	labelWidth:0,
+ 		    	position:"right",
+ 		    	zoomRange: [1,1],
+ 		    	max: max_y,
+ 		    	min: min_y,
+ 		    	tickFormatter: function (val, axis) {
+ 		    		return val.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+ 		    	}
+     		},
+     		{
+     			show:false
+     		}],
+     		grid: { 
+     			borderWidth: 0,
+     			hoverable: true
+     		},
+     		crosshair: {
+     			mode:"x",
+     		    color: "#aaaaaa",
+     		    lineWidth: 1
+     		}
+		});
+		
+		// price history
+		plot1 = $.plot($("#graph_price_history"),series1,{
+			xaxis: {
+				mode: "time",
+				max: max1,
+				min: min1,
+				show:false
+     		},
+     		yaxis: {
+     			show:false
+     		},
+     		grid: { 
+     			show:false
+     		}
+		});
+		
+		// zooming and panning
+		axes1 = plot1.getAxes();
+		axes1_max = Math.round(axes1.xaxis.p2c(max1));
+		axes1_total = max1 - min1;
+		axes_total = max - min;
+		p_min_x = Math.ceil(axes1.xaxis.p2c(min)) - 14;
+		p_max_x = Math.ceil(axes1.xaxis.p2c(max)) - 7;
+		p_diff = p_max_x - (p_min_x + 7);
+		zl_r = p_min_x + 7;
+		zr_l = p_max_x - 7;
+		last_w = candle_w;
+
+		$('.drag_zoom .bg').css('left',zl_r+'px').css('width',((zr_l + 7) - zl_r)+'px');
+		$('.drag_zoom #zl').css('left',p_min_x+'px');
+		$('.drag_zoom #zr').css('left',p_max_x+'px');
+		$('.drag_zoom #zl').draggable({ axis:"x",containment:'.graph_contain',drag: function(e,ui){
+			e.stopPropagation();
+			ui.position.left = Math.min(zr_l - p_diff,ui.position.left);
+			zl_r = ui.position.left + 7;
+			p = Math.ceil(axes1.xaxis.c2p(zl_r + 7));
+			min = (max - p > axes_total) ? p : max - axes_total;
+			
+			if (min < data_min && !data_loading) {
+				data_loading = true;
+				if (loaded_remaining && loaded_remaining.length > 0) {
+					new_data = graphFillGaps(loaded_remaining,candle_options[timeframe][0],100,data_min);
+					data_res = new_data[0].concat(data_res);
+					data1 = new_data[1];
+					data_min = data_res[0][0];
+					loaded_remaining = new_data[4];
+					data_loading = false;
+					return true;
+				}
+			}
+
+			data_zoom = Math.ceil((max - min) / (axes_total * 10));
+			thinned = graphThinData(data_res,data_zoom,max,min);
+			data = thinned[0];
+			candlestick_options.lineWidth = Math.ceil((axes_total / (max - min)) * candle_w) + 'px';
+			candlestick_options.rangeWidth = Math.ceil((axes_total / (max - min)) * candle_line_w);
+			series = $.plot.candlestick.createCandlestick({
+				data:data,
+				candlestick:candlestick_options
+			});
+			
+			series.push({data:data1,bars:{show:true,lineWidth:0,barWidth:bar_width,fillColor:"#f0f0f0",fill:true,align:"center"},yaxis:2});
+			series.reverse();
+			plot.setData(series);
+			plot.getAxes().yaxis.options.min = thinned[2];
+			plot.getAxes().yaxis.options.max = thinned[1];
+			plot.getAxes().xaxis.options.min = min;
+			plot.setupGrid();
+			plot.draw();
+			
+			$('.drag_zoom .bg').css('left',zl_r+'px').css('width',((zr_l + 7) - zl_r)+'px');
+		}});
+		$('.drag_zoom #zr').draggable({ axis:"x",containment:'.graph_contain',drag: function(e,ui){
+			e.stopPropagation();
+			ui.position.left = Math.max(zl_r + p_diff,ui.position.left);
+			zr_l = ui.position.left;
+			p = axes1.xaxis.c2p(ui.position.left + 7);
+			max = (min + p > axes_total) ? p : min + axes_total;
+
+			data_zoom = Math.ceil((max - min) / (axes_total * 10));
+			thinned = graphThinData(data_res,data_zoom,max,min);
+			data = thinned[0];
+			candlestick_options.lineWidth = Math.ceil((axes_total / (max - min)) * candle_w) + 'px';
+			candlestick_options.rangeWidth = Math.ceil((axes_total / (max - min)) * candle_line_w);
+			series = $.plot.candlestick.createCandlestick({
+				data:data,
+				candlestick:candlestick_options
+			});
+			
+			series.push({data:data1,bars:{show:true,lineWidth:0,barWidth:bar_width,fillColor:"#f0f0f0",fill:true,align:"center"},yaxis:2});
+			series.reverse();
+			plot.setData(series);
+			plot.getAxes().yaxis.options.min = thinned[2];
+			plot.getAxes().yaxis.options.max = thinned[1];
+			plot.getAxes().xaxis.options.max = max;
+			plot.setupGrid();
+			plot.draw();
+			
+			$('.drag_zoom .bg').css('width',((zr_l + 7) - zl_r)+'px');
+		}});
+		$('.drag_zoom .bg').draggable({ axis:"x",containment:'.graph_contain',drag: function(e,ui){
+			w = $('.drag_zoom .bg').width();
+			zl_r = ui.position.left;
+			zr_l = ui.position.left + w - 7;
+			ui.position.left = Math.min(Math.max(7,ui.position.left),axes1_max - w - 7);
+			min = axes1.xaxis.c2p(ui.position.left + 7);
+			max = axes1.xaxis.c2p(ui.position.left + w + 7);
+			
+			if (min < data_min && !data_loading) {
+				data_loading = true;
+				if (loaded_remaining && loaded_remaining.length > 0) {
+					new_data = graphFillGaps(loaded_remaining,candle_options[timeframe][0],100,data_min);
+					data_res = new_data[0].concat(data_res);
+					data1 = new_data[1];
+					data_min = data_res[0][0];
+					loaded_remaining = new_data[4];
+					data_loading = false;
+					return true;
+				}
+			}
+			
+			thinned = graphThinData(data_res,data_zoom,max,min);
+			data = thinned[0];
+			candlestick_options.lineWidth = Math.ceil((axes_total / (max - min)) * candle_w) + 'px';
+			candlestick_options.rangeWidth = Math.ceil((axes_total / (max - min)) * candle_line_w);
+			series = $.plot.candlestick.createCandlestick({
+				data:data,
+				candlestick:candlestick_options
+			});
+			
+			series.push({data:data1,bars:{show:true,lineWidth:0,barWidth:bar_width,fillColor:"#f0f0f0",fill:true,align:"center"},yaxis:2});
+			series.reverse();
+			plot.setData(series);
+			plot.getAxes().yaxis.options.min = thinned[2];
+			plot.getAxes().yaxis.options.max = thinned[1];
+			plot.getAxes().xaxis.options.max = max;
+			plot.getAxes().xaxis.options.min = min;
+			plot.setupGrid();
+			plot.draw();
+			
+			$('.drag_zoom #zl').css('left',(ui.position.left - 7)+'px');
+			$('.drag_zoom #zr').css('left',(ui.position.left + w)+'px');
+		}});
+		
+		/*
+		var axes = plot.getAxes();
+		var dataset = plot.getData();
+		var left_offset = 30;
+		var bottom_offset = 50;
+		var flip;
+		var max_x;
+		var currency1 = currency.toUpperCase();
+		
+		$("#graph_price_history").bind("plothover", function (event, pos, item) {
+			plot.unhighlight();
+			
+			if (pos.x < axes.xaxis.min || pos.x > axes.xaxis.max || pos.y < axes.yaxis.min || pos.y > axes.yaxis.max) {
+				$('#tooltip').css('display','none');
+				return false;
+			}
+			
+			updateLegend(pos,axes,dataset,true,function(graph_point,graph_i,graph_j) {
+				if (graph_point == undefined)
 					return false;
+				
+				date = new Date(parseInt(graph_point[0]));
+				$('#tooltip').css('display','block');
+				$('#tooltip .date').html($('#javascript_mon_'+date.getMonth()).val()+' '+date.getDate()+', '+date.getFullYear());
+				$('#tooltip .price').html(currency1+' '+graph_point[1]);
+				
+				var x_pix = dataset[graph_i].xaxis.p2c(graph_point[0]);
+				var y_pix = dataset[graph_i].yaxis.p2c(graph_point[1]);
+				max_x = dataset[graph_i].xaxis.p2c(axes.xaxis.max);
+	
+				if ((max_x - x_pix) < $('#tooltip').width())
+					flip = true;
+				else
+					flip = false;
+				
+				if (!flip) {
+					$('#tooltip').css('left',(x_pix+left_offset)+'px');
+					$('#tooltip').css('top',(y_pix-bottom_offset)+'px');
+				}
+				else {
+					$('#tooltip').css('left',(x_pix-$('#tooltip').width())+'px');
+					$('#tooltip').css('top',(y_pix-bottom_offset)+'px');
 				}
 				
-				updateLegend(pos,axes,dataset,true,function(graph_point,graph_i,graph_j) {
-					if (graph_point == undefined)
-						return false;
-					
-					date = new Date(parseInt(graph_point[0]));
-					$('#tooltip').css('display','block');
-					$('#tooltip .date').html($('#javascript_mon_'+date.getMonth()).val()+' '+date.getDate()+', '+date.getFullYear());
-					$('#tooltip .price').html(currency1+' '+graph_point[1]);
-					
-					var x_pix = dataset[graph_i].xaxis.p2c(graph_point[0]);
-					var y_pix = dataset[graph_i].yaxis.p2c(graph_point[1]);
-					max_x = dataset[graph_i].xaxis.p2c(axes.xaxis.max);
+				plot.highlight(graph_i,graph_j);
+			});
+		}); 
+		*/
 		
-					if ((max_x - x_pix) < $('#tooltip').width())
-						flip = true;
-					else
-						flip = false;
-					
-					if (!flip) {
-						$('#tooltip').css('left',(x_pix+left_offset)+'px');
-						$('#tooltip').css('top',(y_pix-bottom_offset)+'px');
-					}
-					else {
-						$('#tooltip').css('left',(x_pix-$('#tooltip').width())+'px');
-						$('#tooltip').css('top',(y_pix-bottom_offset)+'px');
-					}
-					
-					plot.highlight(graph_i,graph_j);
-				});
-			}); 
+		setInterval(function(){
+			graphLoadNew();
+		},10000);
+
+		
+		$("#graph_candles").remove('.tp-loader');
+	});
+}
+
+function graphLoadNew(first) {
+	var currency = $('#graph_price_history_currency').val();
+	timeframe = $('.graph_options a.selected').attr('data-option');
+	first = (last_id > 0) ? '' : first;
+	last_max = data_res[data_res.length - 1][0];
+	
+	if (((Date.now() - last_max) / 1000) < candle_options[timeframe][0])
+		return false;
+	
+	$.getJSON("includes/ajax.graph.php?timeframe="+timeframe+'&timeframe1='+candle_options[timeframe][1]+'&currency='+currency+'&last='+last_id+'&first='+first,function(json_data) {
+		if (first == '') {
+			candle_amount = Math.floor((Date.now() - last_max) / 1000) / candle_options[timeframe][0];
+			new_data = graphFillGaps(json_data.candles,candle_options[timeframe][0],candle_amount);
+			data_res = data_res.concat(new_data[0]);
 			
-			$("#graph_price_history").remove('.tp-loader');
-		});
-	}
+			c = data_res.length - 1;
+			data1 = json_data.history;
+			data1.push([data_res[c][0],data_res[c][2]]);
+			series1 = [{data:data1,color:'#00bdbd',lines:{show:true,lineWidth:1},shadowSize:0}];
+			max1 = data1[data1.length - 1][0];
+			axes1_max = Math.round(axes1.xaxis.p2c(max1));
+			
+			plot1.getAxes().xaxis.options.min = min1;
+			plot1.getAxes().xaxis.options.max = max1;
+			plot1.setData(series1);
+			plot1.setupGrid();
+			plot1.draw();
+			
+			if (max >= (last_max - candle_options[timeframe][0])) {
+				max = (data_res[data_res.length - 1][0] > max) ? data_res[data_res.length - 1][0] : max;
+				min += max - Math.max(last_max,0);
+				
+				thinned = graphThinData(data_res,data_zoom,max,min);
+				data = thinned[0];
+				candlestick_options.lineWidth = Math.ceil((axes_total / (max - min)) * candle_w) + 'px';
+				candlestick_options.rangeWidth = Math.ceil((axes_total / (max - min)) * candle_line_w);
+				series = $.plot.candlestick.createCandlestick({
+					data:data,
+					candlestick:candlestick_options
+				});
+				
+				series.push({data:data1,bars:{show:true,lineWidth:0,barWidth:bar_width,fillColor:"#f0f0f0",fill:true,align:"center"},yaxis:2});
+				series.reverse();
+				plot.setData(series);
+				plot.getAxes().yaxis.options.min = thinned[2];
+				plot.getAxes().yaxis.options.max = thinned[1];
+				plot.getAxes().xaxis.options.max = max;
+				plot.setupGrid();
+				plot.draw();
+			
+			}
+			else {
+				diff = Math.max(data_res[data_res.length - 1][0] - last_max,0);
+				diff_pix = Math.ceil(axes1.xaxis.p2c(max1)) - Math.ceil(axes1.xaxis.p2c(max1 - diff));
+				zl_r -= diff_pix;
+				zr_l -= diff_pix;
+
+				$('.drag_zoom .bg').css('left',(parseInt($('.drag_zoom .bg').css('left')) - diff_pix)+'px');
+				$('.drag_zoom #zl').css('left',(parseInt($('.drag_zoom #zl').css('left')) - diff_pix)+'px');
+				$('.drag_zoom #zr').css('left',(parseInt($('.drag_zoom #zr').css('left')) - diff_pix)+'px');
+			}
+		}
+	});
 }
 
 var last_data = null;
@@ -278,6 +605,125 @@ function graphControls() {
 		graphPriceHistory($(this).attr('data-option'),currency);
 		return false;
 	});
+}
+
+var last_lc = false;
+function graphFillGaps(json_data,candle_size,candle_amount,start) {
+	filled = [];
+	volume = [];
+	c = candle_size * 1000;
+	start = (!start) ? Date.now() : start;
+	d = Math.round(start / c) * c - (c * candle_amount);
+	d1 = d;
+	max_y = 0;
+	min_y = Number.POSITIVE_INFINITY;
+	first_i = 0;
+	first_d = false;
+	last_d = false;
+	j = 0;
+	k = 0;
+	lc = false;
+
+	while (d < start) {
+		found = false;
+		high = 0;
+		low = 0;
+		
+		for (i in json_data) {
+			if (json_data[i][0] >= d && json_data[i][0] < (d + c)) {
+				j = i;
+				k = d;
+				volume.push([d,json_data[i][5]]);
+				filled.push([d,json_data[i][1],json_data[i][2],json_data[i][3],json_data[i][4]]);
+				high = json_data[i][4];
+				low = json_data[i][3];
+				lc = json_data[i][2];
+				found = true;
+				break;
+			}
+		}
+		
+		if (!found && j > 0) {
+			filled.push([d,lc,lc,lc,lc]);
+			volume.push([d,0]);
+		}
+		else if (found) {
+			max_y = (high > max_y) ? high : max_y;
+			min_y = (low < min_y && low > 0) ? low : min_y;
+			first_i = (first_i !== 0) ? first_i : j;
+			last_i = j;
+			first_d = (first_d !== false) ? first_d : k;
+			last_d = k;
+		}
+		
+		d += c;
+	}
+	
+	if (lc !== false)
+		last_lc = lc;
+	
+	i = (first_i > 0) ? first_i - 1 : first_i;
+	if (first_i > 0)
+		lc = json_data[i][2];
+	else
+		lc = last_lc;
+	
+	if (lc > max_y && filled.length > 0)
+		lc = max_y;
+	if (lc < min_y && filled.length > 0)
+		lc = min_y;
+	
+	fill_start = [];
+	volume_start = [];
+	
+	while (d1 < start) {
+		if (!first_d || d1 < first_d) {
+			fill_start.push([d1,lc,lc,lc,lc]);
+			volume_start.push([d1,0]);
+		}
+		else if (!last_d || d1 > last_d) {
+			break;
+		}
+		else {
+			d1 += c;
+			continue;
+		}
+		
+		d1 += c;
+	}
+	
+	if (max_y > 0)
+		max_y = max_y + (max_y * 0.05);
+	if (min_y < Number.POSITIVE_INFINITY)
+		min_y = Math.max(min_y - (min_y * 0.05),0);
+	
+	filled = fill_start.concat(filled);
+	volume = volume_start.concat(volume);
+	min_y = (min_y < Number.POSITIVE_INFINITY) ? min_y : 0;
+	
+	return [filled,volume,max_y,min_y,json_data];
+}
+
+function graphThinData(data,zoom,max,min) {
+	if (!data || data.length == 0)
+		return false;
+	
+	var max_y = 0;
+	var min_y = Number.POSITIVE_INFINITY;
+	var thinned = [];
+
+	for (i = 0; i < data.length; i = i + zoom) {
+		if (max && data[i][0] > max)
+			continue;
+		if (min && data[i][0] < min)
+			continue;
+		
+		max_y = (data[i][4] > max_y) ? data[i][4] : max_y;
+		min_y = (data[i][3] < min_y && data[i][3] > 0) ? data[i][3] : min_y;
+		thinned.push(data[i]);
+	}
+
+	return [thinned,max_y,min_y];
 }
 
 function updateLegend(pos,axes,dataset,single_dataset,callback) {
@@ -1304,7 +1750,6 @@ function startTicker() {
 		}
 		if (elem_f && elem_f.offset()) {
 			if ((elem_f.offset().left * -1) >= elem_f.outerWidth() && cloned) {
-				console.log(elem_f.offset().left);
 				elem_f.remove();
 				elem_f = $('.ticker .scroll:first');
 				cloned = false;
@@ -1318,7 +1763,7 @@ function startTicker() {
 $(document).ready(function() {
 	if ($("#graph_price_history").length > 0) {
 		var currency = $('#graph_price_history_currency').val();
-		graphPriceHistory('1mon',currency);
+		graphPriceHistory();
 		startTicker();
 	}
 	

@@ -196,11 +196,19 @@ if (!User::isLoggedIn()) {
         	<div class="repeat-line o10"></div>
         </div>
         <div class="graph_options">
-        	<a href="#" class="selected" data-option="1mon">1m</a>
-        	<a href="#" data-option="3mon">3m</a>
-        	<a href="#" data-option="6mon">6m</a>
-        	<a href="#" data-option="ytd">YTD</a>
-        	<a href="#" class="last" data-option="1year">1y</a>
+			<a href="#" <?= ($_SESSION['timeframe'] == '1min') ? 'class="selected"' : '' ?> data-option="1min">1m</a>
+			<a href="#" <?= ($_SESSION['timeframe'] == '3min') ? 'class="selected"' : '' ?> data-option="3min">3m</a>
+        	<a href="#" <?= (!$_SESSION['timeframe'] || $_SESSION['timeframe'] == '5min') ? 'class="selected"' : '' ?> data-option="5min">5m</a>
+        	<a href="#" <?= ($_SESSION['timeframe'] == '15min') ? 'class="selected"' : '' ?> class="last" data-option="15min">15m</a>
+        	<a href="#" <?= ($_SESSION['timeframe'] == '30min') ? 'class="selected"' : '' ?> data-option="30min">30m</a>
+        	<a href="#" <?= ($_SESSION['timeframe'] == '1h') ? 'class="selected"' : '' ?> data-option="1h">1h</a>
+        	<a href="#" <?= ($_SESSION['timeframe'] == '2h') ? 'class="selected"' : '' ?> data-option="2h">2h</a>
+        	<a href="#" <?= ($_SESSION['timeframe'] == '4h') ? 'class="selected"' : '' ?> data-option="4h">4h</a>
+        	<a href="#" <?= ($_SESSION['timeframe'] == '6h') ? 'class="selected"' : '' ?> data-option="6h">6h</a>
+        	<a href="#" <?= ($_SESSION['timeframe'] == '12h') ? 'class="selected"' : '' ?> class="last" data-option="12h">12h</a>
+        	<a href="#" <?= ($_SESSION['timeframe'] == '1d') ? 'class="selected"' : '' ?> data-option="1d">1d</a>
+        	<a href="#" <?= ($_SESSION['timeframe'] == '3d') ? 'class="selected"' : '' ?> data-option="3d">3d</a>
+        	<a href="#" <?= ($_SESSION['timeframe'] == '1w') ? 'class="selected"' : '' ?> class="last" data-option="1w">1w</a>
         	<div class="clear"></div>
         </div>
         <?php /*
@@ -229,11 +237,23 @@ if (!User::isLoggedIn()) {
 	    */ ?>
         <div class="graph_contain">
         	<input type="hidden" id="graph_price_history_currency" value="<?= ($currency1) ? $currency1 : 'usd' ?>" />
-        	<div id="graph_price_history"></div>
+        	<div id="graph_candles"></div>
         	<div id="tooltip">
 	        	<div class="date"></div>
 	        	<div class="price"></div>
 	        </div>
+	        <div class="clear_300"></div>
+	        <div class="clear"></div>
+	        <div id="graph_price_history"></div>
+	        <div class="drag_zoom">
+	        	<div class="contain">
+		        	<div id="zl" class="handle"></div>
+		        	<div id="zr" class="handle"></div>
+		        	<div class="bg"></div>
+	        	</div>
+	        </div>
+	        <div class="clear_50"></div>
+	        <div class="clear"></div>
         </div>
         <div class="mar_top4"></div>
         <div class="one_half">
