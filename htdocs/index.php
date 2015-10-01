@@ -196,19 +196,40 @@ if (!User::isLoggedIn()) {
         	<div class="repeat-line o10"></div>
         </div>
         <div class="graph_options">
-			<a href="#" <?= ($_SESSION['timeframe'] == '1min') ? 'class="selected"' : '' ?> data-option="1min">1m</a>
-			<a href="#" <?= ($_SESSION['timeframe'] == '3min') ? 'class="selected"' : '' ?> data-option="3min">3m</a>
-        	<a href="#" <?= (!$_SESSION['timeframe'] || $_SESSION['timeframe'] == '5min') ? 'class="selected"' : '' ?> data-option="5min">5m</a>
-        	<a href="#" <?= ($_SESSION['timeframe'] == '15min') ? 'class="selected"' : '' ?> class="last" data-option="15min">15m</a>
-        	<a href="#" <?= ($_SESSION['timeframe'] == '30min') ? 'class="selected"' : '' ?> data-option="30min">30m</a>
-        	<a href="#" <?= ($_SESSION['timeframe'] == '1h') ? 'class="selected"' : '' ?> data-option="1h">1h</a>
-        	<a href="#" <?= ($_SESSION['timeframe'] == '2h') ? 'class="selected"' : '' ?> data-option="2h">2h</a>
-        	<a href="#" <?= ($_SESSION['timeframe'] == '4h') ? 'class="selected"' : '' ?> data-option="4h">4h</a>
-        	<a href="#" <?= ($_SESSION['timeframe'] == '6h') ? 'class="selected"' : '' ?> data-option="6h">6h</a>
-        	<a href="#" <?= ($_SESSION['timeframe'] == '12h') ? 'class="selected"' : '' ?> class="last" data-option="12h">12h</a>
-        	<a href="#" <?= ($_SESSION['timeframe'] == '1d') ? 'class="selected"' : '' ?> data-option="1d">1d</a>
-        	<a href="#" <?= ($_SESSION['timeframe'] == '3d') ? 'class="selected"' : '' ?> data-option="3d">3d</a>
-        	<a href="#" <?= ($_SESSION['timeframe'] == '1w') ? 'class="selected"' : '' ?> class="last" data-option="1w">1w</a>
+        	<div id="graph_time">
+				<a href="#" <?= ($_SESSION['timeframe'] == '1min') ? 'class="selected"' : '' ?> data-option="1min">1m</a>
+				<a href="#" <?= ($_SESSION['timeframe'] == '3min') ? 'class="selected"' : '' ?> data-option="3min">3m</a>
+	        	<a href="#" <?= (!$_SESSION['timeframe'] || $_SESSION['timeframe'] == '5min') ? 'class="selected"' : '' ?> data-option="5min">5m</a>
+	        	<a href="#" <?= ($_SESSION['timeframe'] == '15min') ? 'class="selected"' : '' ?> class="last" data-option="15min">15m</a>
+	        	<a href="#" <?= ($_SESSION['timeframe'] == '30min') ? 'class="selected"' : '' ?> data-option="30min">30m</a>
+	        	<a href="#" <?= ($_SESSION['timeframe'] == '1h') ? 'class="selected"' : '' ?> data-option="1h">1h</a>
+	        	<a href="#" <?= ($_SESSION['timeframe'] == '2h') ? 'class="selected"' : '' ?> data-option="2h">2h</a>
+	        	<a href="#" <?= ($_SESSION['timeframe'] == '4h') ? 'class="selected"' : '' ?> data-option="4h">4h</a>
+	        	<a href="#" <?= ($_SESSION['timeframe'] == '6h') ? 'class="selected"' : '' ?> data-option="6h">6h</a>
+	        	<a href="#" <?= ($_SESSION['timeframe'] == '12h') ? 'class="selected"' : '' ?> class="last" data-option="12h">12h</a>
+	        	<a href="#" <?= ($_SESSION['timeframe'] == '1d') ? 'class="selected"' : '' ?> data-option="1d">1d</a>
+	        	<a href="#" <?= ($_SESSION['timeframe'] == '3d') ? 'class="selected"' : '' ?> data-option="3d">3d</a>
+	        	<a href="#" <?= ($_SESSION['timeframe'] == '1w') ? 'class="selected"' : '' ?> class="last" data-option="1w">1w</a>
+	        	<div class="repeat-line o1"></div>
+	        	<div class="repeat-line o2"></div>
+	        	<div class="repeat-line o3"></div>
+	        	<div class="repeat-line o4"></div>
+	        	<div class="repeat-line o5"></div>
+	        	<div class="clear"></div>
+        	</div>
+        	<div id="graph_over">
+        		<span class="g_over"><b>Open:</b> <span id="g_open"></span></span>
+				<span class="g_over"><b>Close:</b> <span id="g_close"></span></span>
+				<span class="g_over"><b>High:</b> <span id="g_high"></span></span>
+				<span class="g_over"><b>Low:</b> <span id="g_low"></span></span>
+				<span class="g_over"><b>Vol:</b> <span id="g_vol"></span></span>
+				<div class="repeat-line o1"></div>
+	        	<div class="repeat-line o2"></div>
+	        	<div class="repeat-line o3"></div>
+	        	<div class="repeat-line o4"></div>
+	        	<div class="repeat-line o5"></div>
+        		<div class="clear"></div>
+        	</div>
         	<div class="clear"></div>
         </div>
         <?php /*

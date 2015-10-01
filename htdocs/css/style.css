@@ -1101,7 +1101,7 @@ a.button_slider:hover {
 .graph_contain .clear_50{margin-top:60px;float:left;}
 #graph_orders{width:100%;height:300px;float: left;}
 .graph_options{background-color: #fff;border: 1px solid #ddd;border-collapse: collapse;position: relative;margin:0 0 2px;}
-.graph_options a{float: left;color: #444;padding: 3px 11px;}
+.graph_options a{float: left;color: #444;padding: 4px 11px 3px;}
 .graph_options a:hover{color:#383634;}
 .graph_options a.last{border-right: 3px double #ddd;}
 .graph_options a.selected{background-color: #f7f7f7;color: #444;border-left: 1px solid #ddd;border-right: 1px solid #ddd;text-decoration:underline;}
@@ -1109,6 +1109,11 @@ a.button_slider:hover {
 .graph_options span select{padding: 1px;font-size: 13px;font-family: 'Open Sans', sans-serif;background-color: #FFF;border:1px solid #aaa;color: #727272;}
 .graph_options span select:hover{color:#383634;}
 .graph_options span select:focus{color:#383634;}
+.graph_options #graph_time{overflow:hidden;float:left;position: relative;}
+.graph_options #graph_over{overflow:hidden;float:right;display:none;position: relative;}
+.graph_options #graph_over .g_over{padding: 4px 11px 3px;margin-right:0;float:left;}
+.graph_options #graph_over .g_over b{font-weight:normal;color:#444;margin-right:5px;}
+.graph_options #graph_over .g_over span{margin-right: 10px;}
 #tooltip{padding: 5px 8px;position:absolute;float:left;background-color:#FFF;border:1px solid #cccccc; display:none;-moz-box-shadow: 0px 0px 4px #cccccc;-webkit-box-shadow: 0px 0px 8px #cccccc;box-shadow: 0px 0px 4px #cccccc;-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";-moz-opacity: 0.8;-khtml-opacity: 0.8;opacity: 0.8;}
 #tooltip .date{font-size:12px;}
 #tooltip .price{color: #00BDBD;font-size: 20px;font-weight: bold;}
@@ -4901,7 +4906,7 @@ body{font:12px/28px ;}
 .currencies a.selected .abbr{
 	color:#444;
 }
-.currencies .repeat-line {
+.repeat-line {
 	border-bottom:1px solid #ddd;
 	position:absolute;
 	left:0;
@@ -4910,33 +4915,33 @@ body{font:12px/28px ;}
 	height:29px;
 	z-index:1;
 }
-.currencies .repeat-line.o1 {
+.repeat-line.o1 {
 	top:0;
 }
-.currencies .repeat-line.o2 {
+.repeat-line.o2 {
 	top:29px;
 }
-.currencies .repeat-line.o3 {
+.repeat-line.o3 {
 	top:58px;
 }
-.currencies .repeat-line.o4 {
+.repeat-line.o4 {
 	top:86px;
 }
-.currencies .repeat-line.o5 {
+.repeat-line.o5 {
 	top:115px;
 }
-.currencies .repeat-line.o6 {
+.repeat-line.o6 {
 	top:144px;
 }
-.currencies .repeat-line.o7 {
+.repeat-line.o7 {
 	top:173px;
 }
-.currencies .repeat-line.o8 {
+.repeat-line.o8 {
 	top:202px;
 }
-.currencies .repeat-line.o9 {
+.repeat-line.o9 {
 	top:231px;
 }
-.currencies .repeat-line.o10 {
+.repeat-line.o10 {
 	top:260px;
 }

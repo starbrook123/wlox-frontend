@@ -12,7 +12,7 @@
 }
 
 @media only screen and (min-width: 1000px) and (max-width: 1169px){
-	
+
 .m_head {display:none;}
 .container {
 	width: 1000px;
@@ -91,6 +91,9 @@ ul.post_meta_links {
 
 }
 
+@media only screen and (max-width: 999px){
+.graph_options #graph_over{z-index:100;position:absolute;top:29px;left:0;float:none;background-color: #FFF;border: 1px solid #ddd;opacity: 0.9;-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";-moz-opacity: 0.9;-khtml-opacity: 0.9;}
+}
 
 @media only screen and (min-width: 768px) and (max-width: 999px){
 .global_stats .stat1 {font-size:18px !important;}
@@ -439,6 +442,8 @@ a.show_hide{
 .panel-body .one_fifth{margin-bottom: 2px;}
 .panel-body .one_third{margin-bottom: 2px;}
 .non-mobile {display:none;}
+.graph_options #graph_over{position:absolute;top:58px;left:0;}
+	
 }
 
 @media only screen and (min-width: 480px) and (max-width: 767px){
