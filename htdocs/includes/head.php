@@ -30,12 +30,12 @@
 	<![endif]-->
     
     <!-- ######### CSS STYLES ######### -->
-	<link rel="stylesheet" href="css/style.css?v=20150625" type="text/css" />
+	<link rel="stylesheet" href="css/style.css?v=20150901" type="text/css" />
     
     <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
     
     <!-- responsive devices styles -->
-	<link rel="stylesheet" media="screen" href="css/responsive-leyouts.css?v=20150730" type="text/css" />
+	<link rel="stylesheet" media="screen" href="css/responsive-leyouts.css?v=20150901" type="text/css" />
     
 <!-- just remove the below comments witch color skin you want to use -->
     <!--<link rel="stylesheet" href="css/colors/lightblue.css" />-->
