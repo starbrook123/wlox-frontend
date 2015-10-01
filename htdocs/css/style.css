@@ -1101,7 +1101,7 @@ a.button_slider:hover {
 .graph_contain .clear_50{margin-top:60px;float:left;}
 #graph_orders{width:100%;height:300px;float: left;}
 .graph_options{background-color: #fff;border: 1px solid #ddd;border-collapse: collapse;position: relative;margin:0 0 2px;}
-.graph_options a{float: left;color: #444;padding: 4px 11px 3px;}
+.graph_options a{float: left;color: #444;padding: 4px 11px 3px; z-index: 2;position: relative;}
 .graph_options a:hover{color:#383634;}
 .graph_options a.last{border-right: 3px double #ddd;}
 .graph_options a.selected{background-color: #f7f7f7;color: #444;border-left: 1px solid #ddd;border-right: 1px solid #ddd;text-decoration:underline;}
@@ -1111,7 +1111,7 @@ a.button_slider:hover {
 .graph_options span select:focus{color:#383634;}
 .graph_options #graph_time{overflow:hidden;float:left;position: relative;}
 .graph_options #graph_over{overflow:hidden;float:right;display:none;position: relative;}
-.graph_options #graph_over .g_over{padding: 4px 11px 3px;margin-right:0;float:left;}
+.graph_options #graph_over .g_over{padding: 4px 11px 3px;margin-right:0;float:left;z-index: 2;position: relative;}
 .graph_options #graph_over .g_over b{font-weight:normal;color:#444;margin-right:5px;}
 .graph_options #graph_over .g_over span{margin-right: 10px;}
 #tooltip{padding: 5px 8px;position:absolute;float:left;background-color:#FFF;border:1px solid #cccccc; display:none;-moz-box-shadow: 0px 0px 4px #cccccc;-webkit-box-shadow: 0px 0px 8px #cccccc;box-shadow: 0px 0px 4px #cccccc;-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";-moz-opacity: 0.8;-khtml-opacity: 0.8;opacity: 0.8;}

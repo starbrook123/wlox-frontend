@@ -30,7 +30,7 @@
 	<![endif]-->
     
     <!-- ######### CSS STYLES ######### -->
-	<link rel="stylesheet" href="css/style.css?v=20150901" type="text/css" />
+	<link rel="stylesheet" href="css/style.css?v=20150900" type="text/css" />
     
     <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
     
