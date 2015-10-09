@@ -17,6 +17,13 @@ $currency_majors = array('USD','EUR','CNY','RUB','CHF','JPY','GBP','CAD','AUD');
 $c_majors = count($currency_majors);
 $currencies = $CFG->currencies;
 
+$sma = (!empty($_SESSION['sma']) || !isset($_SESSION['sma']));
+$sma1 = (!empty($_SESSION['sma1'])) ? preg_replace("/[^0-9]/", "",$_SESSION['sma1']) : 8;
+$sma2 = (!empty($_SESSION['sma2'])) ? preg_replace("/[^0-9]/", "",$_SESSION['sma2']) : 30;
+$ema = (!empty($_SESSION['ema']));
+$ema1 = (!empty($_SESSION['ema1'])) ? preg_replace("/[^0-9]/", "",$_SESSION['ema1']) : 8;
+$ema2 = (!empty($_SESSION['ema2'])) ? preg_replace("/[^0-9]/", "",$_SESSION['ema2']) : 30;
+
 $currencies1 = array();
 foreach ($currency_majors as $currency) {
 	if (empty($currencies[$currency]))
@@ -232,37 +239,9 @@ if (!User::isLoggedIn()) {
         	</div>
         	<div class="clear"></div>
         </div>
-        <?php /*
-	        <div class="graph_options">
-	        	<a href="#" data-option="1mon">1m</a>
-	        	<a href="#" data-option="3mon">3m</a>
-	        	<a href="#" data-option="6mon">6m</a>
-	        	<a href="#" data-option="ytd">YTD</a>
-	        	<a href="#" class="selected last" data-option="1year">1y</a>
-	        	<span>
-	        	<label for="currency_selector"><?= Lang::string('currency') ?></label>
-	        	<select id="currency_selector">
-	        	<? 
-	        	if ($CFG->currencies) {
-					foreach ($CFG->currencies as $key => $currency) {
-						if (is_numeric($key) || $currency['currency'] == 'BTC')
-							continue;
-						
-						echo '<option value="'.strtolower($currency['currency']).'" '.(($currency1 == strtolower($currency['currency']) || (!$currency1 && strtolower($currency['currency']) == 'usd')) ? 'selected="selected"' : '').'>'.$currency['currency'].'</option>';
-					}
-				}
-	        	?>
-	        	</select>
-	        	</span>
-	        </div>
-	    */ ?>
         <div class="graph_contain">
         	<input type="hidden" id="graph_price_history_currency" value="<?= ($currency1) ? $currency1 : 'usd' ?>" />
         	<div id="graph_candles"></div>
-        	<div id="tooltip">
-	        	<div class="date"></div>
-	        	<div class="price"></div>
-	        </div>
 	        <div class="clear_300"></div>
 	        <div class="clear"></div>
 	        <div id="graph_price_history"></div>
@@ -272,6 +251,25 @@ if (!User::isLoggedIn()) {
 		        	<div id="zr" class="handle"></div>
 		        	<div class="bg"></div>
 	        	</div>
+	        </div>
+	        <a id="graph_settings" class="fa fa-gear"></a>
+	        <div class="graph_settings">
+	        	<div class="label"><?= Lang::string('indicators') ?></div>
+	        	<div class="indicators">
+	        		<div class="row">
+	        			<input class="check" type="checkbox" id="sma" <?= ($sma) ? 'checked="checked"' : '' ?> />
+	        			<a class="selected" href="#">SMA</a>
+	        			<input id="sma1" class="indicator" value="<?= $sma1 ?>" type="text" style="background-color:#C4D5FF" />
+	        			<input id="sma2" class="indicator" value="<?= $sma2 ?>" type="text" style="background-color:#FFEFC4" />
+	        		</div>
+	        		<div class="row">
+	        			<input class="check" type="checkbox" id="ema" <?= ($ema) ? 'checked="checked"' : '' ?> />
+	        			<a class="selected" href="#">EMA</a>
+	        			<input id="ema1" class="indicator" value="<?= $ema1 ?>" type="text" style="background-color:#FCC4FF" />
+	        			<input id="ema2" class="indicator" value="<?= $ema2 ?>" type="text" style="background-color:#C5FFC4" />
+	        		</div>
+	        	</div>
+	        	<a class="highlight blue" href="#"><?= Lang::string('restore-defaults') ?></a>
 	        </div>
 	        <div class="clear_50"></div>
 	        <div class="clear"></div>

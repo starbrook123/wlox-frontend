@@ -1,5 +1,3 @@
-var plot,plot1,timeframe,data_res,data_zoom,data,data_vol,data1,series,series1,axes1,axes1_max,axes1_total,axes_total,p_min_x,p_max_x,p_diff,zl_r,zr_l,min,max,min1,max1,min_y,max_y,bar_width,first_id,last_id,loaded_remaining,data_min,loaded_min,data_loading,last_w;
-
 var ajax_active = false;
 $(document).ajaxStop(function() {
 	ajax_active = false;
@@ -45,12 +43,17 @@ var candle_options = {
 	'1w':[604800,'1year']
 };
 
+var plot,plot1,timeframe,data_res,data_zoom,data,data_vol,data1,series,series1,axes1,axes1_max,axes1_total,axes_total,p_min_x,p_max_x,p_diff,zl_r,zr_l,min,max,min1,max1,min_y,max_y,bar_width,first_id,last_id,loaded_remaining,data_min,loaded_min,data_loading,last_w,graph_colors;
 function graphPriceHistory() {
 	var currency = $('#graph_price_history_currency').val();
 	timeframe = $('.graph_options a.selected').attr('data-option');
 	$("#graph_candles").append('<div class="tp-loader"></div>');
 	
 	$.getJSON("includes/ajax.graph.php?timeframe="+timeframe+'&timeframe1='+candle_options[timeframe][1]+'&currency='+currency,function(json_data) {
+		// get indicators
+		if (!plot)
+			graphSettings();
+		
 		// parse data
 		parsed = graphFillGaps(json_data.candles,candle_options[timeframe][0],100);
 		data = parsed[0];
@@ -70,19 +73,29 @@ function graphPriceHistory() {
 		first_id = json_data.first_id;
 		last_id = json_data.last_id;
 		loaded_remaining = parsed[4];
-		loaded_min = json_data.candles[0][0];
+		loaded_min = parsed[0][0];
 		data_min = data[0][0];
 		data_res = data;
 		data_zoom = 1;
 		
+		// setup candles series
 		candlestick_options = {show:true,lineWidth:candle_w+'px',rangeWidth:candle_line_w,downColor:'#e51919',upColor:'#16e758',rangeColor:'#848484',neutralColor:'#848484'};
 		series = $.plot.candlestick.createCandlestick({
 			data:data,
 			candlestick:candlestick_options
 		});
 		
+		// add volume
 		series.push({data:data_vol,bars:{show:true,lineWidth:0,barWidth:bar_width,fillColor:"#f0f0f0",fill:true,align:"center"},yaxis:2});
 		series.reverse();
+		
+		// add indicators
+		for (i in window.indicators) {
+			window.indicators[i].data = parsed[5][i];
+			active = window.indicators[i].active;
+			series.push({data: window.indicators[i].data, color: window.indicators[i].color, lines:{show:window.indicators[i].active,fill:false,lineWidth:1},yaxis:1,shadowSize:0});
+		}
+		
 		series1 = [{data:data1,color:'#00bdbd',lines:{show:true,lineWidth:1},shadowSize:0}];
 		
 		if (plot) {
@@ -113,10 +126,12 @@ function graphPriceHistory() {
 			plot.setData(series);
 			plot.setupGrid();
 			plot.draw();
+			$("#graph_candles .tp-loader").remove();
 			return false;
 		}
 		
 		// candlestick chart
+		var last_d = new Date();
 		plot = $.plot($("#graph_candles"),series,{
 			series: {candlestick:{active:true}},
 			xaxis: {
@@ -125,15 +140,30 @@ function graphPriceHistory() {
 				min: min,
      			tickLength: 5,
      			tickFormatter: function (val, axis) {
-     			    var d = new Date(val);
-     			    if (d.getHours() == 0)
-     			    	return month_abbr[d.getMonth()]+' '+d.getDate();
-     			    else {
-     			    	mins = d.getMinutes().toString();
-     			    	pad = "00";
-     			    	
-     			    	return d.getHours() + ':' + pad.substring(0, pad.length - mins.length) + mins;
-     			    }
+     				d = new Date(val);
+     				ret = false;
+
+     				if ((d - last_d) >= (86400 * 1000)) {
+     					year = d.getFullYear();
+     					month = d.getMonth();
+     					day = d.getDate();
+     					
+     					if (year != last_d.getFullYear())
+     						ret = year;
+     					else
+     						ret = month_abbr[month] + ' ' + day;
+     						
+     				}
+     				else {
+     					month = d.getMonth();
+     					day = d.getDate();
+     					mins = d.getMinutes().toString();
+     					pad = "00";
+     					ret = d.getHours() + ':' + pad.substring(0, pad.length - mins.length) + mins + (day != last_d.getDate() ? '/'+month_abbr[d.getMonth()]+' '+d.getDate()+'' : '');
+     				}
+     			   
+     			    last_d = d;
+     			    return ret;
      			}
      		},
      		yaxes: [{
@@ -206,6 +236,11 @@ function graphPriceHistory() {
 					data_vol = new_data[1].concat(data_vol);
 					data_min = data_res[0][0];
 					loaded_remaining = new_data[4];
+					
+					for (i in window.indicators) {
+						window.indicators[i].data = new_data[5][i].concat(window.indicators[i].data);
+					}
+					
 					data_loading = false;
 					return true;
 				}
@@ -217,13 +252,18 @@ function graphPriceHistory() {
 						data_min = data_res[0][0];
 						first_id = json_data.first_id;
 						loaded_remaining = new_data[4];
+
+						for (i in window.indicators) {
+							window.indicators[i].data = new_data[5][i].concat(window.indicators[i].data);
+						}
+						
 						data_loading = false;
 						return true;
 					});
 				}
 			}
 
-			data_zoom = Math.ceil((max - min) / (axes_total * 10));
+			data_zoom = Math.ceil((max - min) / (axes_total * 8));
 			thinned = graphThinData(data_res,data_zoom,max,min);
 			data = thinned[0];
 			max_y = thinned[1];
@@ -238,6 +278,12 @@ function graphPriceHistory() {
 			
 			series.push({data:data_vol,bars:{show:true,lineWidth:0,barWidth:bar_width,fillColor:"#f0f0f0",fill:true,align:"center"},yaxis:2});
 			series.reverse();
+			
+			for (i in window.indicators) {
+				active = window.indicators[i].active;
+				series.push({data: window.indicators[i].data, color: window.indicators[i].color, lines:{show:window.indicators[i].active,fill:false,lineWidth:1},yaxis:1,shadowSize:0});
+			}
+			
 			plot.setData(series);
 			plot.getAxes().yaxis.options.min = thinned[2];
 			plot.getAxes().yaxis.options.max = thinned[1];
@@ -254,7 +300,7 @@ function graphPriceHistory() {
 			p = axes1.xaxis.c2p(ui.position.left + 7);
 			max = (min + p > axes_total) ? p : min + axes_total;
 
-			data_zoom = Math.ceil((max - min) / (axes_total * 10));
+			data_zoom = Math.ceil((max - min) / (axes_total * 8));
 			thinned = graphThinData(data_res,data_zoom,max,min);
 			data = thinned[0];
 			max_y = thinned[1];
@@ -269,6 +315,12 @@ function graphPriceHistory() {
 			
 			series.push({data:data_vol,bars:{show:true,lineWidth:0,barWidth:bar_width,fillColor:"#f0f0f0",fill:true,align:"center"},yaxis:2});
 			series.reverse();
+			
+			for (i in window.indicators) {
+				active = window.indicators[i].active;
+				series.push({data: window.indicators[i].data, color: window.indicators[i].color, lines:{show:window.indicators[i].active,fill:false,lineWidth:1},yaxis:1,shadowSize:0});
+			}
+			
 			plot.setData(series);
 			plot.getAxes().yaxis.options.min = thinned[2];
 			plot.getAxes().yaxis.options.max = thinned[1];
@@ -294,6 +346,11 @@ function graphPriceHistory() {
 					data_vol = new_data[1].concat(data_vol);
 					data_min = data_res[0][0];
 					loaded_remaining = new_data[4];
+
+					for (i in window.indicators) {
+						window.indicators[i].data = new_data[5][i].concat(window.indicators[i].data);
+					}
+					
 					data_loading = false;
 					return true;
 				}
@@ -305,6 +362,11 @@ function graphPriceHistory() {
 						data_min = data_res[0][0];
 						first_id = json_data.first_id;
 						loaded_remaining = new_data[4];
+
+						for (i in window.indicators) {
+							window.indicators[i].data = new_data[5][i].concat(window.indicators[i].data);
+						}
+						
 						data_loading = false;
 						return true;
 					});
@@ -325,6 +387,12 @@ function graphPriceHistory() {
 			
 			series.push({data:data_vol,bars:{show:true,lineWidth:0,barWidth:bar_width,fillColor:"#f0f0f0",fill:true,align:"center"},yaxis:2});
 			series.reverse();
+			
+			for (i in window.indicators) {
+				active = window.indicators[i].active;
+				series.push({data: window.indicators[i].data, color: window.indicators[i].color, lines:{show:window.indicators[i].active,fill:false,lineWidth:1},yaxis:1,shadowSize:0});
+			}
+			
 			plot.setData(series);
 			plot.getAxes().yaxis.options.min = thinned[2];
 			plot.getAxes().yaxis.options.max = thinned[1];
@@ -382,7 +450,6 @@ function graphPriceHistory() {
 		setInterval(function(){
 			graphLoadNew();
 		},10000);
-
 		
 		$("#graph_candles").remove('.tp-loader');
 	});
@@ -404,6 +471,10 @@ function graphLoadNew(first,callback) {
 			new_data = graphFillGaps(json_data.candles,candle_options[timeframe][0],candle_amount);
 			data_res = data_res.concat(new_data[0]);
 			data_vol = data_vol.concat(new_data[1]);
+			
+			for (i in window.indicators) {
+				window.indicators[i].data = window.indicators[i].data.concat(new_data[5][i]);
+			}
 			
 			c = data_res.length - 1;
 			data1 = json_data.history;
@@ -428,6 +499,7 @@ function graphLoadNew(first,callback) {
 				data = thinned[0];
 				candlestick_options.lineWidth = Math.ceil((axes_total / (max - min)) * candle_w) + 'px';
 				candlestick_options.rangeWidth = Math.ceil((axes_total / (max - min)) * candle_line_w);
+
 				series = $.plot.candlestick.createCandlestick({
 					data:data,
 					candlestick:candlestick_options
@@ -435,6 +507,12 @@ function graphLoadNew(first,callback) {
 				
 				series.push({data:data_vol,bars:{show:true,lineWidth:0,barWidth:bar_width,fillColor:"#f0f0f0",fill:true,align:"center"},yaxis:2});
 				series.reverse();
+				
+				for (i in window.indicators) {
+					active = window.indicators[i].active;
+					series.push({data: window.indicators[i].data, color: window.indicators[i].color, lines:{show:window.indicators[i].active,fill:false,lineWidth:1},yaxis:1,shadowSize:0});
+				}
+				
 				plot.setData(series);
 				plot.getAxes().yaxis.options.min = min_y;
 				plot.getAxes().yaxis.options.max = max_y;
@@ -457,6 +535,30 @@ function graphLoadNew(first,callback) {
 		else {
 			callback(json_data);
 		}
+	});
+}
+
+function graphSettings() {
+	if (!window.indicators) {
+		window.indicators = {
+			sma1:{value:$('#sma1').val(),data:[],color:'#C4D5FF',type:'sma',active:($('#sma1').siblings('.check').is(':checked') && $('#sma1').val() > 0)},
+			sma2:{value:$('#sma2').val(),data:[],color:'#FFEFC4',type:'sma',active:($('#sma2').siblings('.check').is(':checked') && $('#sma2').val() > 0)},
+			ema1:{value:$('#ema1').val(),data:[],color:'#FCC4FF',type:'ema',active:($('#ema1').siblings('.check').is(':checked') && $('#ema1').val() > 0)},
+			ema2:{value:$('#ema2').val(),data:[],color:'#C5FFC4',type:'ema',active:($('#ema2').siblings('.check').is(':checked') && $('#ema2').val() > 0)}
+		}
+	}
+	
+	$('.indicator').bind("keyup change",function(){
+		elem = $(this);
+		id = elem.attr('id');
+		val = elem.val();
+		
+		window.indicators[id].value = val;
+		$.get('includes/ajax.graph.php?action=indicators&'+id+'='+val, function(){});
+	});
+	
+	$('.indicators .check').bind("click",function(){
+		$.get('includes/ajax.graph.php?action=indicators&'+($(this).attr('id'))+'='+($(this).is(':checked')), function(){});
 	});
 }
 
@@ -671,60 +773,108 @@ function graphControls() {
 	});
 }
 
-var last_lc = false;
+var lc = 0;
 function graphFillGaps(json_data,candle_size,candle_amount,start) {
-	filled = [];
-	volume = [];
-	c = candle_size * 1000;
-	start = (!start) ? Date.now() : start;
-	d = Math.round(start / c) * c - (c * candle_amount);
-	d1 = d;
-	max_y = 0;
-	min_y = Number.POSITIVE_INFINITY;
-	first_i = 0;
-	first_d = false;
-	last_i = false;
-	last_d = false;
-	j = 0;
-	k = 0;
-	lc = (json_data.length > 0) ? json_data[json_data.length - 1][2] : false;
-
+	var filled = [];
+	var volume = [];
+	
+	var c = candle_size * 1000;
+	var start = (!start) ? Date.now() : start;
+	var d = Math.round(start / c) * c - (c * candle_amount);
+	var d1 = d;
+	var max_y = 0;
+	var min_y = Number.POSITIVE_INFINITY;
+	var first_i = 0;
+	var first_d = false;
+	var last_i = false;
+	var last_d = false;
+	var j = 0;
+	lc = (json_data.length > 0) ? json_data[json_data.length - 1][1] : lc;
+	
+	var indicators_options = {};
+	var indicators_data = {};
+	var indicators_cache = [];
+	var indicators_c = 0;
+	var last_ema = {};
+	for (i in window.indicators) {
+		indicators_options[i] = {value: window.indicators[i].value, type: window.indicators[i].type};
+		indicators_data[i] = [];
+		indicators_c = (window.indicators[i].value > 0) ? window.indicators[i].value : indicators_c;
+		last_ema[i] = 0;
+	}
+	
 	while (d < start) {
-		found = false;
-		high = 0;
-		low = 0;
+		var open = 0;
+		var close = 0;
+		var low = Number.POSITIVE_INFINITY;
+		var high = 0;
+		var vol = 0;
+		var found = false;
+		var item = [];
 		
 		for (i in json_data) {
 			if (json_data[i][0] >= d && json_data[i][0] < (d + c)) {
-				j = i;
-				k = d;
-				volume.push([d,json_data[i][5]]);
-				filled.push([d,json_data[i][1],json_data[i][2],json_data[i][3],json_data[i][4]]);
-				high = json_data[i][4];
-				low = json_data[i][3];
-				lc = json_data[i][2];
+				j++;
+				open = (!open) ? json_data[i][1] : open;
+				close = json_data[i][1];
+				low = (json_data[i][1] < low) ? json_data[i][1] : low;
+				high = (json_data[i][1] > high) ? json_data[i][1] : high;
+				lc = json_data[i][1];
+				vol += (json_data[i][2]);
+				first_i = (first_i > 0) ? first_i : i;
+				last_i = i;
+				first_d = (first_d > 0) ? first_d : json_data[i][0];
+				last_d = json_data[i][0];
+				
 				found = true;
-				break;
+				if (json_data[i][0] >= (d + c))
+					break;
 			}
 		}
 		
-		if (!found && j > 0) {
-			filled.push([d,lc,lc,lc,lc]);
-			volume.push([d,0]);
-		}
-		else if (found) {
+		if (found) {
 			max_y = (high > max_y) ? high : max_y;
 			min_y = (low < min_y && low > 0) ? low : min_y;
-			first_i = (first_i !== 0) ? first_i : j;
-			last_i = j;
-			first_d = (first_d !== false) ? first_d : k;
-			last_d = k;
+			item = [d,open,close,low,high];
+		}
+		else if (j > 0) {
+			item = [d,lc,lc,lc,lc];
+		}
+		
+		if (item.length > 0) {
+			volume.push([d,vol]);
+			filled.push(item);
+			indicators_cache.push(item[2]);
+			
+			if (indicators_cache > indicators_c)
+				indicators_cache.shift();
+			
+			for (i in indicators_options) {
+				if (indicators_options[i].value > indicators_cache.length)
+					continue;
+				
+				var slice = indicators_cache.slice(indicators_options[i].value * -1);
+				var sma = slice.reduce(function(a, b){return a+b;}) / slice.length;
+				
+				if (indicators_options[i].type == 'sma') {
+					indicators_data[i].push([d,sma]);
+					continue;
+				}
+				else if (indicators_options[i].type == 'ema') {
+					var prev_ema = (filled.length > slice.length) ? last_ema[i] : sma;
+					var ema = ((slice[slice.length - 1] - last_ema[i]) * (2/(slice.length + 1))) + last_ema[i];
+					
+					indicators_data[i].push([d,ema]);
+					last_ema[i] = ema;
+					continue;
+				}
+			}
 		}
 		
 		d += c;
 	}
 	
-	i = (first_i > 0) ? first_i - 1 : first_i;
+	var i = (first_i > 0) ? first_i - 1 : first_i;
 	if (first_i && last_i !== false && first_i != last_i) {
 		diff = last_i - first_i + 1;
 		json_data.splice(first_i,diff);
@@ -733,12 +883,10 @@ function graphFillGaps(json_data,candle_size,candle_amount,start) {
 		json_data.splice(first_i,1);
 	
 	if (json_data.length > 0)
-		lc = json_data[json_data.length - 1][2];
-	else
-		lc = last_lc;
+		lc = json_data[json_data.length - 1][1];
 	
-	fill_start = [];
-	volume_start = [];
+	var fill_start = [];
+	var volume_start = [];
 	
 	while (d1 < start) {
 		if (!first_d || d1 < first_d) {
@@ -755,7 +903,7 @@ function graphFillGaps(json_data,candle_size,candle_amount,start) {
 		
 		d1 += c;
 	}
-	
+
 	filled = fill_start.concat(filled);
 	volume = volume_start.concat(volume);
 	min_y = (min_y < Number.POSITIVE_INFINITY) ? min_y : 0;
@@ -773,7 +921,7 @@ function graphFillGaps(json_data,candle_size,candle_amount,start) {
 	if (lc !== false)
 		last_lc = lc;
 	
-	return [filled,volume,max_y,min_y,json_data];
+	return [filled,volume,max_y,min_y,json_data,indicators_data];
 }
 
 function graphThinData(data,zoom,max,min) {

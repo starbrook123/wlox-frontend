@@ -6,6 +6,27 @@ if ($_REQUEST['action'] == 'more')
 
 include '../lib/common.php';
 
+if ($action == 'indicators') {
+	if (isset($_REQUEST['sma']) && $_REQUEST['sma'] == 'true')
+		$_SESSION['sma'] = 1;
+	else if (isset($_REQUEST['sma']) && $_REQUEST['sma'] != 'true')
+		$_SESSION['sma'] = false;
+	if (!empty($_REQUEST['sma1']))
+		$_SESSION['sma1'] = preg_replace("/[^0-9]/", "",$_SESSION['sma1']);
+	if (!empty($_REQUEST['sma2']))
+		$_SESSION['sma2'] = preg_replace("/[^0-9]/", "",$_SESSION['sma2']);
+	if (isset($_REQUEST['ema']) && $_REQUEST['ema'] == 'true')
+		$_SESSION['ema'] = true;
+	else if (isset($_REQUEST['ema']) && $_REQUEST['ema'] != 'true')
+		$_SESSION['ema'] = false;
+	if (!empty($_REQUEST['ema1']))
+		$_SESSION['ema1'] = preg_replace("/[^0-9]/", "",$_SESSION['ema1']);
+	if (!empty($_REQUEST['ema2']))
+		$_SESSION['ema2'] = preg_replace("/[^0-9]/", "",$_SESSION['ema2']);
+	
+	exit;
+}
+
 $timeframe1 = (!empty($_REQUEST['timeframe'])) ? preg_replace("/[^0-9a-zA-Z]/", "",$_REQUEST['timeframe']) : false;
 $timeframe2 = (!empty($_REQUEST['timeframe1'])) ? preg_replace("/[^0-9a-zA-Z]/", "",$_REQUEST['timeframe1']) : false;
 $currency1 = (!empty($CFG->currencies[strtoupper($_REQUEST['currency'])])) ? $_REQUEST['currency'] : 'usd';
@@ -38,14 +59,17 @@ $first_id = 0;
 $last_id = 0;
 
 $data = $query['Transactions']['candlesticks']['results'][0];
-$data = array_reverse($data);
 $vars = array();
 if ($data) {
 	$c = count($data) - 1;
-	$first_id = $data[0]['first_id'];
-	$last_id = $data[$c]['last_id'];
-	foreach ($data as $row) {
-		$vars[] = '['.(strtotime($row['t']) * 1000).','.$row['open'].','.$row['close'].','.$row['low'].','.$row['high'].','.$row['volume'].']';
+	$first_id = ($data[0]['first_id']) ? $data[0]['first_id'] : $data[0]['id'];
+	$last_id = ($data[0]['last_id']) ? $data[0]['last_id'] : $data[$c]['id'];
+	
+	foreach ($data as $key => $row) {
+		if (!($row['t'] > 0) || $key == 's_final' || $key == 'e_final')
+			continue;
+		
+		$vars[] = '['.(strtotime($row['t']) * 1000).','.$row['price'].','.$row['vol'].','.$row['id'].']';
 	}
 }
 $candles = '['.implode(',', $vars).']';
