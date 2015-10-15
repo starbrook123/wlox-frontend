@@ -1125,8 +1125,8 @@ a.button_slider:hover {
 .graph_contain .drag_zoom .handle{z-index:4;bottom:0;width:5px;height:58px;background-color: #f7f7f7;border: 1px solid #aaa;position:absolute;}
 .graph_contain .drag_zoom .handle#zl{left:0;cursor:w-resize;}
 .graph_contain .drag_zoom .handle#zr{left:5;cursor:e-resize;}
-.graph_contain #graph_settings{position: absolute;cursor:pointer;z-index:10;font-size:18px;color:#aaa;display:block;top:6px;left:10px;background-color: #FFF;border: 1px solid #ddd;border-radius: 2px;padding:3px;-webkit-box-shadow: inset 0px 0px 2px 0px rgba(221,221,221,1);-moz-box-shadow: inset 0px 0px 2px 0px rgba(221,221,221,1);box-shadow: inset 0px 0px 2px 0px rgba(221,221,221,1);}
-.graph_contain .graph_settings{position: absolute;z-index:9;top: 6px;left: 10px;background-color: #fff;-webkit-box-shadow: 0px 0px 3px 2px rgba(221,221,221,1);-moz-box-shadow: 0px 0px 3px 2px rgba(221,221,221,1);box-shadow: 0px 0px 3px 2px rgba(221,221,221,1);}
+.graph_contain #graph_settings{display:none;/**/position: absolute;cursor:pointer;z-index:10;font-size:18px;color:#aaa;display:block;top:6px;left:10px;background-color: #FFF;border: 1px solid #ddd;border-radius: 2px;padding:3px;-webkit-box-shadow: inset 0px 0px 2px 0px rgba(221,221,221,1);-moz-box-shadow: inset 0px 0px 2px 0px rgba(221,221,221,1);box-shadow: inset 0px 0px 2px 0px rgba(221,221,221,1);}
+.graph_contain .graph_settings{display:none;/**/position: absolute;z-index:9;top: 6px;left: 10px;background-color: #fff;-webkit-box-shadow: 0px 0px 3px 2px rgba(221,221,221,1);-moz-box-shadow: 0px 0px 3px 2px rgba(221,221,221,1);box-shadow: 0px 0px 3px 2px rgba(221,221,221,1);}
 .graph_contain .graph_settings .label{background-color: #f7f7f7;border-bottom: 1px solid #ddd;color: #444;padding: 2px 0 1px;margin-bottom: 5px;}
 .graph_contain .graph_settings .row{padding: 5px 20px 0;}
 .graph_contain .graph_settings .indicators a{}

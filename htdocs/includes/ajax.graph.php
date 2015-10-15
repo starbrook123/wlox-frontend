@@ -6,6 +6,7 @@ if ($_REQUEST['action'] == 'more')
 
 include '../lib/common.php';
 
+$action = $_REQUEST['action'];
 if ($action == 'indicators') {
 	if (isset($_REQUEST['sma']) && $_REQUEST['sma'] == 'true')
 		$_SESSION['sma'] = 1;
@@ -23,7 +24,7 @@ if ($action == 'indicators') {
 		$_SESSION['ema1'] = preg_replace("/[^0-9]/", "",$_SESSION['ema1']);
 	if (!empty($_REQUEST['ema2']))
 		$_SESSION['ema2'] = preg_replace("/[^0-9]/", "",$_SESSION['ema2']);
-	
+
 	exit;
 }
 
@@ -32,7 +33,6 @@ $timeframe2 = (!empty($_REQUEST['timeframe1'])) ? preg_replace("/[^0-9a-zA-Z]/",
 $currency1 = (!empty($CFG->currencies[strtoupper($_REQUEST['currency'])])) ? $_REQUEST['currency'] : 'usd';
 $first = (!empty($_REQUEST['first'])) ? preg_replace("/[^0-9]/", "",$_REQUEST['first']) : false;
 $last = (!empty($_REQUEST['last'])) ? preg_replace("/[^0-9]/", "",$_REQUEST['last']) : false;
-$action = $_REQUEST['action'];
 $_SESSION['timeframe'] = $timeframe1;
 
 if ($action != 'more')
