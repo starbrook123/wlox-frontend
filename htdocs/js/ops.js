@@ -1924,13 +1924,11 @@ function localDates() {
 
 function timeSince(elem) {
 	var miliseconds = $(elem).siblings('.time_since_seconds').val();
-	var date = new Date(parseInt(miliseconds)*1000);
-	//var offset = date.getTimezoneOffset() * 60;
-	//var date1 = new Date(parseInt(miliseconds) + (parseInt(offset)*1000));
-	var time_unit;
-	
+	var date1 = new Date(parseInt(miliseconds)*1000);
+	date1 = (date1.getTime() > Date.now()) ? new Date() : date1;
+
 	$(elem).countdown({ 
-	    since: date,
+	    since: date1,
 	    significant: 1,
 	    layout: '{o<}{on} {ol}{o>}{w<}{wn} {wl}{w>}{d<}{dn} {dl}{d>}{h<}{hn} {hl}{h>}{m<}{mn} {ml}{m>}{s<}{sn} {sl}{s>}'
 	});
