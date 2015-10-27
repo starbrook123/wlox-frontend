@@ -924,6 +924,16 @@ function graphControls() {
 			graphDistribution();
 		}
 	});
+	
+	$('#fiat_currency').bind("keyup change", function(){
+		var params = '';
+		if ($('#buy_amount').length > 0)
+			params += '&buy_amount='+$('#buy_amount').val();
+		if ($('#sell_amount').length > 0)
+			params += '&sell_amount='+$('#sell_amount').val();
+		
+		window.location.href = window.location.pathname + '?currency=' + $(this).val() + params;
+	});
 }
 
 function graphFillGaps(json_data,candle_size,candle_amount,start) {
