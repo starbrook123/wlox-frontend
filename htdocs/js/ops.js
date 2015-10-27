@@ -46,7 +46,7 @@ var candle_options = {
 var plot,plot1,timeframe,data_res,data_zoom,data,data_vol,data1,series,series1,axes1,axes1_max,axes1_total,axes_total,p_min_x,p_max_x,p_diff,zl_r,zr_l,min,max,min1,max1,min_y,max_y,bar_width,first_id,last_id,loaded_remaining,data_min,loaded_min,data_loading,last_w,candlestick_options,volume_options,indicators_options;
 function graphPriceHistory() {
 	var currency = $('#graph_price_history_currency').val();
-	timeframe = $('.graph_options a.selected').attr('data-option');
+	timeframe = ($('#graph_time').is('select')) ? $('#graph_time').val() : $('#graph_time a.selected').attr('data-option');
 	$("#graph_candles").append('<div class="tp-loader"></div>');
 	
 	$.getJSON("includes/ajax.graph.php?timeframe="+timeframe+'&timeframe1='+candle_options[timeframe][1]+'&currency='+currency,function(json_data) {
@@ -452,13 +452,13 @@ function graphPriceHistory() {
 			graphLoadNew();
 		},10000);
 		
-		$("#graph_candles").remove('.tp-loader');
+		$("#graph_candles .tp-loader").remove();
 	});
 }
 
 function graphLoadNew(first,callback) {
 	var currency = $('#graph_price_history_currency').val();
-	timeframe = $('.graph_options a.selected').attr('data-option');
+	timeframe = timeframe = ($('#graph_time').is('select')) ? $('#graph_time').val() : $('#graph_time a.selected').attr('data-option');
 	first = (first > 0) ? first : '';
 	last = (first > 0) ? '' : last_id;
 	last_max = data_res[data_res.length - 1][0];
@@ -612,17 +612,26 @@ function graphResize() {
 	}
 }
 
-var last_data = null;
+var plot_o,last_data;
 function graphOrders(json_data) {
-	$("#graph_orders").append('<div class="tp-loader"></div>');
-	var currency = $('#graph_orders_currency').val();
+	if (!plot_o)
+		$("#graph_orders").append('<div class="tp-loader"></div>');
 	
+	var currency = $('#graph_orders_currency').val();
 	if (!json_data) {
 		try {
 			json_data = static_data;
 		}
 		catch (e) {
+			if ($('#ts_order_book').length > 0) {
+				$.getJSON('includes/ajax.graph.php?action=order_book&currency='+currency,function(json_data) {
+					graphOrders(json_data);
+				});
+				return false;
+			}
+			
 			console.log(e);
+			return false;
 		}
 	}
 	
@@ -682,15 +691,14 @@ function graphOrders(json_data) {
     	}
  	];
 	
-	if (plot) {
-		plot.setData(series);
-		plot.setupGrid();
-		plot.draw();
+	if (plot_o) {
+		plot_o.setData(series);
+		plot_o.setupGrid();
+		plot_o.draw();
 		return false;
 	}
 	 
-	plot = $.plot($("#graph_orders"),series,
- 	{
+	plot_o = $.plot($("#graph_orders"),series,{
  		xaxis: {
  			tickLength: 0
  		},
@@ -710,8 +718,8 @@ function graphOrders(json_data) {
  	});
 	
 	var date_options = { year: "numeric", month: "short",day: "numeric" };
-	var axes = plot.getAxes();
-	var dataset = plot.getData();
+	var axes = plot_o.getAxes();
+	var dataset = plot_o.getData();
 	var left_offset = 30;
 	var bottom_offset = 50;
 	var flip;
@@ -720,13 +728,13 @@ function graphOrders(json_data) {
 	var last_type = false;
 	
 	$("#graph_orders").bind("plothover", function (event, pos, item) {
-		plot.unhighlight();
-		
+		plot_o.unhighlight();
+
 		if (pos.x < axes.xaxis.min || pos.x > axes.xaxis.max || pos.y < axes.yaxis.min || pos.y > axes.yaxis.max) {
 			$('#tooltip').css('display','none');
 			return false;
 		}
-		
+
 		updateLegend(pos,axes,dataset,false,function(graph_point,graph_i,graph_j) {
 			var ask = (graph_i == 1);
 			
@@ -777,11 +785,104 @@ function graphOrders(json_data) {
 				$('#tooltip').css('top',(y_pix-bottom_offset)+'px');
 			}
 			
-			plot.highlight(graph_i,graph_j);
+			plot_o.highlight(graph_i,graph_j);
 		});
 	}); 
 	
-	$("#graph_price_history").remove('.tp-loader');
+	$("#graph_orders").remove('.tp-loader');
+}
+
+var plot_d;
+function graphDistribution() {
+	$.getJSON('includes/ajax.graph.php?action=distribution',function(json_data) {
+		var bar_width = 5;
+		if (json_data && json_data.length > 0) {
+			var b_min = json_data[json_data.length - 1][0];
+			var b_max = json_data[0][0];
+			bar_width = (b_max - b_min) / 30; 
+		}
+		
+		var series = [
+      	    {
+          	 data: json_data,
+               bars: { show: true, fill: true, align: 'center', barWidth: bar_width },
+               color: '#00bdbd'
+          	}
+       	];
+		
+		if (plot_d) {
+			plot_d.setData(series);
+			plot_d.setupGrid();
+			plot_d.draw();
+			return false;
+		}
+		
+		plot_d = $.plot($("#graph_distribution"),series,{
+	 		xaxis: {
+	 			tickLength: 0
+	 		},
+	 		yaxis: {
+	 		},
+	 		grid: { 
+	 			backgroundColor: '#FFFFFF',
+	 			borderWidth: 1,
+	 			borderColor: '#aaaaaa',
+	 			hoverable: true
+	 		},
+	 		crosshair: {
+	 			mode:"x",
+	 		    color: "#aaaaaa",
+	 		    lineWidth: 1
+	 		}
+	 	});
+		
+		var axes = plot_d.getAxes();
+		var dataset = plot_d.getData();
+		var left_offset = 30;
+		var bottom_offset = 50;
+		var flip;
+		var max_x;
+		var last_type = false;
+
+		$("#graph_distribution").bind("plothover", function (event, pos, item) {
+			plot_d.unhighlight();
+				
+			if (pos.x < axes.xaxis.min || pos.x > axes.xaxis.max || pos.y < axes.yaxis.min || pos.y > axes.yaxis.max) {
+				$('#tooltip1').css('display','none');
+				return false;
+			}
+		
+			updateLegend(pos,axes,dataset,true,function(graph_point,graph_i) {
+				if (!graph_point || graph_point == 0)
+					return false;
+				
+				$('#tooltip1').css('display','block');
+				$('#tooltip1 .price span').html(formatCurrency(graph_point[0]));
+				$('#tooltip1 .users span').html(graph_point[1]);
+				
+				var x_pix = dataset[graph_i].xaxis.p2c(graph_point[0]);
+				var y_pix = dataset[graph_i].yaxis.p2c(graph_point[1]);
+				max_x = dataset[graph_i].xaxis.p2c(axes.xaxis.max);
+				last_type = graph_i;
+		
+				if ((max_x - x_pix) < $('#tooltip1').width())
+					flip = true;
+				else
+					flip = false;
+				
+				if (!flip) {
+					$('#tooltip1').css('left',(x_pix+left_offset)+'px');
+					$('#tooltip1').css('top',(y_pix-bottom_offset)+'px');
+				}
+				else {
+					$('#tooltip1').css('left',(x_pix-$('#tooltip').width())+'px');
+					$('#tooltip1').css('top',(y_pix-bottom_offset)+'px');
+				}
+				
+				plot_d.highlight(graph_i,graph_j);
+			});
+		});
+	});
 }
 
 function graphControls() {
@@ -792,6 +893,36 @@ function graphControls() {
 		
 		graphPriceHistory($(this).attr('data-option'),currency);
 		return false;
+	});
+	
+	$('#graph_time').bind("keyup change", function(){
+		graphPriceHistory($(this).val(),$('#graph_price_history_currency').val());
+	});
+	
+	$('.graph_tabs a').click(function(e){
+		e.preventDefault();
+		
+		var op = $(this).attr('data-option');
+		$('.graph_contain').css('display','none');
+		$('.graph_tabs a').removeClass('selected');
+		$(this).addClass('selected');
+		
+		if (op == 'timeline') {
+			$('.graph_options').css('display','block');
+			$('#ts_timeline').css('display','block');
+		}
+		else if (op == 'order-book') {
+			$('.graph_options').css('display','none');
+			$('#ts_order_book').css('display','block');
+			
+			if (typeof plot_o == 'undefined')
+				graphOrders();
+		}
+		else if (op == 'distribution') {
+			$('.graph_options').css('display','none');
+			$('#ts_distribution').css('display','block');
+			graphDistribution();
+		}
 	});
 }
 
@@ -1146,7 +1277,7 @@ function updateTransactions() {
 			
 			$.getJSON("includes/ajax.trades.php?currency="+currency+((order_by) ? '&order_by='+order_by : '')+((notrades) ? '&notrades=1' : '')+((open_orders_user) ? '&user=1' : '&last_price=1')+((get_10) ? '&get10=1' : ''),function(json_data) {
 				var depth_chart_data = {bids:[],asks: []}; 
-				if (!notrades && json_data.transactions[0] != null) {
+				if (json_data.transactions[0] != null) {
 					var i = 0;
 					var insert_elem = ('#transactions_list tr:first');
 					$.each(json_data.transactions[0],function(i) {
@@ -1188,7 +1319,6 @@ function updateTransactions() {
 								if (typeof json_data.last_price_cnv == 'object') {
 									for (key1 in json_data.last_price_cnv) {
 										$('.price_'+key1).html(json_data.last_price_cnv[key1]);
-										console.log(key1,this_currency_abbr1);
 										if (key1 == this_currency_abbr1) {
 											if (this.maker_type == 'sell')
 												$('.price_'+key1).parent().removeClass('price-red').addClass('price-green');
@@ -1198,6 +1328,8 @@ function updateTransactions() {
 											
 									}
 								}
+								
+								drawGauges(this);
 							}
 						}
 						
@@ -1208,17 +1340,19 @@ function updateTransactions() {
 						if (this.btc_price > current_max)
 							$('#stats_max').html(formatCurrency(this.btc_price));
 						
-						var elem = $('<tr id="order_'+this.id+'"><td><span class="time_since"></span><input type="hidden" class="time_since_seconds" value="'+this.time_since+'" /></td><td>'+this.btc+' BTC</td><td>' + this_fa_symbol + formatCurrency(this.btc_price) + this_currency_abbr + '</td></tr>').insertAfter(insert_elem);
-						insert_elem = elem;
-						
-						timeSince($(elem).find('.time_since'));
-						$(elem).children('td').effect("highlight",{color:"#A2EEEE"},2000);
-						$('#stats_traded').html(formatCurrency(json_data.btc_traded));
-						
-						var active_transactions = $('#transactions_list tr:not(#no_transactions)').length;
-						if (active_transactions > 5)
-							$('#transactions_list tr:not(#no_transactions):last').remove();
-						
+						if (!notrades) {
+							var elem = $('<tr id="order_'+this.id+'"><td><span class="time_since"></span><input type="hidden" class="time_since_seconds" value="'+this.time_since+'" /></td><td>'+this.btc+' BTC</td><td>' + this_fa_symbol + formatCurrency(this.btc_price) + this_currency_abbr + '</td></tr>').insertAfter(insert_elem);
+							insert_elem = elem;
+							
+							timeSince($(elem).find('.time_since'));
+							$(elem).children('td').effect("highlight",{color:"#A2EEEE"},2000);
+							$('#stats_traded').html(formatCurrency(json_data.btc_traded));
+							
+							var active_transactions = $('#transactions_list tr:not(#no_transactions)').length;
+							if (active_transactions > 5)
+								$('#transactions_list tr:not(#no_transactions):last').remove();
+							
+						}
 						i++;
 					});
 				}
@@ -1252,6 +1386,9 @@ function updateTransactions() {
 							cum_btc += parseFloat(this.btc);
 							depth_chart_data.bids.push([this.btc_price,cum_btc]);
 						}
+						
+						if (index >= 10)
+							return true;
 						
 						var this_currency_id = (parseFloat($('#this_currency_id').val()) > 0 ? $('#this_currency_id').val() : this.currency);
 						var fa_symbol = $('#curr_sym_'+this_currency_id).val();
@@ -1401,6 +1538,9 @@ function updateTransactions() {
 							cum_btc += parseFloat(this.btc);
 							depth_chart_data.asks.push([this.btc_price,cum_btc]);
 						}
+						
+						if (index >= 10)
+							return true;
 						
 						var this_currency_id = (parseFloat($('#this_currency_id').val()) > 0 ? $('#this_currency_id').val() : this.currency);
 						var fa_symbol = $('#curr_sym_'+this_currency_id).val();
@@ -2107,14 +2247,60 @@ function startTicker() {
 	elem.animate({left:'-=50px'},properties);
 }
 
-$(document).ready(function() {
-	if ($("#graph_price_history").length > 0) {
-		var currency = $('#graph_price_history_currency').val();
-		graphPriceHistory();
-		startTicker();
+function drawGauges(update_info) {
+	var m1 = $('#ts_meter_1h');
+	var m24 = $('#ts_meter_24h');
+	
+	if (update_info) {
+		m1.find('.ts_meter_sell span').html(update_info.btc_1h_sell);
+		m1.find('.ts_meter_buy span').html(update_info.btc_1h_buy);
+		m1.find('.ts_meter_total span').html(update_info.btc_1h);
+		m24.find('.ts_meter_sell span').html(update_info.btc_24h_sell);
+		m24.find('.ts_meter_buy span').html(update_info.btc_24h_buy);
+		m24.find('.ts_meter_total span').html(update_info.btc_24h);
 	}
 	
-	if ($("#graph_orders").length > 0) {
+	var m1_s = parseFloat(m1.find('.ts_meter_sell span').text());
+	var m1_b = parseFloat(m1.find('.ts_meter_buy span').text());
+	var m24_s = parseFloat(m24.find('.ts_meter_sell span').text());
+	var m24_b = parseFloat(m24.find('.ts_meter_buy span').text());
+	
+	if (typeof window.m1_m != 'undefined') {
+		window.m1_m.refresh(((m1_s / (m1_s + m1_b)) * 100));
+		window.m24_m.refresh(((m24_s / (m24_s + m24_b)) * 100));
+		return false;
+	}
+	
+	window.m1_m = new JustGage({
+		id: "ts_meter_m1",
+	    value: ((m1_s / (m1_s + m1_b)) * 100),
+	    min: 0,
+	    max: 100,
+	    gaugeColor: "#0DD84D",
+	    levelColors: ["#ff5151"],
+	    hideValue: true
+	});
+	
+	window.m24_m = new JustGage({
+		id: "ts_meter_m24",
+	    value: ((m24_s / (m24_s + m24_b)) * 100),
+	    min: 0,
+	    max: 100,
+	    gaugeColor: "#0DD84D",
+	    levelColors: ["#ff5151"],
+	    hideValue: true
+	});
+}
+
+$(document).ready(function() {
+	if ($(".ticker").length > 0) {
+		drawGauges();
+		var currency = $('#graph_price_history_currency').val();
+		startTicker();
+		graphPriceHistory();
+	}
+	
+	if ($("#graph_orders").length > 0 && $("#graph_orders").is(':visible')) {
 		graphOrders();
 		//var update = setInterval(graphOrders,10000);
 		updateTransactions();

@@ -1114,9 +1114,9 @@ a.button_slider:hover {
 .graph_options #graph_over .g_over{padding: 4px 11px 3px;margin-right:0;float:left;z-index: 2;position: relative;}
 .graph_options #graph_over .g_over b{font-weight:normal;color:#444;margin-right:5px;}
 .graph_options #graph_over .g_over span{margin-right: 10px;}
-#tooltip{padding: 5px 8px;position:absolute;float:left;background-color:#FFF;border:1px solid #cccccc; display:none;-moz-box-shadow: 0px 0px 4px #cccccc;-webkit-box-shadow: 0px 0px 8px #cccccc;box-shadow: 0px 0px 4px #cccccc;-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";-moz-opacity: 0.8;-khtml-opacity: 0.8;opacity: 0.8;}
+#tooltip,#tooltip1{padding: 5px 8px;position:absolute;float:left;background-color:#FFF;border:1px solid #cccccc; display:none;-moz-box-shadow: 0px 0px 4px #cccccc;-webkit-box-shadow: 0px 0px 8px #cccccc;box-shadow: 0px 0px 4px #cccccc;-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";-moz-opacity: 0.8;-khtml-opacity: 0.8;opacity: 0.8;}
 #tooltip .date{font-size:12px;}
-#tooltip .price{color: #00BDBD;font-size: 20px;font-weight: bold;}
+#tooltip .price,#tooltip1 .price{color: #00BDBD;font-size: 20px;font-weight: bold;}
 #tooltip .price.alt{color:#53DB80;}
 .graph_contain .drag_zoom{z-index:2;position:absolute;bottom:0;top:270px;left:0;right:0;background:transparent;}
 .graph_contain .drag_zoom .contain{position:relative;height:60px;}
@@ -4112,6 +4112,40 @@ ul.list_empty.form_buttons {
 #filters_area{
 	position:relative;
 }
+
+.ts_head{position: relative;clear: both;padding: 15px 0;}
+.ts_head .ts_title{color:#444;position: relative;z-index: 2;float: left;font-family: "Roboto",sans-serif;text-transform:uppercase;font-size: 18px;font-weight: 300;padding: 6px 30px 5px 0;background-color:#FFF;}
+.ts_head .ts_selectors{position: relative;z-index: 2;float: left;background-color:#FFF;}
+.ts_head .ts_selectors li{margin-bottom:0;}
+.ts_head .ts_ticker{z-index:1;bottom:9px;}
+.ts_head .ts_ticker a{color:#727272;}
+.ts_head .ts_ticker a .abbr{color:#444;}
+.ts_stats{text-align: center;margin-bottom: 0 !important;}
+.ts_meters{margin-bottom:15px;}
+.ts_meters .ts_meter{float: left;width: 50%;text-align: center;}
+.ts_meters .ts_meter .ts_meter_t{font-family: "Roboto",sans-serif;color: #444;font-size:15px;padding: 0 5px 5px;border-bottom: 1px solid #ddd;}
+.ts_meters .ts_meter .ts_meter_m{height: 90px;}
+.ts_meters .ts_meter .ts_row{margin: auto;text-align: left;font-size: 14px;padding: 2px 12px 0;}
+.ts_meters .ts_meter .ts_row span{font-weight: bold;float: right;}
+.ts_cryptos{margin-bottom:15px;}
+.ts_cryptos tr{}
+.ts_cryptos tr th{}
+.ts_cryptos tr td{font-size: 14px;vertical-align: middle;}
+.ts_cryptos tr td .ts_placeholder{background-color: #ddd;float: right;height: 30px;width: 30px;display: inline-block;margin: -4px 0;}
+.ts_graphs{margin-bottom:15px;}
+.ts_graphs #graph_candles{height:190px;}
+.ts_graphs #graph_price_history{height:40px;}
+.ts_graphs #graph_orders, .ts_graphs #graph_distribution{height: 263px;float: none;}
+.ts_graphs .graph_contain .drag_zoom{height:40px;top: 190px;}
+.ts_graphs .graph_contain .drag_zoom .handle{height:39px;}
+.ts_graphs .graph_contain .drag_zoom .contain{height:41px;}
+.ts_graphs .graph_contain .clear_300{margin-top:170px;}
+.ts_graphs .graph_options label{float: left;font-size: 16px;left: 5px;margin-right: -14px;position: relative;top: 3px;z-index:2;}
+.ts_graphs .graph_options #graph_time{float: left;background-color: #fff;border: 1px solid #aaa;color: #727272;font-family: "Open Sans",sans-serif;padding:3px 5px 3px 17px;position: relative;z-index:1;}
+.ts_graphs #ts_order_book, .ts_graphs #ts_distribution{display:none;}
+.ts_graphs .graph_tabs{}
+.ts_graphs .graph_tabs .ts_view{float:left;font-size: 14px;padding: 5px 10px;color: #727272;}
+.ts_graphs .graph_tabs .ts_view.selected{border:1px solid #ccc;border-top-left-radius:3px;border-top-right-radius:3px;-webkit-box-shadow: inset 0px 0px 2px 0px rgba(221,221,221,1);-moz-box-shadow: inset 0px 0px 2px 0px rgba(221,221,221,1);box-shadow: inset 0px 0px 2px 0px rgba(221,221,221,1);}
 
 /* pricing tables */
 .pricing-tables-main {

@@ -100,12 +100,14 @@
 <!-- main js -->
 <script type="text/javascript" src="js/ops.js?v=20151015"></script>
 
-<? if ($CFG->self == 'index.php' || $CFG->self == 'order-book.php' || $CFG->self == 'btc_to_currency.php' || $CFG->self == 'buy-sell.php') { ?>
+<? if ($CFG->self == 'index.php' || $CFG->self == 'order-book.php' || $CFG->self == 'btc_to_currency.php' || $CFG->self == 'buy-sell.php' || $CFG->self == 'edit-order.php') { ?>
 <!-- flot -->
 <script type="text/javascript" src="js/flot/jquery.flot.js"></script>
 <script type="text/javascript" src="js/flot/jquery.flot.time.js"></script>
 <script type="text/javascript" src="js/flot/jquery.flot.crosshairs.js"></script>
 <script type="text/javascript" src="js/flot/jquery.flot.candle.js"></script>
+<script type="text/javascript" src="js/raphael.js"></script>
+<script type="text/javascript" src="js/justgage.js"></script>
 <? } ?>
 
 <? if ($CFG->self == 'security.php') { ?>

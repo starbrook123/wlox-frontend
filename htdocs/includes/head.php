@@ -7,7 +7,9 @@
 
 <head>
 	<title><?= $page_title ?></title>
+	<? if ($CFG->self != 'buy-sell.php' && $CFG->self != 'edit-order.php') { ?>
 	<base href="<?= $CFG->baseurl ?>" />
+	<? } ?>
 	
 	<meta charset="utf-8">
 	<meta name="keywords" content="" />

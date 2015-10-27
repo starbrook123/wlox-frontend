@@ -57,7 +57,7 @@ $news = $query['News']['get']['results'][0];
 if ($stats['daily_change'] > 0)
 	$arrow = '<i id="up_or_down" class="fa fa-caret-up price-green"></i> ';
 elseif ($stats['daily_change'] < 0)
-$arrow = '<i id="up_or_down" class="fa fa-caret-down price-red"></i> ';
+	$arrow = '<i id="up_or_down" class="fa fa-caret-down price-red"></i> ';
 else
 	$arrow = '<i id="up_or_down" class="fa fa-minus"></i> ';
 
@@ -103,7 +103,7 @@ if (!User::isLoggedIn()) {
 				<?
 				if ($currencies) {
 					foreach ($currencies as $key => $currency) {
-						if (is_numeric($key) || $currency['currency'] == 'BTC')
+						if (is_numeric($key) || $currency['is_crypto'] == 'Y')
 							continue;
 				
 						$last_price = number_format($stats['last_price'] * ((empty($currency_info) || $currency_info['currency'] == 'USD') ? 1/$currency[$usd_field] : $currency_info[$usd_field] / $currency[$usd_field]),2);
@@ -182,7 +182,7 @@ if (!User::isLoggedIn()) {
 	        <? 
 	        if ($currencies) {
 				foreach ($currencies as $key => $currency) {
-					if (is_numeric($key) || $currency['currency'] == 'BTC')
+					if (is_numeric($key) || $currency['is_crypto'] == 'Y')
 						continue;
 						
 					$last_price = number_format($stats['last_price'] * ((empty($currency_info) || $currency_info['currency'] == 'USD') ? 1/$currency[$usd_field] : $currency_info[$usd_field] / $currency[$usd_field]),2);
