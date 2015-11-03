@@ -1299,7 +1299,7 @@ function updateTransactions() {
 						var this_fa_symbol = $('#curr_sym_'+currency_id).val();
 						
 						if (i == 0) {
-							current_price = parseFloat(this.btc_price.replace(',',''));
+							current_price = (typeof this.btc_price == 'string') ? parseFloat(this.btc_price.replace(',','')) : this.btc_price;
 							if (current_price > 0) {
 								if (this.maker_type == 'sell') {
 									$('#stats_last_price').parents('.stat1').removeClass('price-red').addClass('price-green');
@@ -1371,7 +1371,7 @@ function updateTransactions() {
 				}
 				
 				$.each($('.bid_tr'),function(index) {
-					if (index >= 30)
+					if (!index || index >= 30)
 						return false;
 					
 					var elem = this;
@@ -1391,7 +1391,7 @@ function updateTransactions() {
 				});
 				if (json_data.bids[0] != null) {
 					var cum_btc = 0;
-					$.each(json_data.bids[0],function() {
+					$.each(json_data.bids[0],function(index) {
 						if (this.btc && this.btc > 0) {
 							cum_btc += parseFloat(this.btc);
 							depth_chart_data.bids.push([this.btc_price,cum_btc]);
@@ -1406,8 +1406,8 @@ function updateTransactions() {
 						
 						var this_bid = $('#bid_'+this.id);
 						if (this_bid.length > 0) {
-							$(this_bid).find('.order_amount').html(this.btc);
-							$('#bid_'+this.id+'.double').find('.order_amount').html(this.btc);
+							$(this_bid).find('.order_amount').html(formatCurrency(this.btc,true));
+							$('#bid_'+this.id+'.double').find('.order_amount').html(formatCurrency(this.btc,true));
 							$(this_bid).find('.order_price').html(formatCurrency((this.btc_price > 0) ? this.btc_price : this.stop_price));
 							$('#bid_'+this.id+'.double').find('.order_price').html(formatCurrency(this.stop_price));
 							if (notrades) {
@@ -1522,7 +1522,7 @@ function updateTransactions() {
 				}
 	
 				$.each($('.ask_tr'),function(index) {
-					if (index >= 30)
+					if (!index || index >= 30)
 						return false;
 					
 					var elem = this;
@@ -1543,7 +1543,7 @@ function updateTransactions() {
 				
 				if (json_data.asks[0] != null) {
 					var cum_btc = 0;
-					$.each(json_data.asks[0],function() {
+					$.each(json_data.asks[0],function(index) {
 						if (this.btc && this.btc > 0) {
 							cum_btc += parseFloat(this.btc);
 							depth_chart_data.asks.push([this.btc_price,cum_btc]);
@@ -1558,8 +1558,8 @@ function updateTransactions() {
 						
 						var this_ask = $('#ask_'+this.id);
 						if (this_ask.length > 0) {
-							$(this_ask).find('.order_amount').html(this.btc);
-							$('#ask_'+this.id+'.double').find('.order_amount').html(this.btc);
+							$(this_ask).find('.order_amount').html(formatCurrency(this.btc,true));
+							$('#ask_'+this.id+'.double').find('.order_amount').html(formatCurrency(this.btc,true));
 							$(this_ask).find('.order_price').html(formatCurrency((this.btc_price > 0) ? this.btc_price : this.stop_price));
 							$('#ask_'+this.id+'.double').find('.order_price').html(formatCurrency(this.stop_price));
 							if (notrades) {

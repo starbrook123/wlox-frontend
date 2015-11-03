@@ -264,7 +264,7 @@ if (!$bypass) {
 							continue;
 				
 						$last_price = number_format($stats['last_price'] * ((empty($currency_info) || $currency_info['currency'] == 'USD') ? 1/$currency[$usd_field] : $currency_info[$usd_field] / $currency[$usd_field]),2);
-						echo '<a class="'.(($currency_info['id'] == $currency['id']) ? $p_color.' selected' : '').'" href="'.$CFG->self.'.php?currency='.strtolower($currency['currency']).'"><span class="abbr">'.$currency['currency'].'</span> <span class="price_'.$currency['currency'].'">'.$last_price.'</span></a>';
+						echo '<a class="'.(($currency_info['id'] == $currency['id']) ? $p_color.' selected' : '').'" href="'.$CFG->self.'?currency='.strtolower($currency['currency']).'"><span class="abbr">'.$currency['currency'].'</span> <span class="price_'.$currency['currency'].'">'.$last_price.'</span></a>';
 					}
 				}
 				?>
@@ -316,7 +316,7 @@ if (!$bypass) {
 	        <div class="clear"></div>
 		</div>
 	</div>
-	<? include 'includes/sidebar_account.php'; ?>
+	<? include 'includes/sidebar_ts.php'; ?>
 	<div class="content_right">
 		<? Errors::display(); ?>
 		<div class="ts_graphs">
@@ -439,17 +439,17 @@ if (!$bypass) {
 							</div>
 							<div class="param lessbottom">
 								<input class="checkbox" name="buy_market_price" id="buy_market_price" type="checkbox" value="1" <?= ($buy_market_price1 && !$buy_stop) ? 'checked="checked"' : '' ?> <?= (!$asks) ? 'readonly="readonly"' : '' ?> />
-								<label for="buy_market_price"><?= Lang::string('buy-market-price') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href="how-to-register.php"><i class="fa fa-question-circle"></i></a></label>
+								<label for="buy_market_price"><?= Lang::string('buy-market-price') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href="help.php"><i class="fa fa-help.phpion-circle"></i></a></label>
 								<div class="clear"></div>
 							</div>
 							<div class="param lessbottom">
 								<input class="checkbox" name="buy_limit" id="buy_limit" type="checkbox" value="1" <?= ($buy_limit && !$buy_market_price1) ? 'checked="checked"' : '' ?> />
-								<label for="buy_limit"><?= Lang::string('buy-limit') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href="how-to-register.php"><i class="fa fa-question-circle"></i></a></label>
+								<label for="buy_limit"><?= Lang::string('buy-limit') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href="help.php"><i class="fa fa-question-circle"></i></a></label>
 								<div class="clear"></div>
 							</div>
 							<div class="param lessbottom">
 								<input class="checkbox" name="buy_stop" id="buy_stop" type="checkbox" value="1" <?= ($buy_stop && !$buy_market_price1) ? 'checked="checked"' : '' ?> />
-								<label for="buy_stop"><?= Lang::string('buy-stop') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href="how-to-register.php"><i class="fa fa-question-circle"></i></a></label>
+								<label for="buy_stop"><?= Lang::string('buy-stop') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href="help.php"><i class="fa fa-question-circle"></i></a></label>
 								<div class="clear"></div>
 							</div>
 							<div id="buy_price_container" class="param" <?= (!$buy_limit && !$buy_market_price1) ? 'style="display:none;"' : '' ?>>
@@ -531,17 +531,17 @@ if (!$bypass) {
 							</div>
 							<div class="param lessbottom">
 								<input class="checkbox" name="sell_market_price" id="sell_market_price" type="checkbox" value="1" <?= ($sell_market_price1 && !$sell_stop) ? 'checked="checked"' : '' ?> <?= (!$bids) ? 'readonly="readonly"' : '' ?> />
-								<label for="sell_market_price"><?= Lang::string('sell-market-price') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href="how-to-register.php"><i class="fa fa-question-circle"></i></a></label>
+								<label for="sell_market_price"><?= Lang::string('sell-market-price') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href="help.php"><i class="fa fa-question-circle"></i></a></label>
 								<div class="clear"></div>
 							</div>
 							<div class="param lessbottom">
 								<input class="checkbox" name="sell_limit" id="sell_limit" type="checkbox" value="1" <?= ($sell_limit && !$sell_market_price1) ? 'checked="checked"' : '' ?> />
-								<label for="sell_stop"><?= Lang::string('buy-limit') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href="how-to-register.php"><i class="fa fa-question-circle"></i></a></label>
+								<label for="sell_stop"><?= Lang::string('buy-limit') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href="help.php"><i class="fa fa-question-circle"></i></a></label>
 								<div class="clear"></div>
 							</div>
 							<div class="param lessbottom">
 								<input class="checkbox" name="sell_stop" id="sell_stop" type="checkbox" value="1" <?= ($sell_stop && !$sell_market_price1) ? 'checked="checked"' : '' ?> />
-								<label for="sell_stop"><?= Lang::string('buy-stop') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href="how-to-register.php"><i class="fa fa-question-circle"></i></a></label>
+								<label for="sell_stop"><?= Lang::string('buy-stop') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href="help.php"><i class="fa fa-question-circle"></i></a></label>
 								<div class="clear"></div>
 							</div>
 							<div id="sell_price_container" class="param" <?= (!$sell_limit && !$sell_market_price1) ? 'style="display:none;"' : '' ?>>
