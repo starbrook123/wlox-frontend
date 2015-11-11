@@ -98,7 +98,7 @@
 <script type="text/javascript" src="js/universal/jquery-ui-1.10.3.custom.min.js"></script>
 
 <!-- main js -->
-<script type="text/javascript" src="js/ops.js?v=20151015"></script>
+<script type="text/javascript" src="js/ops.js?v=20151111"></script>
 
 <? if ($CFG->self == 'index.php' || $CFG->self == 'order-book.php' || $CFG->self == 'btc_to_currency.php' || $CFG->self == 'buy-sell.php' || $CFG->self == 'edit-order.php') { ?>
 <!-- flot -->

@@ -4020,6 +4020,8 @@ h3 .highlight{
 .trades td{padding: 10px;color: #383634;}
 .trades td a{color:#727272;margin-right: 6px;}
 .trades td a:hover{color: #007F99;}
+.trades td a.click{color:#383634;margin-right:0;text-decoration:underline;}
+.trades td a.click:hover{color: #007F99;}
 .trades td .identify{color:#FFFFFF;font-weight:bold;margin: -9px;height: 31px;position: relative;padding-top: 8px;font-size:15px;}
 .trades td .identify.market_order{background-color:#EFE62F;}
 .trades td .identify.limit_order{background-color:#FF8282;}
@@ -4031,6 +4033,7 @@ h3 .highlight{
 .trades td.api-label{text-decoration: underline;color:#727272;font-weight: 700;}
 .trades td.api-label.first{color:#FFF;background-color:#aaaaaa;}
 .trades tr.blink td{background-color:#A2EEEE;}
+.blink {background-color:#A2EEEE !important;}
 ul.list_empty {
 	float: left;
 	padding: 0px;

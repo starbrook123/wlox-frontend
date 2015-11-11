@@ -583,6 +583,33 @@ function graphSettings() {
 	});
 }
 
+function graphClickAdd() {
+	$('#bids_list .order_price').click(function(e){
+		$('#sell_price').val($(this).text());
+		blink('#sell_price');
+		$("html, body").animate({ scrollTop: $('.testimonials-4').offset().top }, 500);
+		e.preventDefault();
+	});
+	$('#bids_list .order_amount').click(function(e){
+		$('#sell_amount').val($(this).text());
+		blink('#sell_amount');
+		$("html, body").animate({ scrollTop: $('.testimonials-4').offset().top }, 500);
+		e.preventDefault();
+	});
+	$('#asks_list .order_price').click(function(e){
+		$('#buy_price').val($(this).text());
+		blink('#buy_price');
+		$("html, body").animate({ scrollTop: $('.testimonials-4').offset().top }, 500);
+		e.preventDefault();
+	});
+	$('#asks_list .order_amount').click(function(e){
+		$('#buy_amount').val($(this).text());
+		blink('#buy_amount');
+		$("html, body").animate({ scrollTop: $('.testimonials-4').offset().top }, 500);
+		e.preventDefault();
+	});
+}
+
 function graphResize() {
 	if (plot) {
 		plot.resize();
@@ -2196,18 +2223,21 @@ function sortTable(elem_selector,col_num,desc,col_name){
 	});
 }
 
-function blink() {
-	if (!($('.blink').length > 0))
+function blink(selector) {
+	var selector = (!selector) ? '.blink' : selector;
+	if (!($(selector).length > 0))
 		return false;
 	
 	var i = 0;
 	var on = false;
-	var elems = $('.blink');
+	var elems = $(selector);
 	var blink = setInterval(function(){
 		$(elems).toggleClass('blink');
 
-		if (i > 15 && !on) 
+		if (i > 5 && !on) {
 			clearInterval(blink);
+			$(elems).removeClass('blink');
+		}
 		i++;
 		on = (!on);
 	},300);
@@ -2308,6 +2338,10 @@ $(document).ready(function() {
 		var currency = $('#graph_price_history_currency').val();
 		startTicker();
 		graphPriceHistory();
+		graphClickAdd();
+	}
+	else if ($('#ts_meter_1h').length > 0) {
+		drawGauges();
 	}
 	
 	if ($("#graph_orders").length > 0 && $("#graph_orders").is(':visible')) {
