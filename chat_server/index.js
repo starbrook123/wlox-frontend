@@ -1,7 +1,7 @@
 // Setup basic express server
 var express = require('express');
 var app = express();
-var server = require('http').createServer(app);
+var server = require('https').createServer(app);
 var io = require('socket.io')(server);
 var Datastore = require('nedb');
 var db = new Datastore({ filename: './chat.db',autoload:true });
