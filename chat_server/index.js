@@ -6,7 +6,7 @@ var io = require('socket.io')(server);
 var Datastore = require('nedb');
 var db = new Datastore({ filename: './chat.db',autoload:true });
 db.persistence.setAutocompactionInterval(60000);
-var port = process.env.PORT || 3000;
+var port = 2053;
 
 server.listen(port, function () {
   console.log('Server listening at port %d', port);

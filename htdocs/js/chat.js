@@ -23,7 +23,7 @@ $(document).ready(function() {
 	  var lastTypingTime;
 	  var $currentInput = $usernameInput.focus();
 	
-	  var socket = io('https://1ex.trade:3000');
+	  var socket = io($('base').attr('href') + ':2053');
 	
 	  function addParticipantsMessage (data) {
 		  $('#num_online').html(data.numUsers);
