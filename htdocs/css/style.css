@@ -4856,6 +4856,7 @@ a.knowmore_but:hover {
     text-indent:-9999px;
     background: url(../images/scroll-top-arrow.png) no-repeat left top;
 	z-index: 999;
+	display:none;
 }
 
 
@@ -4993,4 +4994,137 @@ body{font:12px/28px ;}
 }
 .repeat-line.o10 {
 	top:260px;
+}
+
+#chat-frame {
+	background-color: transparent;
+    bottom: 10px;
+    position: fixed;
+    right: 10px;
+    width:250px;
+    z-index: 1000;
+	height:222px;
+	border: 1px solid #aaa;
+	overflow: hidden;
+}
+#chat-frame .chat-head{
+	background-color: #00bdbd;
+    color: #fff;
+	padding: 2px 10px;
+    height: 22px;
+}
+#chat-frame .chat-head .chat-control{
+	float: right;
+    margin-left: 7px;
+    display: inline-block;
+    margin-top: 4px;
+    margin-bottom: -4px;
+	color:#ddd;
+}
+#chat-frame .chat-head .chat-control:hover{
+	color:#fff;
+}
+#chat-frame .contain {
+  height: 196px;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+#chat-frame ul {
+  list-style: none;
+  word-wrap: break-word;
+}
+#chat-frame .pages {
+   margin: 0;
+    padding: 0;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+#chat-frame .page {
+  	position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+}
+#chat-frame .login.page {
+  display:none;
+}
+#chat-frame .login.page .form {
+  height: 100px;
+  margin-top: -100px;
+  position: absolute;
+  text-align: center;
+  top: 50%;
+  width: 100%;
+}
+#chat-frame .login.page .form .usernameInput {
+  background-color: transparent;
+  border: none;
+  border-bottom: 2px solid #fff;
+  outline: none;
+  padding-bottom: 15px;
+  text-align: center;
+  width: 400px;
+}
+#chat-frame .login.page .title {
+  font-size: 200%;
+}
+#chat-frame .login.page .usernameInput {
+  font-size: 200%;
+  letter-spacing: 3px;
+}
+#chat-frame .login.page .title, .login.page .usernameInput {
+  color: #fff;
+  font-weight: 100;
+}
+#chat-frame .log {
+	color: gray;
+	font-size: 70%;
+	margin: 5px;
+	text-align: center;
+}
+#chat-frame .chatArea {
+	position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+#chat-frame .chat_messages {
+  	position: absolute;
+    top: 0;
+    bottom: 35px;
+    left: 0;
+    right: 0;
+	overflow-y: scroll;
+	background-color:#FFF;
+	padding: 10px;
+}
+#chat-frame .message.typing .messageBody {
+  color: gray;
+}
+#chat-frame .username {
+  float: left;
+  font-weight: 700;
+  overflow: hidden;
+  padding-right: 15px;
+  text-align: right;
+}
+#chat-frame .inputMessage {
+  border-top:1px solid #aaa;
+  border-right:none;
+	border-left:none;
+	border-bottom:none;
+  bottom: 0;
+  height:32px;
+  left: 0;
+  outline: none;
+  padding-left: 10px;
+  position: absolute;
+  right: 0;
+  width:239px;
 }

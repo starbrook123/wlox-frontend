@@ -27,6 +27,9 @@ if ($action == 'indicators') {
 
 	exit;
 }
+else if ($action == 'chat_setting') {
+	$_SESSION['chat_height'] = $_REQUEST['height'];
+}
 else if ($action == 'distribution') {
 	API::add('User','getDistribution');
 	$query = API::send();

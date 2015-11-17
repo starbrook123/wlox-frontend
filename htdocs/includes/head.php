@@ -32,7 +32,7 @@
 	<![endif]-->
     
     <!-- ######### CSS STYLES ######### -->
-	<link rel="stylesheet" href="css/style.css?v=20151111" type="text/css" />
+	<link rel="stylesheet" href="css/style.css?v=20151116" type="text/css" />
     
     <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
     
@@ -95,6 +95,7 @@
 <input type="hidden" id="your_order" value="<?= Lang::string('home-your-order') ?>" />
 <input type="hidden" id="order-cancel-all-conf" value="<?= Lang::string('order-cancel-all-conf') ?>" />
 <input type="hidden" id="this_currency_id" value="<?= (!empty($currency_info)) ? $currency_info['id'] : 0 ?>" />
+<input type="hidden" id="chat_handle" value="<?= (User::isLoggedIn()) ? User::$info['chat_handle'] : 'not-logged-in' ?>" />
 <?= Lang::url(false,false,1); ?>
 <?= Lang::jsCurrencies(false,false,1); ?>
 

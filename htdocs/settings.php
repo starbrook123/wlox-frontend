@@ -73,6 +73,7 @@ if (!empty($_REQUEST['settings'])) {
 	//$_REQUEST['settings']['last_name'] = preg_replace("/[^\pL a-zA-Z0-9@\._-\s]/u", "",$_REQUEST['settings']['last_name']);
 	//$_REQUEST['settings']['country'] = preg_replace("/[^0-9]/", "",$_REQUEST['settings']['country']);
 	$_REQUEST['settings']['email'] = preg_replace("/[^0-9a-zA-Z@\.\!#\$%\&\*+_\~\?\-]/", "",$_REQUEST['settings']['email']);
+	$_REQUEST['settings']['chat_handle'] = preg_replace("/[^\pL a-zA-Z0-9@\s\._-]/u", "",$_REQUEST['settings']['chat_handle']);
 }
 
 $personal = new Form('settings',false,false,'form1','site_users');
@@ -426,6 +427,7 @@ include 'includes/head.php';
                 //$personal->textInput('last_name',Lang::string('settings-last-name'));
                 //$personal->selectInput('country',Lang::string('settings-country'),false,false,$countries,false,array('name'));
                 $personal->textInput('email',Lang::string('settings-email'),'email');
+                $personal->textInput('chat_handle',Lang::string('chat-handle'));
                 $personal->selectInput('default_currency',Lang::string('default-currency'),0,$CFG->currencies['USD']['id'],$cur_sel,false,array('currency'));
                 $personal->HTML('<div class="form_button"><input type="submit" name="submit" value="'.Lang::string('settings-save-info').'" class="but_user" /></div><input type="hidden" name="submitted" value="1" />');
                 $personal->hiddenInput('uniq',1,$_SESSION["settings_uniq"]);
