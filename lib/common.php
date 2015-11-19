@@ -41,6 +41,7 @@ ini_set('expose_php','off');
 header('X-Frame-Options: SAMEORIGIN');
 header('X-XSS-Protection: 1; mode=block');
 header('X-Powered-By: WLOX');
+header('Access-Control-Allow-Origin: https://1ex.trade:2053');
 
 /* Readonly Sessions */
 if (empty($ajax)) {
