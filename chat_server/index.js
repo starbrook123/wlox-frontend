@@ -7,7 +7,6 @@ var Datastore = require('nedb');
 var db = new Datastore({ filename: './chat.db',autoload:true });
 db.persistence.setAutocompactionInterval(60000);
 var port = 8080;
-
 io.set('origins', '*');
 
 server.listen(port, function () {

@@ -24,7 +24,7 @@ $(document).ready(function() {
 	  var $currentInput = $usernameInput.focus();
 	  var url = $('#chat_baseurl').val();
 	  var socket = io(url.substr(0,url.length - 1) + ':8080');
-	  
+
 	  function addParticipantsMessage (data) {
 		  $('#num_online').html(data.numUsers);
 	  }
