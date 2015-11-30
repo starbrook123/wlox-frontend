@@ -16,6 +16,8 @@ server.listen(port, function () {
 });
 app.use(cors());
 app.use(express.static(__dirname + '/public'));
+app.get('*',{origin:'*'}, function(req, res, next){});
+
 
 // Chatroom
 
