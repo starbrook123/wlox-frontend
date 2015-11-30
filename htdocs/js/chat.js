@@ -22,8 +22,7 @@ $(document).ready(function() {
 	  var typing = false;
 	  var lastTypingTime;
 	  var $currentInput = $usernameInput.focus();
-	  
-	  var url = $('base').attr('href');
+	  var url = $('#chat_baseurl').val();
 	  var socket = io(url.substr(0,url.length - 1) + ':2053');
 
 	  function addParticipantsMessage (data) {
