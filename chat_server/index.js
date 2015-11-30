@@ -1,12 +1,13 @@
 // Setup basic express server
 var express = require('express');
 var app = express();
-var server = require('http').createServer(app);
+var server = require('https').createServer(app);
 var io = require('socket.io')(server);
 var Datastore = require('nedb');
 var db = new Datastore({ filename: './chat.db',autoload:true });
 db.persistence.setAutocompactionInterval(60000);
-var port = 8080;
+var port = 2053;
+
 io.set('origins', '*');
 
 server.listen(port, function () {
