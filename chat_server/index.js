@@ -14,9 +14,9 @@ var port = 2053;
 server.listen(port, function () {
   console.log('Server listening at port %d', port);
 });
-app.use(cors());
+
 app.use(express.static(__dirname + '/public'));
-app.get('*',{origin:'*'}, function(req, res, next){});
+app.get('*',cors({origin:'*'}), function(req, res, next){});
 
 
 // Chatroom
