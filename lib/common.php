@@ -38,9 +38,10 @@ if (!empty($_SERVER["HTTPS"]))
 ini_set('session.cookie_httponly',1);
 ini_set('session.cookie_path','/');
 ini_set('expose_php','off');
-header('X-Frame-Options: SAMEORIGIN');
-header('X-XSS-Protection: 1; mode=block');
+//header('X-Frame-Options: SAMEORIGIN');
+//header('X-XSS-Protection: 1; mode=block');
 header('X-Powered-By: WLOX');
+header('Access-Control-Allow-Origin: '.$CFG->chat_baseurl);
 
 /* Readonly Sessions */
 if (empty($ajax)) {
