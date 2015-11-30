@@ -41,6 +41,7 @@ ini_set('expose_php','off');
 //header('X-Frame-Options: SAMEORIGIN');
 //header('X-XSS-Protection: 1; mode=block');
 header('X-Powered-By: WLOX');
+header('Access-Control-Allow-Origin: *');
 
 /* Readonly Sessions */
 if (empty($ajax)) {
@@ -67,7 +68,6 @@ API::add('Currencies','get');
 API::add('User','verifyLogin');
 API::add('Settings','get');
 $query = API::send();
-header('Access-Control-Allow-Origin: '.$CFG->chat_baseurl);
 
 if (empty($ajax))
 	API::apiUpdateNonce();
