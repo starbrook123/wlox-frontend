@@ -1,20 +1,20 @@
 // Setup basic express server
 var express = require('express');
 var app = express();
+var cors = require('cors');
 var server = require('https').createServer(app);
 var io = require('socket.io')(server);
+io.origins('*');
 var Datastore = require('nedb');
 var db = new Datastore({ filename: './chat.db',autoload:true });
 db.persistence.setAutocompactionInterval(60000);
 var port = 2053;
 
-io.set('origins', '*');
 
 server.listen(port, function () {
   console.log('Server listening at port %d', port);
 });
-
-// Routing
+app.use(cors());
 app.use(express.static(__dirname + '/public'));
 
 // Chatroom
