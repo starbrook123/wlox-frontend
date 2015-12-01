@@ -9,6 +9,8 @@ $(document).ready(function() {
 	  ];
 	
 	  // Initialize varibles
+	  var websocket = false;
+	  var lastId = 0;
 	  var $window = $('#chat-frame');
 	  var $usernameInput = $('.usernameInput'); // Input for username
 	  var $messages = $('.chat_messages'); // Messages area
@@ -23,9 +25,10 @@ $(document).ready(function() {
 	  var lastTypingTime;
 	  var $currentInput = $usernameInput.focus();
 	  var url = $('#chat_baseurl').val();
-	  var socket = io(url);
+	  var socket = io(url,{'reconnectionAttempts': 3});
 
 	  function addParticipantsMessage (data) {
+		  console.log(data);
 		  $('#num_online').html(data.numUsers);
 	  }
 	
@@ -39,7 +42,10 @@ $(document).ready(function() {
 	      $currentInput = $inputMessage.focus();
 	
 	      // Tell the server your username
-	      socket.emit('add user', username);
+	      if (websocket)
+	    	  socket.emit('add user', username);
+	      else
+	    	  fallbackRead();
 	    }
 	  }
 	
@@ -59,7 +65,21 @@ $(document).ready(function() {
 	        message: message
 	      });
 	      // tell server to execute 'new message' and send along one parameter
-	      socket.emit('new message', message);
+	      if (websocket)
+	    	  socket.emit('new message', message);
+	      else {
+	    	  var post = {message:message,action:'new'};
+	    	  $.post("includes/ajax.chat.php",post,function(data){
+	    		  if (!data)
+	    			  return false;
+	    		  
+	    		  var parsed = JSON.parse(data);
+	    		  if (parsed.lastId)
+	    			  lastId = parsed.lastId;
+	    		  else
+	    			  connected = false;
+	    	  });
+	      }
 	    }
 	  }
 	
@@ -182,6 +202,36 @@ $(document).ready(function() {
 	    var index = Math.abs(hash % COLORS.length);
 	    return COLORS[index];
 	  }
+	  
+	  // if fallback to ajax
+	  function fallbackRead() {
+		  if (websocket)
+			  return false;
+		  
+		  var post = {action:'read',last_id:lastId};
+		  $.post("includes/ajax.chat.php",post,function(data){
+			  connected = true;
+			  if (!data)
+				  return false;
+			  
+			  var parsed = JSON.parse(data);
+			  if (!parsed)
+				  return false;
+				  
+			  if (parsed.numUsers)
+				  addParticipantsMessage(parsed);
+			  if (parsed.lastId)
+				  lastId = parsed.lastId;
+			  
+			  if (!parsed.messages)
+				  return false;
+			  
+			  parsed.messages.reverse();
+			  for (i in parsed.messages) {
+				  addChatMessage(parsed.messages[i]);
+			  }
+		  });
+	  }
 	
 	  // Keyboard events
 	
@@ -248,6 +298,7 @@ $(document).ready(function() {
 	  // Whenever the server emits 'login', log the login message
 	  socket.on('login', function (data) {
 	    connected = true;
+	    websocket = true;
 	    // Display the welcome message
 	    var message = "Welcome to Chat – ";
 	    log(message, {
@@ -284,6 +335,9 @@ $(document).ready(function() {
 	    removeChatTyping(data);
 	  });
 	  
+	  setInterval(function(){
+		  fallbackRead();
+	  },3000);
 	  
 	  // start
 	  setUsername();

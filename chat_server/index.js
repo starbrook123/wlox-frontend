@@ -2,13 +2,13 @@
 var express = require('express');
 var app = express();
 var cors = require('cors');
-var server = require('https').createServer(app);
+var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 io.origins('*');
 var Datastore = require('nedb');
 var db = new Datastore({ filename: './chat.db',autoload:true });
 db.persistence.setAutocompactionInterval(60000);
-var port = 2053;
+var port = 3000;
 
 
 server.listen(port, function () {
