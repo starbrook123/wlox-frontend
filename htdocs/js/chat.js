@@ -28,7 +28,6 @@ $(document).ready(function() {
 	  var socket = io(url,{'reconnectionAttempts': 3});
 
 	  function addParticipantsMessage (data) {
-		  console.log(data);
 		  $('#num_online').html(data.numUsers);
 	  }
 	
@@ -68,17 +67,19 @@ $(document).ready(function() {
 	      if (websocket)
 	    	  socket.emit('new message', message);
 	      else {
-	    	  var post = {message:message,action:'new'};
-	    	  $.post("includes/ajax.chat.php",post,function(data){
-	    		  if (!data)
-	    			  return false;
-	    		  
-	    		  var parsed = JSON.parse(data);
-	    		  if (parsed.lastId)
-	    			  lastId = parsed.lastId;
-	    		  else
-	    			  connected = false;
-	    	  });
+	    	  while (!ajax_active) {
+		    	  var post = {message:message,action:'new'};
+		    	  $.post("includes/ajax.chat.php",post,function(data){
+		    		  if (!data)
+		    			  return false;
+		    		  
+		    		  var parsed = JSON.parse(data);
+		    		  if (parsed.lastId)
+		    			  lastId = parsed.lastId;
+		    		  else
+		    			  connected = false;
+		    	  });
+	    	  }
 	      }
 	    }
 	  }
@@ -209,28 +210,30 @@ $(document).ready(function() {
 			  return false;
 		  
 		  var post = {action:'read',last_id:lastId};
-		  $.post("includes/ajax.chat.php",post,function(data){
-			  connected = true;
-			  if (!data)
-				  return false;
-			  
-			  var parsed = JSON.parse(data);
-			  if (!parsed)
-				  return false;
+		  while (!ajax_active) {
+			  $.post("includes/ajax.chat.php",post,function(data){
+				  connected = true;
+				  if (!data)
+					  return false;
 				  
-			  if (parsed.numUsers)
-				  addParticipantsMessage(parsed);
-			  if (parsed.lastId)
-				  lastId = parsed.lastId;
-			  
-			  if (!parsed.messages)
-				  return false;
-			  
-			  parsed.messages.reverse();
-			  for (i in parsed.messages) {
-				  addChatMessage(parsed.messages[i]);
-			  }
-		  });
+				  var parsed = JSON.parse(data);
+				  if (!parsed)
+					  return false;
+					  
+				  if (parsed.numUsers)
+					  addParticipantsMessage(parsed);
+				  if (parsed.lastId)
+					  lastId = parsed.lastId;
+				  
+				  if (!parsed.messages)
+					  return false;
+				  
+				  parsed.messages.reverse();
+				  for (i in parsed.messages) {
+					  addChatMessage(parsed.messages[i]);
+				  }
+			  });
+		  }
 	  }
 	
 	  // Keyboard events
