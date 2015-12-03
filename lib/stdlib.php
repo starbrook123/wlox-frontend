@@ -49,15 +49,15 @@ function session_readonly() {
 	$session_path = session_save_path();
 	$session_name = session_name();
 	$session_key = 'KEY_'.$session_name;
-	
-	if (empty($session_name) || empty($session_key) || empty($_COOKIE[$session_name]) || empty($_COOKIE[$session_key]))
+
+	if (empty($session_name) || empty($session_key) || empty($_COOKIE[$session_key]))
 		return false;
 	
-	$session_id = preg_replace('/[^\da-z]/i','',$_COOKIE[$session_name]);
+	$session_id = preg_replace('/[^\da-z]/i','',$_COOKIE[$session_key]);
 	
 	$key = false;
 	$auth = false;
-	
+
 	if (!file_exists($session_path.'/'.$session_name.'_'.$session_id))
 		return false;
 	
@@ -65,6 +65,7 @@ function session_readonly() {
 	if (empty($encoded_data))
 		return false;
 	
+	/*
 	list($key,$auth) = explode (':',$_COOKIE[$session_key]);
 	$key = base64_decode($key);
 	$auth = base64_decode($auth);
@@ -79,6 +80,9 @@ function session_readonly() {
 	
 	$decrypt = mcrypt_decrypt(MCRYPT_RIJNDAEL_128,$key,$encrypted,MCRYPT_MODE_CBC,$iv);
 	$raw_data = rtrim($decrypt, "\0");
+	$method = ini_get("session.serialize_handler");
+	*/
+	$raw_data = $encoded_data;
 	$method = ini_get("session.serialize_handler");
 	
 	if (empty($raw_data) || empty($method))

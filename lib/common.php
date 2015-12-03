@@ -47,6 +47,7 @@ header('Access-Control-Allow-Origin: *');
 if (empty($ajax)) {
 	session_start();
 	session_regenerate();
+	setcookie('KEY_'.session_name(),session_id());// disable if encrypting session
 }
 else {
 	session_readonly();
