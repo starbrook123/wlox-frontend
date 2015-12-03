@@ -1,5 +1,6 @@
 <?php
 chdir('..');
+$ajax = true;
 include '../lib/common.php';
 
 $action = $_REQUEST['action'];
