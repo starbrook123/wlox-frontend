@@ -47,8 +47,8 @@ function session_regenerate() {
 
 function session_readonly() {
 	$session_path = session_save_path();
-	$session_name = 'sess'/*session_name()*/;
-	$session_key = 'KEY_PHPSESSID'/*$session_name*/;
+	$session_name = session_name();
+	$session_key = $session_name;
 
 	if (empty($session_name) || empty($session_key) || empty($_COOKIE[$session_key]))
 		return false;
@@ -58,10 +58,10 @@ function session_readonly() {
 	$key = false;
 	$auth = false;
 
-	if (!file_exists($session_path.'/'.$session_name.'_'.$session_id))
+	if (!file_exists($session_path.'/sess_'.$session_id))
 		return false;
 	
-	$encoded_data = file_get_contents($session_path.'/'.$session_name.'_'.$session_id);
+	$encoded_data = file_get_contents($session_path.'/sess_'.$session_id);
 	if (empty($encoded_data))
 		return false;
 	
