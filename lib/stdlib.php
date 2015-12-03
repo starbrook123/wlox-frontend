@@ -47,8 +47,8 @@ function session_regenerate() {
 
 function session_readonly() {
 	$session_path = session_save_path();
-	$session_name = session_name();
-	$session_key = 'KEY_'.$session_name;
+	$session_name = 'sess'/*session_name()*/;
+	$session_key = 'KEY_PHPSESSID'/*$session_name*/;
 
 	if (empty($session_name) || empty($session_key) || empty($_COOKIE[$session_key]))
 		return false;
