@@ -44,6 +44,7 @@ header('X-Powered-By: WLOX');
 header('Access-Control-Allow-Origin: *');
 
 /* Readonly Sessions */
+$ajax = false;
 if (empty($ajax)) {
 	session_start();
 	session_regenerate();
