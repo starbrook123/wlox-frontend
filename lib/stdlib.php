@@ -139,7 +139,7 @@ if (!function_exists('mb_strlen')) {
 		return preg_match_all("/.{1}/us",$utf8string,$dummy);
 	}
 }
-
+/*
 if (function_exists('rename_function')) {
 	rename_function('number_format','number_format1');
 	override_function('number_format', '$number,$decimals,$dec_point,$thousands_sep', 'return override_number_format($number,$decimals,$dec_point=false,$thousands_sep=false);');
@@ -154,5 +154,5 @@ if (function_exists('rename_function')) {
 		return number_format1($number,$decimals,$dec_point,$thousands_sep);
 	}
 }
-
+*/
 ?>
