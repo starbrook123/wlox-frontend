@@ -2696,8 +2696,12 @@ $(document).ready(function() {
 	window.tho = $('#cfg_thousands_separator').val();
     var _parseFloat = window.parseFloat;
     window.parseFloat = function(number) {
-    	if (typeof number == 'string')
+    	if (typeof number == 'string') {
+    		if (number.match(/(\.{1})([0-9]{0,8})$/))
+    			return _parseFloat(number);
+    		
     		return _parseFloat(number.toString().replace(window.tho,'').replace(window.dec,'.'));
+    	}
     	else
     		return _parseFloat(number);
     };
