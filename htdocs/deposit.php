@@ -41,7 +41,6 @@ if (empty($_REQUEST['bypass'])) {
 	</div>
 </div>
 <div class="container">
-	<? include 'includes/sidebar_account.php'; ?>
 	<div class="content_right">
 		<div class="testimonials-4">
 			<div class="one_half">
@@ -76,7 +75,7 @@ if (empty($_REQUEST['bypass'])) {
 						</div>
 						<div class="spacer"></div>
 						<div class="calc">
-							<img class="qrcode" src="includes/qrcode.php?code=<?= $bitcoin_addresses[0]['address'] ?>" />
+							<img class="qrcode" src="includes/qrcode.php?code=<?= $CFG->currencies[$currencies['c_currency']]['currency'].':'.$bitcoin_addresses[0]['address'] ?>" />
 						</div>
 						<div class="spacer"></div>
 						<div class="calc">
@@ -152,7 +151,7 @@ if (empty($_REQUEST['bypass'])) {
 						<td>'.$request['id'].'</td>
 						<td><input type="hidden" class="localdate" value="'.(strtotime($request['date'])/* + $CFG->timezone_offset*/).'" /></td>
 						<td>'.$request['description'].'</td>
-						<td>'.(($request['fa_symbol'] == 'BTC') ? number_format($request['amount'],8).' '.$request['fa_symbol'] : $request['fa_symbol'].number_format($request['amount'],2)).'</td>
+						<td>'.(($CFG->currencies[$request['currency']]['is_crypto'] == 'Y') ? String::currency($request['amount'],true).' '.$request['fa_symbol'] : $request['fa_symbol'].String::currency($request['amount'])).'</td>
 						<td>'.$request['status'].'</td>
 					</tr>';
 						}
@@ -168,6 +167,7 @@ if (empty($_REQUEST['bypass'])) {
 		</div>
 		<div class="mar_top5"></div>
 	</div>
+	<? include 'includes/sidebar_account.php'; ?>
 </div>
 <? include 'includes/foot.php'; ?>
 <? } ?>

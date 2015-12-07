@@ -25,7 +25,6 @@ if (!$bypass) {
 	</div>
 </div>
 <div class="container">
-	<? include 'includes/sidebar_topics.php'; ?>
 	<div class="content_right">
         <p class="explain"><?= Lang::string('news-explain') ?></p>
         <div class="clearfix mar_top3"></div>
@@ -58,6 +57,7 @@ if (!$bypass) {
 <? if (!$bypass) { ?>
         </div>
     </div>
+    <? include 'includes/sidebar_topics.php'; ?>
 	<div class="clearfix mar_top8"></div>
 </div>
 <? include 'includes/foot.php'; ?>

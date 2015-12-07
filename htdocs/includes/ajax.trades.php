@@ -49,8 +49,8 @@ if (!empty($_REQUEST['last_price'])) {
 	$return['last_trans_color'] = ($query['Transactions']['get']['results'][0][0]['maker_type'] == 'sell') ? 'price-green' : 'price-red';
 	
 	if ($currency1) {
-		$return['available_fiat'] = (!empty($query['User']['getAvailable']['results'][0][$currency_info['currency']])) ? number_format($query['User']['getAvailable']['results'][0][$currency_info['currency']],($currency_info['is_crypto'] == 'Y' ? 8 : 2)) : '0';
-		$return['available_btc'] = (!empty($query['User']['getAvailable']['results'][0][$c_currency_info['currency']])) ? number_format($query['User']['getAvailable']['results'][0][$c_currency_info['currency']],8) : '0';
+		$return['available_fiat'] = (!empty($query['User']['getAvailable']['results'][0][$currency_info['currency']])) ? String::currency($query['User']['getAvailable']['results'][0][$currency_info['currency']],($currency_info['is_crypto'] == 'Y')) : '0';
+		$return['available_btc'] = (!empty($query['User']['getAvailable']['results'][0][$c_currency_info['currency']])) ? String::currency($query['User']['getAvailable']['results'][0][$c_currency_info['currency']],true) : '0';
 	}
 	
 	if ($CFG->currencies) {
@@ -58,7 +58,7 @@ if (!empty($_REQUEST['last_price'])) {
 			if (is_numeric($key) || $currency['id'] == $c_currency1 || $currency['id'] == $currency1)
 				continue;
 	
-			$last_price = number_format($return['last_price'] * ((empty($currency_info) || $currency_info['currency'] == 'USD') ? 1/$currency[$usd_field] : $currency_info[$usd_field] / $currency[$usd_field]),($currency_info['is_crypto'] == 'Y' ? 8 : 2));
+			$last_price = String::currency($return['last_price'] * ((empty($currency_info) || $currency_info['currency'] == 'USD') ? 1/$currency[$usd_field] : $currency_info[$usd_field] / $currency[$usd_field]),($currency_info['is_crypto'] == 'Y'));
 			$return['last_price_cnv'][$currency['currency']] = $last_price;
 		}
 	}

@@ -16,12 +16,10 @@ $wallet = $query['Wallets']['getWallet']['results'][0];
 $c_currency_info = $CFG->currencies[$currencies['c_currency']];
 $page1 = (!empty($_REQUEST['page'])) ? preg_replace("/[^0-9]/", "",$_REQUEST['page']) : false;
 $btc_address1 = (!empty($_REQUEST['btc_address'])) ?  preg_replace("/[^\da-z]/i", "",$_REQUEST['btc_address']) : false;
-$btc_amount1 = (!empty($_REQUEST['btc_amount']) && $_REQUEST['btc_amount'] > 0) ? preg_replace("/[^0-9.]/", "",$_REQUEST['btc_amount']) : 0;
-$btc_amount1 = rtrim(number_format($btc_amount1,8,'.',''),'0');
+$btc_amount1 = (!empty($_REQUEST['btc_amount']) && $_REQUEST['btc_amount'] > 0) ? String::currencyInput($_REQUEST['btc_amount']) : 0;
 $btc_total1 = (!empty($_REQUEST['btc_amount']) && $_REQUEST['btc_amount'] > 0) ? $btc_amount1 - $wallet['bitcoin_sending_fee'] : 0;
 $account1 = (!empty($_REQUEST['account'])) ? preg_replace("/[^0-9]/", "",$_REQUEST['account']) : false;
-$fiat_amount1 = (!empty($_REQUEST['fiat_amount']) && $_REQUEST['fiat_amount'] > 0) ? preg_replace("/[^0-9.]/", "",$_REQUEST['fiat_amount']) : 0;
-$fiat_amount1 = rtrim(number_format($fiat_amount1,2,'.',''),'0');
+$fiat_amount1 = (!empty($_REQUEST['fiat_amount']) && $_REQUEST['fiat_amount'] > 0) ? String::currencyInput($_REQUEST['fiat_amount']) : 0;
 $fiat_total1 = (!empty($_REQUEST['btc_amount']) && $_REQUEST['btc_amount'] > 0) ? $fiat_amount1 - $CFG->fiat_withdraw_fee : 0;
 $token1 = (!empty($_REQUEST['token'])) ? preg_replace("/[^0-9]/", "",$_REQUEST['token']) : false;
 $authcode1 = (!empty($_REQUEST['authcode'])) ? $_REQUEST['authcode'] : false;
@@ -215,7 +213,6 @@ if (empty($_REQUEST['bypass'])) {
 	</div>
 </div>
 <div class="container">
-	<? include 'includes/sidebar_account.php'; ?>
 	<div class="content_right">
 		<? Errors::display(); ?>
 		<? Messages::display(); ?>
@@ -234,7 +231,7 @@ if (empty($_REQUEST['bypass'])) {
 							<div class="spacer"></div>
 							<div class="calc dotted">
 								<div class="label"><?= str_replace('[c_currency]',$c_currency_info['currency'],Lang::string('sell-btc-available')) ?></div>
-								<div class="value"><?= number_format($user_available[$c_currency_info['currency']],8) ?> <?= $c_currency_info['currency'] ?></div>
+								<div class="value"><?= String::currency($user_available[$c_currency_info['currency']],true) ?> <?= $c_currency_info['currency'] ?></div>
 								<div class="clear"></div>
 							</div>
 							<div class="spacer"></div>
@@ -261,7 +258,7 @@ if (empty($_REQUEST['bypass'])) {
 							</div>
 							<div class="param">
 								<label for="btc_amount"><?= Lang::string('withdraw-send-amount') ?></label>
-								<input type="text" id="btc_amount" name="btc_amount" value="<?= number_format($btc_amount1,8) ?>" />
+								<input type="text" id="btc_amount" name="btc_amount" value="<?= String::currency($btc_amount1,true) ?>" />
 								<div class="qualify"><?= $c_currency_info['currency'] ?></div>
 								<div class="clear"></div>
 							</div>
@@ -275,7 +272,7 @@ if (empty($_REQUEST['bypass'])) {
 								<div class="label">
 									<span id="withdraw_btc_total_label"><?= str_replace('[c_currency]',$c_currency_info['currency'],Lang::string('withdraw-btc-total')) ?></span>
 								</div>
-								<div class="value"><span id="withdraw_btc_total"><?= number_format($btc_total1,8) ?></span></div>
+								<div class="value"><span id="withdraw_btc_total"><?= String::currency($btc_total1,true) ?></span></div>
 								<div class="clear"></div>
 							</div>
 							<div class="spacer"></div>
@@ -301,7 +298,7 @@ if (empty($_REQUEST['bypass'])) {
 							<? if ($bank_accounts) { ?>
 							<div class="calc dotted">
 								<div class="label"><?= str_replace('[currency]','<span class="currency_label">'.$currency_info['currency'].'</span>',Lang::string('buy-fiat-available')) ?></div>
-								<div class="value"><span class="currency_char"><?= $currency_info['fa_symbol'] ?></span><span id="user_available"><?= number_format($user_available[strtoupper($currency1)],2) ?></span></div>
+								<div class="value"><span class="currency_char"><?= $currency_info['fa_symbol'] ?></span><span id="user_available"><?= String::currency($user_available[strtoupper($currency1)]) ?></span></div>
 								<div class="clear"></div>
 							</div>
 							<div class="spacer"></div>
@@ -320,19 +317,19 @@ if (empty($_REQUEST['bypass'])) {
 							</div>
 							<div class="param">
 								<label for="fiat_amount"><?= Lang::string('withdraw-amount') ?></label>
-								<input type="text" id="fiat_amount" name="fiat_amount" value="<?= number_format($fiat_amount1,2) ?>" />
+								<input type="text" id="fiat_amount" name="fiat_amount" value="<?= String::currencyOutput($fiat_amount1) ?>" />
 								<div class="qualify"><span class="currency_label"><?= $currency_info['currency'] ?></span></div>
 								<div class="clear"></div>
 							</div>
 							<div class="spacer"></div>
 							<div class="calc">
 								<div class="label"><?= str_replace('[currency]','<span class="currency_label">'.$currency_info['currency'].'</span>',Lang::string('buy-fee')) ?> <a title="<?= Lang::string('account-view-fee-schedule') ?>" href="fee-schedule.php"><i class="fa fa-question-circle"></i></a></div>
-								<div class="value"><span class="currency_char"><?= $currency_info['fa_symbol'] ?></span><span id="withdraw_fiat_fee"><?= number_format($CFG->fiat_withdraw_fee,2) ?></span></div>
+								<div class="value"><span class="currency_char"><?= $currency_info['fa_symbol'] ?></span><span id="withdraw_fiat_fee"><?= String::currency($CFG->fiat_withdraw_fee) ?></span></div>
 								<div class="clear"></div>
 							</div>
 							<div class="calc bigger">
 								<div class="label"><?= str_replace('[currency]','<span class="currency_label">'.$currency_info['currency'].'</span>',Lang::string('withdraw-total')) ?></div>
-								<div class="value"><span class="currency_char"><?= $currency_info['fa_symbol'] ?></span><span id="withdraw_fiat_total"><?= number_format($fiat_total1,2) ?></span></div>
+								<div class="value"><span class="currency_char"><?= $currency_info['fa_symbol'] ?></span><span id="withdraw_fiat_total"><?= String::currency($fiat_total1) ?></span></div>
 								<div class="clear"></div>
 							</div>
 							<div class="spacer"></div>
@@ -413,8 +410,8 @@ if (empty($_REQUEST['bypass'])) {
 						<td>'.$request['id'].'</td>
 						<td><input type="hidden" class="localdate" value="'.(strtotime($request['date'])/* + $CFG->timezone_offset*/).'" /></td>
 						<td>'.$request['description'].'</td>
-						<td>'.(($CFG->currencies[$request['currency']]['is_crypto'] == 'Y') ? number_format($request['amount'],8).' '.$request['fa_symbol'] : $request['fa_symbol'].number_format($request['amount'],2)).'</td>
-    					<td>'.(($CFG->currencies[$request['currency']]['is_crypto'] == 'Y') ? number_format((($request['net_amount'] > 0) ? $request['net_amount'] : ($request['amount'] - $request['fee'])),8).' '.$request['fa_symbol'] : $request['fa_symbol'].number_format((($request['net_amount'] > 0) ? $request['net_amount'] : ($request['amount'] - $request['fee'])),2)).'</td>
+						<td>'.(($CFG->currencies[$request['currency']]['is_crypto'] == 'Y') ? String::currency($request['amount'],true).' '.$request['fa_symbol'] : $request['fa_symbol'].String::currency($request['amount'])).'</td>
+    					<td>'.(($CFG->currencies[$request['currency']]['is_crypto'] == 'Y') ? String::currency((($request['net_amount'] > 0) ? $request['net_amount'] : ($request['amount'] - $request['fee'])),true).' '.$request['fa_symbol'] : $request['fa_symbol'].String::currency((($request['net_amount'] > 0) ? $request['net_amount'] : ($request['amount'] - $request['fee'])))).'</td>
 						<td>'.$request['status'].'</td>
 					</tr>';
 						}
@@ -430,6 +427,7 @@ if (empty($_REQUEST['bypass'])) {
 		</div>
 		<div class="mar_top5"></div>
 	</div>
+	<? include 'includes/sidebar_account.php'; ?>
 </div>
 <? include 'includes/foot.php'; ?>
 <? } ?>

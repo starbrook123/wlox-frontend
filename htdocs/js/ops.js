@@ -650,6 +650,7 @@ function graphOrders(json_data,refresh) {
 	var currency = $('#graph_orders_currency').val();
 	var c_currency = $('#c_currency').val();
 	if (!json_data) {
+		scale = true;
 		try {
 			json_data = static_data;
 		}
@@ -666,6 +667,29 @@ function graphOrders(json_data,refresh) {
 		}
 	}
 	
+	if (scale && json_data && json_data.bids && json_data.asks) {
+		var max_ask,min_ask,max_bid,min_bid;
+		for (i in json_data.bids) {
+			min_bid = (!min_bid || json_data.bids[i][0] < min_bid) ? json_data.bids[i][0] : min_bid;
+			max_bid = (!max_bid || json_data.bids[i][0] > max_bid) ? json_data.bids[i][0] : max_bid;
+		}
+		for (i in json_data.asks) {
+			min_ask = (!min_ask || json_data.asks[i][0] < min_ask) ? json_data.asks[i][0] : min_ask;
+			max_ask = (!max_ask || json_data.asks[i][0] > max_ask) ? json_data.asks[i][0] : max_ask;
+		}
+		
+		window.ob_max_bid = max_bid;
+		window.ob_min_bid = min_bid;
+		window.ob_max_ask = max_ask;
+		window.ob_min_ask = min_ask;
+		
+		window.ob_bid_range = max_bid - min_bid;
+		window.ob_ask_range = max_ask - min_ask;
+		window.ob_c_bids = json_data.bids.length;
+		window.ob_c_asks = json_data.asks.length;
+		window.ob_lower_range = (window.ob_bid_range < window.ob_ask_range) ? window.ob_bid_range : window.ob_ask_range;
+	}
+	
 	if (last_data) {
 		if (last_data.bids && last_data.bids.length && last_data.bids.length > 30 && json_data.bids.length && json_data.bids.length >= 30) {
 			var c = (last_data.bids.length && last_data.bids.length > 0) ? last_data.bids.length : 0;
@@ -679,12 +703,24 @@ function graphOrders(json_data,refresh) {
 				item[1] += diff;
 				return item;
 			}).filter(function(item) {
+				if (window.ob_max_bid && window.ob_c_asks > 1 && ((window.ob_max_bid - item[0]) >  window.ob_lower_range))
+					return false;
+				
 				return (parseFloat(item[0]) <= c_price);
 			});
 			
 			if (json_data.bids)
 				json_data.bids = json_data.bids.concat(last_data.bids);
 		}
+		else {
+			json_data.bids = last_data.bids.filter(function(item) {
+				if (window.ob_max_bid && window.ob_c_asks > 1 && ((window.ob_max_bid - item[0]) >  window.ob_lower_range))
+					return false;
+				
+				return true;
+			});
+		}
+		
 		if (last_data.asks && last_data.asks.length && last_data.asks.length > 30 && json_data.asks.length && json_data.asks.length >= 30) {
 			var c = (last_data.asks.length && last_data.asks.length > 0) ? last_data.asks.length : 0;
 			c = (c > 30) ? 29 : c - 1;
@@ -697,11 +733,22 @@ function graphOrders(json_data,refresh) {
 				item[1] += diff;
 				return item;
 			}).filter(function(item) {
+				if (window.ob_max_ask && window.ob_c_bids > 1 && ((window.ob_max_ask - item[0]) >  window.ob_lower_range))
+					return false;
+				
 				return (parseFloat(item[0]) >= c_price);
 			});
 			
 			if (json_data.asks)
 				json_data.asks = json_data.asks.concat(last_data.asks);
+		}
+		else {
+			json_data.asks = last_data.asks.filter(function(item) {
+				if (window.ob_max_ask && window.ob_c_bids > 1 && ((window.ob_max_ask - item[0]) >  window.ob_lower_range))
+					return false;
+				
+				return true;
+			});
 		}
 	}
 
@@ -1409,11 +1456,8 @@ function updateTransactions() {
 						$('#stats_min').html(formatCurrency(this.btc_price));
 					if (this.btc_price > current_max)
 						$('#stats_max').html(formatCurrency(this.btc_price));
-					
-					if (!notrades) {
-						var elem = $('<tr id="order_'+this.id+'"><td><span class="time_since"></span><input type="hidden" class="time_since_seconds" value="'+this.time_since+'" /></td><td>'+this.btc+' '+($('#curr_abbr_'+this.c_currency).val())+'</td><td>' + this_fa_symbol + formatCurrency(this.btc_price,($('#is_crypto').val() == 'Y')) + this_currency_abbr + '</td></tr>').insertAfter(insert_elem);
 						insert_elem = elem;
-						
+					
 						timeSince($(elem).find('.time_since'));
 						$(elem).children('td').effect("highlight",{color:"#A2EEEE"},2000);
 						$('#stats_traded').html(formatCurrency(json_data.btc_traded));
@@ -1790,9 +1834,9 @@ function updateTransactions() {
 
 function formatCurrency(amount,is_btc) {
 	if (!is_btc)
-		return parseFloat(amount).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+		return parseFloat(amount).toFixed(2).toString().replace('.',$('#cfg_decimal_separator').val()).replace(/\B(?=(\d{3})+(?!\d))/g,$('#cfg_thousands_separator').val());
 	else
-		return parseFloat(amount).toFixed(8).toString();
+		return parseFloat(amount).toFixed(8).toString().replace('.',$('#cfg_decimal_separator').val());
 }
 
 function updateTransactionsList() {
@@ -1923,10 +1967,10 @@ function switchBuyCurrency() {
 			
 			$('#filters_area').load('buy-sell.php?bypass=1&currency='+currency);
 			$('#buy_currency,#sell_currency').val(currency);
-			$('.sell_currency_label,.buy_currency_label').html(json_data.currency_info.currency);
+			$('.sell_currency_label,.buy_currency_label').html(currency.toUpperCase());
 			$('.sell_currency_char,.buy_currency_char').html(json_data.currency_info.fa_symbol);
-			$('#buy_price').val(json_data.current_ask);
-			$('#sell_price').val(json_data.current_bid);
+			$('#buy_price').val(json_data.current_ask.toString().replace(/\B(?=(\d{3})+(?!\d))/g,$('#cfg_thousands_separator').val()));
+			$('#sell_price').val(json_data.current_bid.toString().replace(/\B(?=(\d{3})+(?!\d))/g,$('#cfg_thousands_separator').val()));
 			$('#sell_user_available').html(json_data.available_btc);
 			$('#buy_user_available').html(json_data.available_fiat);
 			$('#this_currency_id').val(json_data.currency_info.id);
@@ -2054,7 +2098,11 @@ function calculateBuy() {
 	
 	$('#buy_amount,#buy_price,#sell_amount,#sell_price,#fiat_amount,#btc_amount,#buy_stop_price,#sell_stop_price').bind("keypress", function(e){
 		var charCode = (e.which) ? e.which : e.keyCode;
-        if (charCode != 46 && charCode != 39 && charCode != 37 && charCode > 31 && (charCode < 48 || charCode > 57))
+		var k = String.fromCharCode(charCode);
+		var dec = $('#cfg_decimal_separator').val();
+		var tho = $('#cfg_thousands_separator').val();
+		
+        if (charCode != 46 && charCode != 39 && charCode != 37 && charCode > 31 && (charCode < 48 || charCode > 57) && k != dec && k != tho)
            return false;
 
         return true;
@@ -2237,11 +2285,13 @@ function calculateBuyPrice() {
 	
 	var user_fee = parseFloat($('#user_fee').val());
 	var user_fee1 = parseFloat($('#user_fee1').val());
+	var dec = $('#cfg_decimal_separator').val();
+	var tho = $('#cfg_thousands_separator').val();
 	
-	var first_ask = ($('#asks_list .order_price').length > 0) ?  parseFloat($('#asks_list .order_price:first').html().replace(',','')) : 0;
-	var buy_amount = ($('#buy_amount').val()) ? parseFloat($('#buy_amount').val().replace(',','')) : 0;
-	var buy_price = ($('#buy_price').val()) ? parseFloat($('#buy_price').val().replace(',','')) : 0;
-	var buy_stop_price = ($('#buy_stop_price').val()) ? parseFloat($('#buy_stop_price').val().replace(',','')) : 0;
+	var first_ask = ($('#asks_list .order_price').length > 0) ?  parseFloat($('#asks_list .order_price:first').html().replace(tho,'')) : 0;
+	var buy_amount = ($('#buy_amount').val()) ? parseFloat($('#buy_amount').val().replace(tho,'')) : 0;
+	var buy_price = ($('#buy_price').val()) ? parseFloat($('#buy_price').val().replace(tho,'')) : 0;
+	var buy_stop_price = ($('#buy_stop_price').val()) ? parseFloat($('#buy_stop_price').val().replace(tho,'')) : 0;
 	var buy_fee = (buy_price >= first_ask || $('#buy_market_price').is(':checked')) ? user_fee : user_fee1;
 	var buy_subtotal = buy_amount * (($('#buy_stop').is(':checked') && !$('#buy_limit').is(':checked')) ? buy_stop_price : buy_price);
 	var buy_commision = (buy_fee * 0.01) * buy_subtotal;
@@ -2250,10 +2300,10 @@ function calculateBuyPrice() {
 	$('#buy_total').html(formatCurrency(buy_total,($('#is_crypto').val() == 'Y')));
 	$('#buy_user_fee').html((buy_price >= first_ask || $('#buy_market_price').is(':checked')) ? user_fee.toFixed(2) : user_fee1.toFixed(2));
 	
-	var first_bid = ($('#bids_list .order_price').length > 0) ? parseFloat($('#bids_list .order_price:first').html().replace(',','')) : 0;
-	var sell_amount = ($('#sell_amount').val()) ? parseFloat($('#sell_amount').val().replace(',','')) : 0;
-	var sell_price = ($('#sell_price').val()) ? parseFloat($('#sell_price').val().replace(',','')) : 0;
-	var sell_stop_price = ($('#sell_stop_price').val()) ? parseFloat($('#sell_stop_price').val().replace(',','')) : 0;
+	var first_bid = ($('#bids_list .order_price').length > 0) ? parseFloat($('#bids_list .order_price:first').html().replace(tho,'')) : 0;
+	var sell_amount = ($('#sell_amount').val()) ? parseFloat($('#sell_amount').val().replace(tho,'')) : 0;
+	var sell_price = ($('#sell_price').val()) ? parseFloat($('#sell_price').val().replace(tho,'')) : 0;
+	var sell_stop_price = ($('#sell_stop_price').val()) ? parseFloat($('#sell_stop_price').val().replace(tho,'')) : 0;
 	var sell_fee = ((sell_price > 0 && sell_price <= first_bid) || $('#sell_market_price').is(':checked')) ? user_fee : user_fee1;
 	var sell_subtotal = sell_amount * (($('#sell_stop').is(':checked') && !$('#sell_limit').is(':checked')) ? sell_stop_price : sell_price);
 	var sell_commision = (sell_fee * 0.01) * sell_subtotal;
@@ -2271,6 +2321,7 @@ function buttonDisable() {
 }
 
 function localDates() {
+	var h24 = ($('#cfg_time_24h').val() == 'Y');
 	$('.localdate').each(function(){
 		var date = new Date(parseInt($(this).val()*1000));
 		//var offset = date.getTimezoneOffset() * 60;
@@ -2278,10 +2329,12 @@ function localDates() {
 		var hours = date.getHours();
 		var minutes = date.getMinutes();
 		var ampm = hours >= 12 ? 'pm' : 'am';
-		hours = hours % 12;
-		hours = hours ? hours : 12; // the hour '0' should be '12'
+		if (!h24) { 
+			hours = hours % 12;
+			hours = hours ? hours : 12; // the hour '0' should be '12'
+		}
 		minutes = minutes < 10 ? '0'+minutes : minutes;
-		var strTime = hours + ':' + minutes + ' ' + ampm;
+		var strTime = hours + ':' + minutes + (!h24 ? ' ' + ampm : '');
 		
 		$(this).parent().html($('#javascript_mon_'+date.getMonth()).val()+' '+date.getDate()+', '+date.getFullYear()+', '+strTime);
 	});
@@ -2346,11 +2399,11 @@ function switchAccount1() {
 }
 
 function calculateWithdrawal() {
-	var btc_amount = ($('#btc_amount').val()) ? parseFloat($('#btc_amount').val().replace(',','')) : 0;
-	var btc_fee = ($('#withdraw_btc_network_fee').html()) ? parseFloat($('#withdraw_btc_network_fee').html().replace(',','')) : 0;
+	var btc_amount = ($('#btc_amount').val()) ? parseFloat($('#btc_amount').val().replace(window.tho,'')) : 0;
+	var btc_fee = ($('#withdraw_btc_network_fee').html()) ? parseFloat($('#withdraw_btc_network_fee').html().replace(window.tho,'')) : 0;
 	var btc_total = (btc_amount > 0) ? btc_amount - btc_fee : 0;
-	var fiat_amount = ($('#fiat_amount').val()) ? parseFloat($('#fiat_amount').val().replace(',','')) : 0;
-	var fiat_fee = ($('#withdraw_fiat_fee').html()) ? parseFloat($('#withdraw_fiat_fee').html().replace(',','')) : 0;
+	var fiat_amount = ($('#fiat_amount').val()) ? parseFloat($('#fiat_amount').val().replace(window.tho,'')) : 0;
+	var fiat_fee = ($('#withdraw_fiat_fee').html()) ? parseFloat($('#withdraw_fiat_fee').html().replace(window.tho,'')) : 0;
 	var fiat_total = (fiat_amount > 0) ? fiat_amount - fiat_fee : 0;
 	
 	$('#withdraw_btc_total').html(formatCurrency(btc_total,1));
@@ -2472,6 +2525,18 @@ function startTicker() {
 	elem.animate({left:'-=50px'},properties);
 }
 
+function hideStickyMenu(show) {
+	if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+		if (show) {
+			$('#trueHeader').animate({top: "0"},300);
+		}
+		else {
+			var h = $('#trueHeader').outerHeight();
+			$('#trueHeader').animate({top: '-'+h+'px'},300);
+		}
+	}
+}
+
 $(document).ready(function() {
 	if ($(".ticker").length > 0) {
 		var currency = $('#graph_price_history_currency').val();
@@ -2559,18 +2624,28 @@ $(document).ready(function() {
 		$('#cancel').val('1');
 		return true;
 	});
+
 	
 	if (($('#is_crypto').length > 0 && $('#is_crypto').val() == 'Y') || ('.currency_char').length > 0) {
 		$('.buy_currency_char,.sell_currency_char').addClass('cc');
 		reorderLabels(($('#is_crypto').val() == 'Y'));
 	}
 	
+	$('input:text,select').focusin(function(){
+		hideStickyMenu();
+	});
+	$('input:text,select').focusout(function(){
+		hideStickyMenu(true);
+	});
+	
 	var first_text = $('input:text').first();
 	if (first_text.length > 0) {
 		if ($(first_text).val() == '0')
-			$(first_text).val('').focus();
+			$(first_text).val('').focus().trigger("focus");
 		else if (!($(first_text).val().length > 0))
-			$(first_text).focus();
+			$(first_text).focus().trigger("focus");
+		
+		hideStickyMenu();
 	}
 	
 	$(window).resize(function() {
@@ -2615,6 +2690,18 @@ $(document).ready(function() {
 	//timeUntil();
 	blink();
 });
+
+(function() {
+	window.dec = $('#cfg_decimal_separator').val();
+	window.tho = $('#cfg_thousands_separator').val();
+    var _parseFloat = window.parseFloat;
+    window.parseFloat = function(number) {
+    	if (typeof number == 'string')
+    		return _parseFloat(number.toString().replace(window.tho,'').replace(window.dec,'.'));
+    	else
+    		return _parseFloat(number);
+    };
+})();
 
 // Sticky Menu Core
 var Modernizr = function () {}

@@ -140,4 +140,19 @@ if (!function_exists('mb_strlen')) {
 	}
 }
 
+if (function_exists('rename_function')) {
+	rename_function('number_format','number_format1');
+	override_function('number_format', '$number,$decimals,$dec_point,$thousands_sep', 'return override_number_format($number,$decimals,$dec_point=false,$thousands_sep=false);');
+	function override_strlen($number,$decimals,$dec_point=false,$thousands_sep=false){
+		global $CFG;
+		
+		if (!$dec_point)
+			$dec_point = $CFG->decimal_separator;
+		if (!$thousands_sep)
+			$thousands_sep = $CFG->thousands_separator;
+		
+		return number_format1($number,$decimals,$dec_point,$thousands_sep);
+	}
+}
+
 ?>

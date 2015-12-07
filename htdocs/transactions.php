@@ -62,7 +62,6 @@ if (!$bypass) {
 	</div>
 </div>
 <div class="container">
-	<? include 'includes/sidebar_account.php'; ?>
 	<div class="content_right">
 		<? Messages::display(); ?>
 		<div class="filters">
@@ -152,10 +151,10 @@ if (!$bypass) {
 						<input type="hidden" class="is_crypto" value="'.$transaction['is_crypto'].'" />
 						<td>'.$transaction['type'].'</td>
 						<td><input type="hidden" class="localdate" value="'.(strtotime($transaction['date'])).'" /></td>
-						<td>'.number_format($transaction['btc'],8).' '.$CFG->currencies[$transaction['c_currency']]['fa_symbol'].'</td>
-						<td><span class="currency_char">'.$trans_symbol.'</span><span>'.number_format($transaction['btc_net'] * $transaction['fiat_price'],($transaction['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
-						<td><span class="currency_char">'.$trans_symbol.'</span><span>'.number_format($transaction['fiat_price'],($transaction['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
-						<td><span class="currency_char">'.$trans_symbol.'</span><span>'.number_format($transaction['fee'] * $transaction['fiat_price'],($transaction['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
+						<td>'.String::currency($transaction['btc'],true).' '.$CFG->currencies[$transaction['c_currency']]['fa_symbol'].'</td>
+						<td><span class="currency_char">'.$trans_symbol.'</span><span>'.String::currency($transaction['btc_net'] * $transaction['fiat_price'],($transaction['is_crypto'] == 'Y')).'</span></td>
+						<td><span class="currency_char">'.$trans_symbol.'</span><span>'.String::currency($transaction['fiat_price'],($transaction['is_crypto'] == 'Y')).'</span></td>
+						<td><span class="currency_char">'.$trans_symbol.'</span><span>'.String::currency($transaction['fee'] * $transaction['fiat_price'],($transaction['is_crypto'] == 'Y')).'</span></td>
 					</tr>';
 						}
 					}
@@ -169,6 +168,7 @@ if (!$bypass) {
 <? if (!$bypass) { ?>
 		<div class="mar_top5"></div>
 	</div>
+	<? include 'includes/sidebar_account.php'; ?>
 </div>
 <? include 'includes/foot.php'; ?>
 <? } ?>

@@ -1090,6 +1090,7 @@ a.button_slider:hover {
 /* fresh projects */
 .c_currency_big{font-family: 'Roboto', sans-serif;font-size:38px;padding:7px 9px 7px 7px;border: 1px solid #D6D6D6;background-color:#FFF;}
 .graph_contain{position:relative;margin:0;background-color: #fff;border: 1px solid #ddd;}
+.graph_contain .clear_300{margin-top:305px;float:left;}
 .global_stats{}
 .global_stats .stat1{font-size: 20px;color: #383634;white-space: nowrap;padding:10px 0;height: 22px;}
 .global_stats .stat1 .cc{float:none;}
@@ -1098,6 +1099,7 @@ a.button_slider:hover {
 .global_stats .stat2 .cc{float:none;}
 .global_stats h6{margin-bottom: 5px;}
 .global_stats h5{}
+
 #graph_candles{height:270px;position:absolute;left:0;right:5px;}
 .graph_contain .clear_300{margin-top:270px;float:left;}
 #graph_price_history{z-index:1;height:60px;position:absolute;bottom:0;left:0;right:0;background-color: #f7f7f7;border-top: 1px solid #ddd;}

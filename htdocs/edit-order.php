@@ -93,10 +93,10 @@ $user_fee_bid = false;
 $user_fee_ask = false;
 
 if ($order_info['is_bid']) {
-	$buy_amount1 = (!empty($_REQUEST['buy_amount'])) ? rtrim(number_format(preg_replace("/[^0-9.]/", "",$_REQUEST['buy_amount']),8,'.',''),'0') : $order_info['btc'];
+	$buy_amount1 = (!empty($_REQUEST['buy_amount'])) ? String::currencyInput($_REQUEST['buy_amount']) : $order_info['btc'];
 	$buy_market_price1 = (!empty($_REQUEST['buy_market_price'])) ? $_REQUEST['buy_market_price'] : ($order_info['market_price'] == 'Y');
-	$buy_price1 = (!empty($_REQUEST['buy_price'])) ? rtrim(number_format(preg_replace("/[^0-9.]/", "",$_REQUEST['buy_price']),($currency_info['is_crypto'] == 'Y' ? 8 : 2),'.',''),'0') : (($order_info['btc_price'] > 0) ? $order_info['btc_price'] : ($buy_market_price1 ? $current_ask : 0));
-	$buy_stop_price1 = (!empty($_REQUEST['buy_stop_price'])) ? rtrim(number_format(preg_replace("/[^0-9.]/", "",$_REQUEST['buy_stop_price']),($currency_info['is_crypto'] == 'Y' ? 8 : 2),'.',''),'0') : $order_info['stop_price'];
+	$buy_price1 = (!empty($_REQUEST['buy_price'])) ? String::currencyInput($_REQUEST['buy_price']) : (($order_info['btc_price'] > 0) ? $order_info['btc_price'] : ($buy_market_price1 ? $current_ask : 0));
+	$buy_stop_price1 = (!empty($_REQUEST['buy_stop_price'])) ? String::currencyInput($_REQUEST['buy_stop_price']) : $order_info['stop_price'];
 	$user_fee_bid = ($buy_price1 >= $asks[0]['btc_price'] || $buy_market_price1) ? $user_fee_both['fee'] : $user_fee_both['fee1'];
 	$buy_subtotal1 = $buy_amount1 * (($buy_price1 > 0) ? $buy_price1 : $buy_stop_price1);
 	$buy_fee_amount1 = ($user_fee_bid * 0.01) * $buy_subtotal1;
@@ -108,10 +108,10 @@ if ($order_info['is_bid']) {
 	$old_fiat = ($order_info['btc'] * $order_info['btc_price']) + (($order_info['btc'] * $order_info['btc_price']) * ($user_fee_bid * 0.01));
 }
 else {
-	$sell_amount1 = (!empty($_REQUEST['sell_amount'])) ? rtrim(number_format(preg_replace("/[^0-9.]/", "",$_REQUEST['sell_amount']),8,'.',''),'0') : $order_info['btc'];
+	$sell_amount1 = (!empty($_REQUEST['sell_amount'])) ? String::currencyInput($_REQUEST['sell_amount']) : $order_info['btc'];
 	$sell_market_price1 = (!empty($_REQUEST['sell_market_price'])) ? $_REQUEST['sell_market_price'] : ($order_info['market_price'] == 'Y');
-	$sell_price1 = (!empty($_REQUEST['sell_price'])) ? rtrim(number_format(preg_replace("/[^0-9.]/", "",$_REQUEST['sell_price']),($currency_info['is_crypto'] == 'Y' ? 8 : 2),'.',''),'0') : (($order_info['btc_price'] > 0) ? $order_info['btc_price'] : ($buy_market_price1 ? $current_bid : 0));
-	$sell_stop_price1 = (!empty($_REQUEST['sell_stop_price'])) ? rtrim(number_format(preg_replace("/[^0-9.]/", "",$_REQUEST['sell_stop_price']),($currency_info['is_crypto'] == 'Y' ? 8 : 2),'.',''),'0') : $order_info['stop_price'];
+	$sell_price1 = (!empty($_REQUEST['sell_price'])) ? String::currencyInput($_REQUEST['sell_price']) : (($order_info['btc_price'] > 0) ? $order_info['btc_price'] : ($buy_market_price1 ? $current_bid : 0));
+	$sell_stop_price1 = (!empty($_REQUEST['sell_stop_price'])) ? String::currencyInput($_REQUEST['sell_stop_price']) : $order_info['stop_price'];
 	$user_fee_ask = (($sell_price1 <= $bids[0]['btc_price']) || $sell_market_price1) ? $user_fee_both['fee'] : $user_fee_both['fee1'];
 	$sell_subtotal1 = $sell_amount1 * (($sell_price1 > 0) ? $sell_price1 : $sell_stop_price1);
 	$sell_fee_amount1 = ($user_fee_ask * 0.01) * $sell_subtotal1;
@@ -129,7 +129,7 @@ if ($CFG->trading_status == 'suspended')
 if ($buy && !is_array(Errors::$errors)) {
 	$buy_market_price1 = (!empty($_REQUEST['buy_market_price']));
 	$buy_stop = (!empty($_REQUEST['buy_stop']));
-	$buy_stop_price1 = ($buy_stop) ? rtrim(number_format(preg_replace("/[^0-9.]/", "",$_REQUEST['buy_stop_price']),($currency_info['is_crypto'] == 'Y' ? 8 : 2),'.',''),'0') : false;
+	$buy_stop_price1 = ($buy_stop) ? String::currency($_REQUEST['buy_stop_price'],($currency_info['is_crypto'] == 'Y')) : false;
 	$buy_limit = (!empty($_REQUEST['buy_limit']));
 	$buy_limit = (!$buy_stop && !$buy_market_price1) ? 1 : $buy_limit;
 	$buy_price1 = ($buy_market_price1) ? $current_ask : $buy_price1;
@@ -166,7 +166,7 @@ if ($buy && !is_array(Errors::$errors)) {
 if ($sell && !is_array(Errors::$errors)) {
 	$sell_market_price1 = (!empty($_REQUEST['sell_market_price']));
 	$sell_stop = (!empty($_REQUEST['sell_stop']));
-	$sell_stop_price1 = ($sell_stop) ? rtrim(number_format(preg_replace("/[^0-9.]/", "",$_REQUEST['sell_stop_price']),($currency_info['is_crypto'] == 'Y' ? 8 : 2),'.',''),'0') : false;
+	$sell_stop_price1 = ($sell_stop) ? String::currency($_REQUEST['sell_stop_price'],($currency_info['is_crypto'] == 'Y')) : false;
 	$sell_limit = (!empty($_REQUEST['sell_limit']));
 	$sell_limit = (!$sell_stop && !$sell_market_price1) ? 1 : $sell_limit;
 	$sell_price1 = ($sell_market_price1) ? $current_bid : $sell_price1;
@@ -201,7 +201,7 @@ if ($sell && !is_array(Errors::$errors)) {
 }
 
 $user_available[$currency1] = $pre_fiat_available;
-$user_available['BTC'] = $pre_btc_available;
+$user_available[$c_currency_info['currency']] = $pre_btc_available;
 
 $page_title = Lang::string('edit-order');
 if (!$bypass) {
@@ -220,7 +220,6 @@ if (!$bypass) {
 	</div>
 </div>
 <div class="container">
-	<? include 'includes/sidebar_account.php'; ?>
 	<div class="content_right">
 		<? Errors::display(); ?>
 		<div class="testimonials-4">
@@ -244,13 +243,13 @@ if (!$bypass) {
 							<div class="spacer"></div>
 							<div class="calc dotted">
 								<div class="label"><?= str_replace('[currency]','<span class="sell_currency_label">'.$currency_info['currency'].'</span>',Lang::string('buy-fiat-available')) ?></div>
-								<div class="value"><span class="buy_currency_char"><?= $currency_info['fa_symbol'] ?></span><span id="buy_user_available"><?= ((!empty($user_available[strtoupper($currency_info['currency'])])) ? number_format($user_available[strtoupper($currency_info['currency'])],($currency_info['is_crypto'] == 'Y' ? 8 : 2)) : '0.00') ?></span></div>
+								<div class="value"><span class="buy_currency_char"><?= $currency_info['fa_symbol'] ?></span><span id="buy_user_available"><?= ((!empty($user_available[strtoupper($currency_info['currency'])])) ? String::currency($user_available[strtoupper($currency_info['currency'])],($currency_info['is_crypto'] == 'Y')) : '0.00') ?></span></div>
 								<div class="clear"></div>
 							</div>
 							<div class="spacer"></div>
 							<div class="param">
 								<label for="buy_amount"><?= Lang::string('buy-amount') ?></label>
-								<input name="buy_amount" id="buy_amount" type="text" value="<?= $buy_amount1 ?>" />
+								<input name="buy_amount" id="buy_amount" type="text" value="<?= String::currencyOutput($buy_amount1) ?>" />
 								<div class="qualify"><?= $c_currency_info['currency'] ?></div>
 								<div class="clear"></div>
 							</div>
@@ -282,25 +281,25 @@ if (!$bypass) {
 							</div>
 							<div class="param lessbottom">
 								<input class="checkbox" name="buy_stop" id="buy_stop" type="checkbox" value="1" <?= ($buy_stop && !$buy_market_price1) ? 'checked="checked"' : '' ?> />
-								<label for="buy_stop"><?= Lang::string('buy-stop') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href=""><i class="fa fa-question-circle"></i></a></label>
+								<label for="buy_stop"><?= Lang::string('buy-stop') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href="help.php?url=support/solutions/articles/8000018720-hva%C3%B0-er-tilbo%C3%B0-%C3%A1-l%C3%A1gmarksver%C3%B0i-"><i class="fa fa-question-circle"></i></a></label>
 								<div class="clear"></div>
 							</div>
 							<div id="buy_price_container" class="param" <?= (!$buy_limit && !$buy_market_price1) ? 'style="display:none;"' : '' ?>>
 								<label for="buy_price"><span id="buy_price_limit_label" <?= (!$buy_limit) ? 'style="display:none;"' : '' ?>><?= Lang::string('buy-limit-price') ?></span><span id="buy_price_market_label" <?= ($buy_limit) ? 'style="display:none;"' : '' ?>><?= Lang::string('buy-price') ?></span></label>
-								<input name="buy_price" id="buy_price" type="text" value="<?= number_format($buy_price1,($currency_info['is_crypto'] == 'Y' ? 8 : 2)) ?>" <?= ($buy_market_price1) ? 'readonly="readonly"' : '' ?> />
+								<input name="buy_price" id="buy_price" type="text" value="<?= String::currencyOutput($buy_price1) ?>" <?= ($buy_market_price1) ? 'readonly="readonly"' : '' ?> />
 								<div class="qualify"><span class="buy_currency_label"><?= $currency_info['currency'] ?></span></div>
 								<div class="clear"></div>
 							</div>
 							<div id="buy_stop_container" class="param" <?= (!$buy_stop) ? 'style="display:none;"' : '' ?>>
 								<label for="buy_stop_price"><?= Lang::string('buy-stop-price') ?></label>
-								<input name="buy_stop_price" id="buy_stop_price" type="text" value="<?= number_format($buy_stop_price1,($currency_info['is_crypto'] == 'Y' ? 8 : 2)) ?>" />
+								<input name="buy_stop_price" id="buy_stop_price" type="text" value="<?= String::currencyOutput($buy_stop_price1) ?>" />
 								<div class="qualify"><span class="buy_currency_label"><?= $currency_info['currency'] ?></span></div>
 								<div class="clear"></div>
 							</div>
 							<div class="spacer"></div>
 							<div class="calc">
 								<div class="label"><?= Lang::string('buy-subtotal') ?></div>
-								<div class="value"><span class="buy_currency_char"><?= $currency_info['fa_symbol'] ?></span><span id="buy_subtotal"><?= number_format($buy_subtotal1,($currency_info['is_crypto'] == 'Y' ? 8 : 2)) ?></span></div>
+								<div class="value"><span class="buy_currency_char"><?= $currency_info['fa_symbol'] ?></span><span id="buy_subtotal"><?= String::currency($buy_subtotal1,($currency_info['is_crypto'] == 'Y')) ?></span></div>
 								<div class="clear"></div>
 							</div>
 							<div class="calc">
@@ -313,7 +312,7 @@ if (!$bypass) {
 									<span id="buy_total_approx_label"><?= str_replace('[currency]','<span class="buy_currency_label">'.$currency_info['currency'].'</span>',Lang::string('buy-total-approx')) ?></span>
 									<span id="buy_total_label" style="display:none;"><?= Lang::string('buy-total') ?></span>
 								</div>
-								<div class="value"><span class="buy_currency_char"><?= $currency_info['fa_symbol'] ?></span><span id="buy_total"><?= number_format($buy_total1,($currency_info['is_crypto'] == 'Y' ? 8 : 2)) ?></span></div>
+								<div class="value"><span class="buy_currency_char"><?= $currency_info['fa_symbol'] ?></span><span id="buy_total"><?= String::currency($buy_total1,($currency_info['is_crypto'] == 'Y')) ?></span></div>
 								<div class="clear"></div>
 							</div>
 							<input type="hidden" name="buy" value="1" />
@@ -336,13 +335,13 @@ if (!$bypass) {
 							<div class="spacer"></div>
 							<div class="calc dotted">
 								<div class="label"><?= str_replace('[c_currency]',$c_currency_info['currency'],Lang::string('sell-btc-available')) ?></div>
-								<div class="value"><span id="sell_user_available"><?= number_format($user_available[strtoupper($c_currency_info['currency'])],8) ?></span> <?= $c_currency_info['currency']?></div>
+								<div class="value"><span id="sell_user_available"><?= String::currency($user_available[strtoupper($c_currency_info['currency'])],true) ?></span> <?= $c_currency_info['currency']?></div>
 								<div class="clear"></div>
 							</div>
 							<div class="spacer"></div>
 							<div class="param">
 								<label for="sell_amount"><?= Lang::string('sell-amount') ?></label>
-								<input name="sell_amount" id="sell_amount" type="text" value="<?= $sell_amount1 ?>" />
+								<input name="sell_amount" id="sell_amount" type="text" value="<?= String::currencyOutput($sell_amount1) ?>" />
 								<div class="qualify"><?= $c_currency_info['currency'] ?></div>
 								<div class="clear"></div>
 							</div>
@@ -374,25 +373,25 @@ if (!$bypass) {
 							</div>
 							<div class="param lessbottom">
 								<input class="checkbox" name="sell_stop" id="sell_stop" type="checkbox" value="1" <?= ($sell_stop && !$sell_market_price1) ? 'checked="checked"' : '' ?> />
-								<label for="sell_stop"><?= Lang::string('buy-stop') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href=""><i class="fa fa-question-circle"></i></a></label>
+								<label for="sell_stop"><?= Lang::string('buy-stop') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href="help.php?url=support/solutions/articles/8000018720-hva%C3%B0-er-tilbo%C3%B0-%C3%A1-l%C3%A1gmarksver%C3%B0i-"><i class="fa fa-question-circle"></i></a></label>
 								<div class="clear"></div>
 							</div>
 							<div id="sell_price_container" class="param" <?= (!$sell_limit && !$sell_market_price1) ? 'style="display:none;"' : '' ?>>
 								<label for="sell_price"><span id="sell_price_limit_label" <?= (!$sell_limit) ? 'style="display:none;"' : '' ?>><?= Lang::string('buy-limit-price') ?></span><span id="sell_price_market_label" <?= ($sell_limit) ? 'style="display:none;"' : '' ?>><?= Lang::string('buy-price') ?></span></label>
-								<input name="sell_price" id="sell_price" type="text" value="<?= number_format($sell_price1,($currency_info['is_crypto'] == 'Y' ? 8 : 2)) ?>" <?= ($sell_market_price1) ? 'readonly="readonly"' : '' ?> />
+								<input name="sell_price" id="sell_price" type="text" value="<?= String::currencyOutput($sell_price1) ?>" <?= ($sell_market_price1) ? 'readonly="readonly"' : '' ?> />
 								<div class="qualify"><span class="sell_currency_label"><?= $currency_info['currency'] ?></span></div>
 								<div class="clear"></div>
 							</div>
 							<div id="sell_stop_container" class="param" <?= (!$sell_stop) ? 'style="display:none;"' : '' ?>>
 								<label for="sell_stop_price"><?= Lang::string('buy-stop-price') ?></label>
-								<input name="sell_stop_price" id="sell_stop_price" type="text" value="<?= number_format($sell_stop_price1,($currency_info['is_crypto'] == 'Y' ? 8 : 2)) ?>" />
+								<input name="sell_stop_price" id="sell_stop_price" type="text" value="<?= String::currencyOutput($sell_stop_price1) ?>" />
 								<div class="qualify"><span class="sell_currency_label"><?= $currency_info['currency'] ?></span></div>
 								<div class="clear"></div>
 							</div>
 							<div class="spacer"></div>
 							<div class="calc">
 								<div class="label"><?= Lang::string('buy-subtotal') ?></div>
-								<div class="value"><span class="sell_currency_char"><?= $currency_info['fa_symbol'] ?></span><span id="sell_subtotal"><?= number_format($sell_subtotal1,($currency_info['is_crypto'] == 'Y' ? 8 : 2)) ?></span></div>
+								<div class="value"><span class="sell_currency_char"><?= $currency_info['fa_symbol'] ?></span><span id="sell_subtotal"><?= String::currency($sell_subtotal1,($currency_info['is_crypto'] == 'Y')) ?></span></div>
 								<div class="clear"></div>
 							</div>
 							<div class="calc">
@@ -405,7 +404,7 @@ if (!$bypass) {
 									<span id="sell_total_approx_label"><?= str_replace('[currency]','<span class="sell_currency_label">'.$currency_info['currency'].'</span>',Lang::string('sell-total-approx')) ?></span>
 									<span id="sell_total_label" style="display:none;"><?= str_replace('[currency]','<span class="sell_currency_label">'.$currency_info['currency'].'</span>',Lang::string('sell-total')) ?></span>
 								</div>
-								<div class="value"><span class="sell_currency_char"><?= $currency_info['fa_symbol'] ?></span><span id="sell_total"><?= number_format($sell_total1,($currency_info['is_crypto'] == 'Y' ? 8 : 2)) ?></span></div>
+								<div class="value"><span class="sell_currency_char"><?= $currency_info['fa_symbol'] ?></span><span id="sell_total"><?= String::currency($sell_total1,($currency_info['is_crypto'] == 'Y')) ?></span></div>
 								<div class="clear"></div>
 							</div>
 							<input type="hidden" name="sell" value="1" />
@@ -435,9 +434,9 @@ if (!$bypass) {
 								$mine = (!empty(User::$info['user']) && $bid['user_id'] == User::$info['user'] && $bid['btc_price'] == $bid['fiat_price']) ? '<a class="fa fa-user" href="open-orders.php?id='.$bid['id'].'" title="'.Lang::string('home-your-order').'"></a>' : '';
 								echo '
 						<tr id="bid_'.$bid['id'].'" class="bid_tr">
-							<td>'.$mine.'<span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><a class="order_price click" title="'.Lang::string('orders-click-price-sell').'" href="#">'.number_format($bid['btc_price'],($currency_info['is_crypto'] == 'Y' ? 8 : 2)).'</a> '.(($bid['btc_price'] != $bid['fiat_price']) ? '<a title="'.str_replace('[currency]',$CFG->currencies[$bid['currency']]['currency'],Lang::string('orders-converted-from')).'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '').'</td>
-							<td><a class="order_amount click" title="'.Lang::string('orders-click-amount-sell').'" href="#">'.number_format($bid['btc'],8).'</a></td>
-							<td><span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span class="order_value">'.number_format(($bid['btc_price'] * $bid['btc']),($currency_info['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
+							<td>'.$mine.'<span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><a class="order_price click" title="'.Lang::string('orders-click-price-sell').'" href="#">'.String::currency($bid['btc_price'],($currency_info['is_crypto'] == 'Y')).'</a> '.(($bid['btc_price'] != $bid['fiat_price']) ? '<a title="'.str_replace('[currency]',$CFG->currencies[$bid['currency']]['currency'],Lang::string('orders-converted-from')).'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '').'</td>
+							<td><a class="order_amount click" title="'.Lang::string('orders-click-amount-sell').'" href="#">'.String::currency($bid['btc'],true).'</a></td>
+							<td><span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span class="order_value">'.String::currency(($bid['btc_price'] * $bid['btc']),($currency_info['is_crypto'] == 'Y')).'</span></td>
 						</tr>';
 							}
 						}
@@ -461,9 +460,9 @@ if (!$bypass) {
 								$mine = (!empty(User::$info['user']) && $ask['user_id'] == User::$info['user'] && $ask['btc_price'] == $ask['fiat_price']) ? '<a class="fa fa-user" href="open-orders.php?id='.$ask['id'].'" title="'.Lang::string('home-your-order').'"></a>' : '';
 								echo '
 						<tr id="ask_'.$ask['id'].'" class="ask_tr">
-							<td>'.$mine.'<span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><a class="order_price click" title="'.Lang::string('orders-click-price-buy').'" href="#">'.number_format($ask['btc_price'],($currency_info['is_crypto'] == 'Y' ? 8 : 2)).'</a> '.(($ask['btc_price'] != $ask['fiat_price']) ? '<a title="'.str_replace('[currency]',$CFG->currencies[$ask['currency']]['currency'],Lang::string('orders-converted-from')).'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '').'</td>
-							<td><a class="order_amount click" title="'.Lang::string('orders-click-amount-buy').'" href="#">'.number_format($ask['btc'],8).'</a></td>
-							<td><span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span class="order_value">'.number_format(($ask['btc_price'] * $ask['btc']),($currency_info['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
+							<td>'.$mine.'<span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><a class="order_price click" title="'.Lang::string('orders-click-price-buy').'" href="#">'.String::currency($ask['btc_price'],($currency_info['is_crypto'] == 'Y')).'</a> '.(($ask['btc_price'] != $ask['fiat_price']) ? '<a title="'.str_replace('[currency]',$CFG->currencies[$ask['currency']]['currency'],Lang::string('orders-converted-from')).'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '').'</td>
+							<td><a class="order_amount click" title="'.Lang::string('orders-click-amount-buy').'" href="#">'.String::currency($ask['btc'],true).'</a></td>
+							<td><span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span class="order_value">'.String::currency(($ask['btc_price'] * $ask['btc']),($currency_info['is_crypto'] == 'Y')).'</span></td>
 						</tr>';
 							}
 						}
@@ -477,6 +476,7 @@ if (!$bypass) {
 		</div>
 		<div class="mar_top5"></div>
 	</div>
+	<? include 'includes/sidebar_account.php'; ?>
 </div>
 <? include 'includes/foot.php'; ?>
 <? } ?>

@@ -30,12 +30,11 @@
 	<![endif]-->
     
     <!-- ######### CSS STYLES ######### -->
-	<link rel="stylesheet" href="css/style.css?v=20151231" type="text/css" />
-    
+	<link rel="stylesheet" href="css/style.css?v=20151203" type="text/css" />
     <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
     
     <!-- responsive devices styles -->
-	<link rel="stylesheet" media="screen" href="css/responsive-leyouts.css?v=20151231" type="text/css" />
+	<link rel="stylesheet" media="screen" href="css/responsive-leyouts.css?v=20151204" type="text/css" />
     
 <!-- just remove the below comments witch color skin you want to use -->
     <!--<link rel="stylesheet" href="css/colors/lightblue.css" />-->
@@ -95,6 +94,9 @@
 <input type="hidden" id="this_currency_id" value="<?= (!empty($currency_info)) ? $currency_info['id'] : 0 ?>" />
 <input type="hidden" id="chat_handle" value="<?= (User::isLoggedIn()) ? User::$info['chat_handle'] : 'not-logged-in' ?>" />
 <input type="hidden" id="chat_baseurl" value="<?= ($CFG->chat_baseurl) ? $CFG->chat_baseurl : $CFG->baseurl ?>" />
+<input type="hidden" id="cfg_thousands_separator" value="<?= (!empty($CFG->thousands_separator)) ? $CFG->thousands_separator : ',' ?>" />
+<input type="hidden" id="cfg_decimal_separator" value="<?= (!empty($CFG->decimal_separator)) ? $CFG->decimal_separator : '.' ?>" />
+<input type="hidden" id="cfg_time_24h" value="<?= (!empty($CFG->time_24h)) ? $CFG->time_24h : 'N' ?>" />
 <?= Lang::url(false,false,1); ?>
 <?= Lang::jsCurrencies(false,false,1); ?>
 

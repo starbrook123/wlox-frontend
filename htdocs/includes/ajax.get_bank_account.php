@@ -19,7 +19,7 @@ $return['escrow_name'] = $bank_account_currency['account_name'];
 if (!empty($_REQUEST['avail'])) {
 	$return['currency'] = $bank_account_currency['currency'];
 	$return['currency_char'] = $bank_account_currency['fa_symbol'];
-	$return['available'] = number_format($user_available[$bank_account_currency['currency']],2);
+	$return['available'] = String::currency($user_available[$bank_account_currency['currency']]);
 }
 
 echo json_encode($return);

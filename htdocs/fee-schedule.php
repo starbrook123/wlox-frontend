@@ -1,12 +1,9 @@
 <?php
 include '../lib/common.php';
 
-if (!empty($_REQUEST['currency']))
-	$_SESSION['currency'] = strtolower(ereg_replace("[^a-zA-Z]", "",$_REQUEST['currency']));
-elseif (empty($_SESSION['currency']))
-	$_SESSION['currency'] = 'usd';
-
-$currency1 = $_SESSION['currency'];
+$currencies = Settings::sessionCurrency();
+$currency1 = $currencies['currency'];
+$c_currency1 = $currencies['c_currency'];
 
 API::add('Content','getRecord',array('fee-schedule'));
 API::add('FeeSchedule','get',array($currency1));
@@ -25,7 +22,6 @@ include 'includes/head.php';
 	</div>
 </div>
 <div class="container">
-	<? include 'includes/sidebar_topics.php'; ?>
 	<div class="content_right">
     	<div class="text"><?= $content['content'] ?></div>
     	<div class="clearfix mar_top2"></div>
@@ -42,10 +38,10 @@ include 'includes/head.php';
 								<? 
 								if ($CFG->currencies) {
 									foreach ($CFG->currencies as $key => $currency) {
-										if (is_numeric($key) || $currency['currency'] == 'BTC')
+										if (is_numeric($key) || $currency['id'] == $c_currency1)
 											continue;
 										
-										echo '<option '.(strtolower($currency['currency']) == $currency1 || (empty($currency1) && $currency['currency'] == 'USD') ? 'selected="selected"' : '' ).' name="'.strtolower($currency['currency']).'">'.$currency['currency'].'</option>';
+										echo '<option '.($currency['id'] == $currency1 ? 'selected="selected"' : '' ).' value="'.$currency['id'].'">'.$currency['currency'].'</option>';
 									}
 								}
 								?>
@@ -61,13 +57,13 @@ include 'includes/head.php';
 					$last_btc = false;
 					foreach ($fee_schedule as $fee) {
 						$symbol = ($fee['to_usd'] > 0) ? '<' : '>';
-						$from = ($fee['to_usd'] > 0) ? number_format($fee['to_usd'],0) : number_format($fee['from_usd'],0);
+						$from = ($fee['to_usd'] > 0) ? String::currency($fee['to_usd'],0) : String::currency($fee['from_usd'],0);
 				?>
 				<tr>
 					<?= ($fee['fee1'] != $last_fee1) ? '<td>'.$fee['fee1'].'%</td>' : '<td class="inactive"></td>' ?>
 					<td><?= $fee['fee'] ?>%</td>
 					<td><?= $symbol.' '.$fee['fa_symbol'].$from ?></td>
-					<?= ($fee['global_btc'] != $last_btc) ? '<td>'.number_format($fee['global_btc'],1).' BTC</td>' : '<td class="inactive"></td>' ?>
+					<?= ($fee['global_btc'] != $last_btc) ? '<td>'.String::currency($fee['global_btc']).' '.$CFG->currencies[$c_currency1]['currency'].'</td>' : '<td class="inactive"></td>' ?>
 				</tr>
 				<?
 						$last_fee1 = $fee['fee1'];
@@ -78,6 +74,7 @@ include 'includes/head.php';
 			</table>
     	</div>
     </div>
+    <? include 'includes/sidebar_topics.php'; ?>
 	<div class="clearfix mar_top8"></div>
 </div>
 <? include 'includes/foot.php'; ?>

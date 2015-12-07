@@ -99,7 +99,7 @@ if (!User::isLoggedIn()) {
 						if (is_numeric($key) || $currency['id'] == $c_currency_info['id'])
 							continue;
 				
-						$last_price = number_format($stats['last_price'] * ((empty($currency_info) || $currency_info['currency'] == 'USD') ? 1/$currency[$usd_field] : $currency_info[$usd_field] / $currency[$usd_field]),2);
+						$last_price = String::currency($stats['last_price'] * ((empty($currency_info) || $currency_info['currency'] == 'USD') ? 1/$currency[$usd_field] : $currency_info[$usd_field] / $currency[$usd_field]));
 						echo '<a class="'.(($currency_info['id'] == $currency['id']) ? $p_color.' selected' : '').'" href="index.php?currency='.$currency['id'].'"><span class="abbr">'.$currency['currency'].'</span> <span class="price_'.$currency['currency'].'">'.$last_price.'</span></a>';
 					}
 				}
@@ -165,33 +165,33 @@ if (!User::isLoggedIn()) {
         	<div class="panel-body">
 				<div class="one_fifth">
 		        	<div class="m_head"><?= Lang::string('home-stats-last-price') ?></div>
-		        	<p class="stat1 <?= ($query['Transactions']['get']['results'][0][0]['maker_type'] == 'sell') ? 'price-green' : 'price-red' ?>"><?= $arrow1.'<span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span id="stats_last_price">'.number_format($stats['last_price'],2).'</span>'?><small id="stats_last_price_curr"><?= ($query['Transactions']['get']['results'][0][0]['currency'] != $currency_info['id'] && $query['Transactions']['get']['results'][0][0]['currency1'] != $currency_info['id'] && $query['Transactions']['get']['results'][0][0]['currency']) ? ' ('.$CFG->currencies[$query['Transactions']['get']['results'][0][0]['currency1']]['currency'].')' : '' ?></small></p>
+		        	<p class="stat1 <?= ($query['Transactions']['get']['results'][0][0]['maker_type'] == 'sell') ? 'price-green' : 'price-red' ?>"><?= $arrow1.'<span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span id="stats_last_price">'.String::currency($stats['last_price']).'</span>'?><small id="stats_last_price_curr"><?= ($query['Transactions']['get']['results'][0][0]['currency'] != $currency_info['id'] && $query['Transactions']['get']['results'][0][0]['currency1'] != $currency_info['id'] && $query['Transactions']['get']['results'][0][0]['currency']) ? ' ('.$CFG->currencies[$query['Transactions']['get']['results'][0][0]['currency1']]['currency'].')' : '' ?></small></p>
 		        </div>
 		        <div class="one_fifth">
 		        	<div class="m_head"><?= Lang::string('home-stats-daily-change') ?></div>
-		        	<p class="stat1"><?= $arrow.'<span id="stats_daily_change_abs">'.number_format(abs($stats['daily_change']),2).'</span>' ?> <small><?= '<span id="stats_daily_change_perc">'.number_format(abs($stats['daily_change_percent']),2).'</span>%'?></small></p>
+		        	<p class="stat1"><?= $arrow.'<span id="stats_daily_change_abs">'.String::currency(abs($stats['daily_change'])).'</span>' ?> <small><?= '<span id="stats_daily_change_perc">'.String::currency(abs($stats['daily_change_percent'])).'</span>%'?></small></p>
 		        </div>
 		        <div class="one_fifth">
 		        	<div class="m_head"><?= Lang::string('home-stats-days-range') ?></div>
-		        	<p class="stat1"><?= '<span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span id="stats_min">'.number_format($stats['min'],2).'</span> - <span id="stats_max">'.number_format($stats['max'],2).'</span>' ?></p>
+		        	<p class="stat1"><?= '<span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span id="stats_min">'.String::currency($stats['min']).'</span> - <span id="stats_max">'.String::currency($stats['max']).'</span>' ?></p>
 		        </div>
 		        <div class="one_fifth">
 		        	<div class="m_head"><?= Lang::string('home-stats-todays-open') ?></div>
-		        	<p class="stat1"><?= '<span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span id="stats_open">'.number_format($stats['open'],2).'</span>'?></p>
+		        	<p class="stat1"><?= '<span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span id="stats_open">'.String::currency($stats['open']).'</span>'?></p>
 		        </div>
 		        <div class="one_fifth last">
 		        	<div class="m_head"><?= Lang::string('home-stats-24h-volume') ?></div>
-		        	<p class="stat1"><?= '<span id="stats_traded">'.number_format($stats['total_btc_traded'],2).'</span>' ?> <?= $c_currency_info['currency']?></p>
+		        	<p class="stat1"><?= '<span id="stats_traded">'.String::currency($stats['total_btc_traded']).'</span>' ?> <?= $c_currency_info['currency']?></p>
 		        </div>
 		        <div class="panel-divider"></div>
 		        <div class="one_third">
-		        	<h5><?= Lang::string('home-stats-market-cap') ?>: <em class="stat2"><?= '<span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span id="stats_market_cap">'.number_format($stats['market_cap']).'</span>'?></em></h5>
+		        	<h5><?= Lang::string('home-stats-market-cap') ?>: <em class="stat2"><?= '<span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span id="stats_market_cap">'.String::currency($stats['market_cap'],0).'</span>'?></em></h5>
 		        </div>
 		        <div class="one_third">
-		        	<h5><?= str_replace('[c_currency]',$c_currency_info['currency'],Lang::string('home-stats-total-btc')) ?>: <em class="stat2"><?= '<span id="stats_total_btc">'.number_format($stats['total_btc']).'</span>' ?></em></h5>
+		        	<h5><?= str_replace('[c_currency]',$c_currency_info['currency'],Lang::string('home-stats-total-btc')) ?>: <em class="stat2"><?= '<span id="stats_total_btc">'.String::currency($stats['total_btc'],0).'</span>' ?></em></h5>
 		        </div>
 		        <div class="one_third last">
-		        	<h5><?= Lang::string('home-stats-global-volume') ?>: <em class="stat2"><?= '<span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span id="stats_trade_volume">'.number_format($stats['trade_volume']).'</span>' ?></em></h5>
+		        	<h5><?= Lang::string('home-stats-global-volume') ?>: <em class="stat2"><?= '<span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span id="stats_trade_volume">'.String::currency($stats['trade_volume'],0).'</span>' ?></em></h5>
 		        </div>
 		        <div class="clear"></div>
 			</div>
@@ -206,7 +206,7 @@ if (!User::isLoggedIn()) {
 					if (is_numeric($key) || $currency['id'] == $c_currency_info['id'])
 						continue;
 						
-					$last_price = number_format($stats['last_price'] * ((empty($currency_info) || $currency_info['currency'] == 'USD') ? 1/$currency[$usd_field] : $currency_info[$usd_field] / $currency[$usd_field]),2);
+					$last_price = String::currency($stats['last_price'] * ((empty($currency_info) || $currency_info['currency'] == 'USD') ? 1/$currency[$usd_field] : $currency_info[$usd_field] / $currency[$usd_field]));
 					echo '<a class="'.(($currency_info['id'] == $currency['id']) ? $p_color.' selected' : '').'" href="index.php?currency='.$currency['id'].'#global_stats"><span class="abbr">'.$currency['currency'].'</span> <span class="price_'.$currency['currency'].'">'.$last_price.'</span></a>';
 				}
 			}
@@ -314,8 +314,8 @@ if (!User::isLoggedIn()) {
 							echo '
 					<tr id="order_'.$transaction['id'].'">
 						<td><span class="time_since"></span><input type="hidden" class="time_since_seconds" value="'.strtotime($transaction['date']).'" /></td>
-						<td>'.number_format($transaction['btc'],8).' '.$c_currency_info['currency'].'</td>
-						<td><span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span>'.number_format($transaction['btc_price'],($currency_info['is_crypto'] == 'Y' ? 8 : 2)).(($transaction['currency'] == $currency_info['id']) ? false : (($transaction['currency1'] == $currency_info['id']) ? false : ' ('.$CFG->currencies[$transaction['currency1']]['currency'].')')).'</td>
+						<td>'.String::currency($transaction['btc'],true).' '.$c_currency_info['currency'].'</td>
+						<td><span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span>'.String::currency($transaction['btc_price'],($currency_info['is_crypto'] == 'Y')).(($transaction['currency'] == $currency_info['id']) ? false : (($transaction['currency1'] == $currency_info['id']) ? false : ' ('.$CFG->currencies[$transaction['currency1']]['currency'].')')).'</td>
 					</tr>';
 						}
 					}
@@ -338,8 +338,8 @@ if (!User::isLoggedIn()) {
 							$mine = (!empty(User::$info['user']) && $bid['user_id'] == User::$info['user'] && $bid['btc_price'] == $bid['fiat_price']) ? '<a class="fa fa-user" href="open-orders.php?id='.$bid['id'].'" title="'.Lang::string('home-your-order').'"></a>' : '';
 							echo '
 					<tr id="bid_'.$bid['id'].'" class="bid_tr">
-						<td>'.$mine.'<span class="order_amount">'.number_format($bid['btc'],8).'</span> '.$c_currency_info['currency'].'<input type="hidden" id="order_id" value="'.$bid['id'].'" /></td>
-						<td><span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span class="order_price">'.number_format($bid['btc_price'],($currency_info['is_crypto'] == 'Y' ? 8 : 2)).'</span> '.(($bid['btc_price'] != $bid['fiat_price']) ? '<a title="'.str_replace('[currency]',$CFG->currencies[$bid['currency']]['currency'],Lang::string('orders-converted-from')).'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '').'</td>
+						<td>'.$mine.'<span class="order_amount">'.String::currency($bid['btc'],true).'</span> '.$c_currency_info['currency'].'<input type="hidden" id="order_id" value="'.$bid['id'].'" /></td>
+						<td><span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span class="order_price">'.String::currency($bid['btc_price'],($currency_info['is_crypto'] == 'Y')).'</span> '.(($bid['btc_price'] != $bid['fiat_price']) ? '<a title="'.str_replace('[currency]',$CFG->currencies[$bid['currency']]['currency'],Lang::string('orders-converted-from')).'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '').'</td>
 					</tr>';
 						}
 					}
@@ -360,8 +360,8 @@ if (!User::isLoggedIn()) {
 							$mine = (!empty(User::$info['user']) && $ask['user_id'] == User::$info['user'] && $ask['btc_price'] == $ask['fiat_price']) ? '<a class="fa fa-user" href="open-orders.php?id='.$ask['id'].'" title="'.Lang::string('home-your-order').'"></a>' : '';
 							echo '
 					<tr id="ask_'.$ask['id'].'" class="ask_tr">
-						<td>'.$mine.'<span class="order_amount">'.number_format($ask['btc'],8).'</span> '.$c_currency_info['currency'].'<input type="hidden" id="order_id" value="'.$ask['id'].'" /></td>
-						<td><span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span class="order_price">'.number_format($ask['btc_price'],($currency_info['is_crypto'] == 'Y' ? 8 : 2)).'</span> '.(($ask['btc_price'] != $ask['fiat_price']) ? '<a title="'.str_replace('[currency]',$CFG->currencies[$ask['currency']]['currency'],Lang::string('orders-converted-from')).'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '').'</td>
+						<td>'.$mine.'<span class="order_amount">'.String::currency($ask['btc'],true).'</span> '.$c_currency_info['currency'].'<input type="hidden" id="order_id" value="'.$ask['id'].'" /></td>
+						<td><span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span class="order_price">'.String::currency($ask['btc_price'],($currency_info['is_crypto'] == 'Y')).'</span> '.(($ask['btc_price'] != $ask['fiat_price']) ? '<a title="'.str_replace('[currency]',$CFG->currencies[$ask['currency']]['currency'],Lang::string('orders-converted-from')).'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '').'</td>
 					</tr>';
 						}
 					}

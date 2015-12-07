@@ -103,4 +103,8 @@ elseif (empty($_SESSION['language'])) {
 
 /* Get Currencies */
 $CFG->currencies = $query['Currencies']['get']['results'][0];
+
+/* Format Defaults */
+$CFG->decimal_separator = (!$CFG->decimal_separator) ? '.' : $CFG->decimal_separator;
+$CFG->thousands_separator = (!$CFG->thousands_separator) ? ',' : $CFG->thousands_separator;
 ?>

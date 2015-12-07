@@ -41,8 +41,8 @@ foreach ($CFG->currencies as $key => $currency) {
 $return['currency_info'] = $CFG->currencies[strtoupper($currency1)];
 $return['current_bid'] = $current_bid;
 $return['current_ask'] = $current_ask;
-$return['available_btc'] = (!empty($user_available[$CFG->currencies[$c_currency1]['currency']])) ? number_format($user_available[$CFG->currencies[$c_currency1]['currency']],8) : 0;
-$return['available_fiat'] = (!empty($user_available[$CFG->currencies[$currency1]['currency']])) ? number_format($user_available[$CFG->currencies[$currency1]['currency']],($CFG->currencies[$currency1]['is_crypto'] == 'Y' ? 8 : 2)) : 0;
+$return['available_btc'] = (!empty($user_available[$CFG->currencies[$c_currency1]['currency']])) ? String::currency($user_available[$CFG->currencies[$c_currency1]['currency']],true) : 0;
+$return['available_fiat'] = (!empty($user_available[$CFG->currencies[$currency1]['currency']])) ? String::currency($user_available[$CFG->currencies[$currency1]['currency']],($CFG->currencies[$currency1]['is_crypto'] == 'Y')) : 0;
 $return['stats'] = $stats;
 $return['market_stats'] = $market_stats;
 

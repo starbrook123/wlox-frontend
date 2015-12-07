@@ -11,18 +11,18 @@ $code['api_request_limit'] = 60;
 
 $code['usage_example_request'] = '# Example request using CURL on the command line
 curl "[api_url]/transactions" \
--d currency="EUR" \
+-d currency="ISK" \
 -d limit=5	
 ';
 
 $code['usage_example_response'] = '// Example valid response
 {"transactions": {
-	"0":{"id":"131","date":"2014-11-13 10:42:46","btc":"1.00000000","maker_type":"buy","price":"10.00","amount":"10.00","currency":"USD"},
-	"1":{"id":"129","date":"2014-11-11 11:14:12","btc":"0.50000000","maker_type":"buy","price":"11.27","amount":"5.63","currency":"EUR"},
-	"2":{"id":"128","date":"2014-11-11 11:13:49","btc":"0.50000000","maker_type":"buy","price":"10.91","amount":"5.46","currency":"USD"},
-	"3":{"id":"127","date":"2014-11-10 18:29:15","btc":"0.50000000","maker_type":"buy","price":"11.20","amount":"5.60","currency":"USD"},
-	"4":{"id":"126","date":"2014-11-10 18:25:21","btc":"0.50000000","maker_type":"buy","price":"11.20","amount":"5.60","currency":"USD"},
-	"request_currency":"USD"
+	"0":{"id":"131","date":"2014-11-13 10:42:46","aur":"1.00000000","maker_type":"buy","price":"10.00","amount":"10.00","currency":"ISK"},
+	"1":{"id":"129","date":"2014-11-11 11:14:12","aur":"0.50000000","maker_type":"buy","price":"11.27","amount":"5.63","currency":"ISK"},
+	"2":{"id":"128","date":"2014-11-11 11:13:49","aur":"0.50000000","maker_type":"buy","price":"10.91","amount":"5.46","currency":"ISK"},
+	"3":{"id":"127","date":"2014-11-10 18:29:15","aur":"0.50000000","maker_type":"buy","price":"11.20","amount":"5.60","currency":"ISK"},
+	"4":{"id":"126","date":"2014-11-10 18:25:21","aur":"0.50000000","maker_type":"buy","price":"11.20","amount":"5.60","currency":"ISK"},
+	"request_currency":"ISK"
 	}
 }
 ';
@@ -166,10 +166,10 @@ include 'includes/head.php';
 	</div>
 </div>
 <div class="container">
-	<? include 'includes/sidebar_topics.php'; ?>
 	<div class="content_right">
     <div class="text2"><?= $content['content'] ?></div>
     </div>
+    <? include 'includes/sidebar_topics.php'; ?>
 	<div class="clearfix mar_top8"></div>
 </div>
 <? include 'includes/foot.php'; ?>

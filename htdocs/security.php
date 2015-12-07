@@ -215,7 +215,6 @@ include 'includes/head.php';
 	</div>
 </div>
 <div class="container">
-	<? include 'includes/sidebar_account.php'; ?>
 	<div class="content_right">
 		<div class="testimonials-4">
 		<? if ($remove) { ?>
@@ -413,5 +412,6 @@ include 'includes/head.php';
 		</div>
 		<div class="mar_top8"></div>
 	</div>
+	<? include 'includes/sidebar_account.php'; ?>
 </div>
 <? include 'includes/foot.php'; ?>

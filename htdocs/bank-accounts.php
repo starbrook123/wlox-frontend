@@ -33,7 +33,7 @@ if ($account1 > 0) {
 		Errors::add(Lang::string('bank-accounts-already-exists'));
 	elseif ($exists)
 		Errors::add(Lang::string('bank-accounts-already-associated'));
-	if (strlen($account1) < 5)
+	if ((strlen($account1) + strlen($utibu1) + strlen($hb1)) < 5)
 		Errors::add(Lang::string('bank-accounts-invalid-number'));
 	if (!($currency1 > 0))
 		Errors::add(Lang::string('bank-accounts-no-currency'));
@@ -86,7 +86,6 @@ include 'includes/head.php';
 	</div>
 </div>
 <div class="container">
-	<? include 'includes/sidebar_account.php'; ?>
 	<div class="content_right">
 		<? if (empty($_REQUEST['action'])) { ?>
     	<div class="text"><?= $content['content'] ?></div>
@@ -183,6 +182,7 @@ include 'includes/head.php';
 		</div>
 		<? } ?>
     </div>
+    <? include 'includes/sidebar_account.php'; ?>
 	<div class="clearfix mar_top8"></div>
 </div>
 <? include 'includes/foot.php'; ?>

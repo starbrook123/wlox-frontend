@@ -51,7 +51,6 @@ include 'includes/head.php';
 	</div>
 </div>
 <div class="container">
-	<? include 'includes/sidebar_account.php'; ?>
 	<div class="content_right">
 		<div class="testimonials-4">
 			<? Messages::display(); ?>
@@ -76,7 +75,7 @@ include 'includes/head.php';
                 <div class="balances">
                 	<div class="one_half">
                 		<div class="label"><?= $CFG->currencies[$main['crypto']]['currency'].' '.Lang::string('account-available') ?></div>
-                		<div class="amount"><?= number_format($available[$CFG->currencies[$main['crypto']]['currency']],8) ?></div>
+                		<div class="amount"><?= String::currency($available[$CFG->currencies[$main['crypto']]['currency']],true) ?></div>
                 	</div>
 	            	<?
 	            	$i = 2;
@@ -89,7 +88,7 @@ include 'includes/head.php';
 					?>
 					<div class="one_half <?= $last_class ?>">
                 		<div class="label"><?= $currency.' '.Lang::string('account-available') ?>:</div>
-                		<div class="amount"><?= (!$is_crypto ? $CFG->currencies[$currency]['fa_symbol'].' ' : '').number_format($balance,($is_crypto ? 8 : 2)) ?></div>
+                		<div class="amount"><?= (!$is_crypto ? $CFG->currencies[$currency]['fa_symbol'].' ' : '').String::currency($balance,$is_crypto) ?></div>
                 	</div>
 					<?
 						$i++;
@@ -118,11 +117,11 @@ include 'includes/head.php';
 					?>
 					<div class="one_half">
                 		<div class="label"><?= $currency.' '.Lang::string('account-on-order') ?>:</div>
-                		<div class="amount"><?= ((!$is_crypto) ? $CFG->currencies[$currency]['fa_symbol'] : '').(!empty($balance['order']) ? number_format($balance['order'],($is_crypto ? 8 : 2)) : '0.00') ?></div>
+                		<div class="amount"><?= ((!$is_crypto) ? $CFG->currencies[$currency]['fa_symbol'] : '').(!empty($balance['order']) ? String::currency($balance['order'],$is_crypto) : '0.00') ?></div>
                 	</div>
                 	<div class="one_half last">
                 		<div class="label"><?= $currency.' '.Lang::string('account-on-widthdrawal') ?>:</div>
-                		<div class="amount"><?= ((!$is_crypto) ? $CFG->currencies[$currency]['fa_symbol'] : '').(!empty($balance['withdrawal']) ? number_format($balance['withdrawal'],($is_crypto ? 8 : 2)) : '0.00') ?></div>
+                		<div class="amount"><?= ((!$is_crypto) ? $CFG->currencies[$currency]['fa_symbol'] : '').(!empty($balance['withdrawal']) ? String::currency($balance['withdrawal'],$is_crypto) : '0.00') ?></div>
                 	</div>
 					<?
 						} 
@@ -153,7 +152,7 @@ include 'includes/head.php';
 	                </div>
 	                <div class="one_half">
 	                	<div class="label"><?= str_replace('[currency]',$CFG->currencies[$main['fiat']]['currency'],Lang::string('account-30-day-vol')) ?>:</div>
-	                	<div class="amount"><?= $CFG->currencies[$main['fiat']]['fa_symbol'].number_format(round($volume / $CFG->currencies[$main['fiat']]['usd_ask'],2,PHP_ROUND_HALF_UP),2) ?></div>
+	                	<div class="amount"><?= $CFG->currencies[$main['fiat']]['fa_symbol'].String::currency($volume / $CFG->currencies[$main['fiat']]['usd_ask']) ?></div>
 	                </div>
 		            <div class="clear"></div>
 	            </div>
@@ -162,6 +161,7 @@ include 'includes/head.php';
             <div class="mar_top8"></div>
         </div>
 	</div>
+	<? include 'includes/sidebar_account.php'; ?>
 </div>
 <? include 'includes/foot.php'; ?>
 

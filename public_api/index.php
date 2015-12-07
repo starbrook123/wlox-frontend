@@ -61,7 +61,10 @@ if ($endpoint == 'stats') {
 			$return['stats']['request_currency'] = strtoupper($currency1);
 			$return['stats']['daily_change'] = round($return['stats']['daily_change'],2,PHP_ROUND_HALF_UP);
 			$return['stats']['daily_change_percent'] = round($return['stats']['daily_change_percent'],2,PHP_ROUND_HALF_UP);
-			$return['stats']['total_btc_traded'] = ($return['stats']['total_btc_traded']) ? $return['stats']['total_btc_traded'] : 0;
+			$return['stats']['total_aur_traded'] = ($return['stats']['total_btc_traded']) ? $return['stats']['total_btc_traded'] : 0;
+			unset($return['stats']['total_btc_traded']);
+			$return['stats']['total_aur'] = ($return['stats']['total_btc']) ? $return['stats']['total_btc'] : 0;
+			unset($return['stats']['total_btc']);
 		}
 		else
 			$return['stats'] = array();
@@ -126,6 +129,10 @@ elseif ($endpoint == 'balances-and-info') {
 
 				if (empty($query['error'])) {
 					$return['balances-and-info'] = $query['User']['getBalancesAndInfo']['results'][0];
+					$return['balances-and-info']['isx_volume'] = ($return['balances-and-info']['usd_volume']) ? $return['balances-and-info']['usd_volume'] : 0;
+					unset($return['balances-and-info']['usd_volume']);
+					$return['balances-and-info']['global_aur_volume'] = ($return['balances-and-info']['global_btc_volume']) ? $return['balances-and-info']['global_btc_volume'] : 0;
+					unset($return['balances-and-info']['global_btc_volume']);
 				}
 				else
 					$return['errors'][] = array('message'=>'Invalid authentication.','code'=>$query['error']);
@@ -647,7 +654,7 @@ elseif ($endpoint == 'withdrawals/new') {
 							$return['errors'][] = array('message'=>'Invalid authentication.','code'=>$query['error']);
 							$error = true;
 						}
-						elseif ($amount1 > $user_available['BTC']) {
+						elseif ($amount1 > $user_available['AUR']) {
 							$return['errors'][] = array('message'=>Lang::string('withdraw-too-much'),'code'=>'WITHDRAW_BALANCE_TOO_LOW');
 							$error = true;
 						}

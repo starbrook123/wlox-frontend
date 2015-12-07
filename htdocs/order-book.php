@@ -79,8 +79,8 @@ include 'includes/head.php';
 					</li>
 					<li>
 						<label for="last_price"><?= Lang::string('home-stats-last-price') ?></label>
-						<input type="text" id="last_price" class="<?= $last_trans_color ?>" value="<?= $last_trans_symbol.number_format($last_transaction['btc_price'],2).$last_trans_currency ?>" disabled="disabled" />
-						<a target="_blank" href="https://support.1btcxe.com/support/solutions/articles/1000146628" title="<?= Lang::string('order-book-last-price-explain') ?>"><i class="fa fa-question-circle"></i></a>
+						<input type="text" id="last_price" class="<?= $last_trans_color ?>" value="<?= $last_trans_symbol.String::currency($last_transaction['btc_price']).$last_trans_currency ?>" disabled="disabled" />
+						<a target="_blank" href="" title="<?= Lang::string('order-book-last-price-explain') ?>"><i class="fa fa-question-circle"></i></a>
 					</li>
 				</ul>
 			</form>
@@ -105,9 +105,9 @@ include 'includes/head.php';
 							
 							echo '
 					<tr id="bid_'.$bid['id'].'" class="bid_tr">
-						<td>'.$mine.$currency_info['fa_symbol'].'<span class="order_price">'.number_format($bid['btc_price'],2).'</span> '.(($bid['btc_price'] != $bid['fiat_price']) ? '<a title="'.str_replace('[currency]',$CFG->currencies[$bid['currency']]['currency'],Lang::string('orders-converted-from')).'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '').'</td>
-						<td><span class="order_amount">'.number_format($bid['btc'],8).'</span> '.$c_currency_info['currency'].'</td>
-						<td>'.$currency_info['fa_symbol'].'<span class="order_value">'.number_format(($bid['btc_price'] * $bid['btc']),2).'</span></td>
+						<td>'.$mine.$currency_info['fa_symbol'].'<span class="order_price">'.String::currency($bid['btc_price']).'</span> '.(($bid['btc_price'] != $bid['fiat_price']) ? '<a title="'.str_replace('[currency]',$CFG->currencies[$bid['currency']]['currency'],Lang::string('orders-converted-from')).'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '').'</td>
+						<td><span class="order_amount">'.String::currency($bid['btc'],true).'</span> '.$c_currency_info['currency'].'</td>
+						<td>'.$currency_info['fa_symbol'].'<span class="order_value">'.String::currency(($bid['btc_price'] * $bid['btc'])).'</span></td>
 					</tr>';
 							$i++;
 						}
@@ -136,9 +136,9 @@ include 'includes/head.php';
 							
 							echo '
 					<tr id="ask_'.$ask['id'].'" class="ask_tr">
-						<td>'.$mine.$currency_info['fa_symbol'].'<span class="order_price">'.number_format($ask['btc_price'],2).'</span> '.(($ask['btc_price'] != $ask['fiat_price']) ? '<a title="'.str_replace('[currency]',$CFG->currencies[$ask['currency']]['currency'],Lang::string('orders-converted-from')).'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '').'</td>
-						<td><span class="order_amount">'.number_format($ask['btc'],8).'</span> '.$c_currency_info['currency'].'</td>
-						<td>'.$currency_info['fa_symbol'].'<span class="order_value">'.number_format(($ask['btc_price'] * $ask['btc']),2).'</span></td>
+						<td>'.$mine.$currency_info['fa_symbol'].'<span class="order_price">'.String::currency($ask['btc_price']).'</span> '.(($ask['btc_price'] != $ask['fiat_price']) ? '<a title="'.str_replace('[currency]',$CFG->currencies[$ask['currency']]['currency'],Lang::string('orders-converted-from')).'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '').'</td>
+						<td><span class="order_amount">'.String::currency($ask['btc'],true).'</span> '.$c_currency_info['currency'].'</td>
+						<td>'.$currency_info['fa_symbol'].'<span class="order_value">'.String::currency(($ask['btc_price'] * $ask['btc'])).'</span></td>
 					</tr>';
 							$i++;
 						}
