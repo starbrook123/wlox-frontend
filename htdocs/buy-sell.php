@@ -78,7 +78,7 @@ foreach ($CFG->currencies as $key => $currency) {
 if ($currency_info['is_crypto'] != 'Y')
 	$bank_accounts = $query['BankAccounts']['get']['results'][0];
 
-$buy_amount1 = (!empty($_REQUEST['buy_price']) && $_REQUEST['buy_amount'] > 0) ? String::currencyInput($_REQUEST['buy_amount']) : 0;
+$buy_amount1 = (!empty($_REQUEST['buy_amount']) && $_REQUEST['buy_amount'] > 0) ? String::currencyInput($_REQUEST['buy_amount']) : 0;
 $buy_price1 = (!empty($_REQUEST['buy_price']) && $_REQUEST['buy_price'] > 0) ? String::currencyInput($_REQUEST['buy_price']) : $current_ask;
 $buy_subtotal1 = $buy_amount1 * $buy_price1;
 $buy_fee_amount1 = ($user_fee_bid * 0.01) * $buy_subtotal1;
@@ -318,7 +318,7 @@ if (!$bypass) {
 							</div>
 							<div class="calc">
 								<div class="label"><?= Lang::string('buy-fee') ?> <a title="<?= Lang::string('account-view-fee-schedule') ?>" href="fee-schedule.php"><i class="fa fa-question-circle"></i></a></div>
-								<div class="value"><span id="buy_user_fee"><?= $user_fee_bid ?></span>%</div>
+								<div class="value"><span id="buy_user_fee"><?= String::currency($user_fee_bid) ?></span>%</div>
 								<div class="clear"></div>
 							</div>
 							<div class="calc bigger">
@@ -408,7 +408,7 @@ if (!$bypass) {
 							</div>
 							<div class="calc">
 								<div class="label"><?= Lang::string('buy-fee') ?> <a title="<?= Lang::string('account-view-fee-schedule') ?>" href="fee-schedule.php"><i class="fa fa-question-circle"></i></a></div>
-								<div class="value"><span id="sell_user_fee"><?= $user_fee_ask ?></span>%</div>
+								<div class="value"><span id="sell_user_fee"><?= String::currency($user_fee_ask) ?></span>%</div>
 								<div class="clear"></div>
 							</div>
 							<div class="calc bigger">
@@ -442,19 +442,19 @@ if (!$bypass) {
 						<div class="balances" style="margin-left:0;">
 							<div class="label"><?= Lang::string('buy-amount') ?></div>
 							<div class="amount"><?= String::currency($buy_amount1,true) ?></div>
-							<input type="hidden" name="buy_amount" value="<?= $buy_amount1 ?>" />
+							<input type="hidden" name="buy_amount" value="<?= String::currencyOutput($buy_amount1) ?>" />
 							<div class="label"><?= Lang::string('buy-with-currency') ?></div>
 							<div class="amount"><?= $currency_info['currency'] ?></div>
 							<input type="hidden" name="buy_currency" value="<?= $currency1 ?>" />
 							<? if ($buy_limit || $buy_market_price1) { ?>
 							<div class="label"><?= ($buy_market_price1) ? Lang::string('buy-price') : Lang::string('buy-limit-price') ?></div>
 							<div class="amount"><?= String::currency($buy_price1,($currency_info['is_crypto'] == 'Y')) ?></div>
-							<input type="hidden" name="buy_price" value="<?= $buy_price1 ?>" />
+							<input type="hidden" name="buy_price" value="<?= String::currencyOutput($buy_price1) ?>" />
 							<? } ?>
 							<? if ($buy_stop) { ?>
 							<div class="label"><?= Lang::string('buy-stop-price') ?></div>
 							<div class="amount"><?= String::currency($buy_stop_price1,($currency_info['is_crypto'] == 'Y')) ?></div>
-							<input type="hidden" name="buy_stop_price" value="<?= $buy_stop_price1 ?>" />
+							<input type="hidden" name="buy_stop_price" value="<?= String::currencyOutput($buy_stop_price1) ?>" />
 							<? } ?>
 						</div>
 						<div class="buyform">
@@ -493,7 +493,7 @@ if (!$bypass) {
 							</div>
 							<div class="calc">
 								<div class="label"><?= Lang::string('buy-fee') ?> <a title="<?= Lang::string('account-view-fee-schedule') ?>" href="fee-schedule.php"><i class="fa fa-question-circle"></i></a></div>
-								<div class="value"><span id="sell_user_fee"><?= $user_fee_bid ?></span>%</div>
+								<div class="value"><span id="sell_user_fee"><?= String::currency($user_fee_bid) ?></span>%</div>
 								<div class="clear"></div>
 							</div>
 							<div class="calc bigger">
@@ -516,19 +516,19 @@ if (!$bypass) {
 						<div class="balances" style="margin-left:0;">
 							<div class="label"><?= Lang::string('sell-amount') ?></div>
 							<div class="amount"><?= String::currency($sell_amount1,true) ?></div>
-							<input type="hidden" name="sell_amount" value="<?= $sell_amount1 ?>" />
+							<input type="hidden" name="sell_amount" value="<?= String::currencyOutput($sell_amount1) ?>" />
 							<div class="label"><?= Lang::string('buy-with-currency') ?></div>
 							<div class="amount"><?= $currency_info['currency'] ?></div>
 							<input type="hidden" name="sell_currency" value="<?= $currency1 ?>" />
 							<? if ($sell_limit || $sell_market_price1) { ?>
 							<div class="label"><?= ($sell_market_price1) ? Lang::string('buy-price') : Lang::string('buy-limit-price') ?></div>
 							<div class="amount"><?= String::currency($sell_price1,($currency_info['is_crypto'] == 'Y')) ?></div>
-							<input type="hidden" name="sell_price" value="<?= $sell_price1 ?>" />
+							<input type="hidden" name="sell_price" value="<?= String::currencyOutput($sell_price1) ?>" />
 							<? } ?>
 							<? if ($sell_stop) { ?>
 							<div class="label"><?= Lang::string('buy-stop-price') ?></div>
 							<div class="amount"><?= String::currency($sell_stop_price1,($currency_info['is_crypto'] == 'Y')) ?></div>
-							<input type="hidden" name="sell_stop_price" value="<?= $sell_stop_price1 ?>" />
+							<input type="hidden" name="sell_stop_price" value="<?= String::currencyOutput($sell_stop_price1) ?>" />
 							<? } ?>
 						</div>
 						<div class="buyform">
@@ -567,7 +567,7 @@ if (!$bypass) {
 							</div>
 							<div class="calc">
 								<div class="label"><?= Lang::string('buy-fee') ?> <a title="<?= Lang::string('account-view-fee-schedule') ?>" href="fee-schedule.php"><i class="fa fa-question-circle"></i></a></div>
-								<div class="value"><span id="sell_user_fee"><?= $user_fee_ask ?></span>%</div>
+								<div class="value"><span id="sell_user_fee"><?= String::currency($user_fee_ask) ?></span>%</div>
 								<div class="clear"></div>
 							</div>
 							<div class="calc bigger">

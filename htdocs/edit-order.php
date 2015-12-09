@@ -129,7 +129,7 @@ if ($CFG->trading_status == 'suspended')
 if ($buy && !is_array(Errors::$errors)) {
 	$buy_market_price1 = (!empty($_REQUEST['buy_market_price']));
 	$buy_stop = (!empty($_REQUEST['buy_stop']));
-	$buy_stop_price1 = ($buy_stop) ? String::currency($_REQUEST['buy_stop_price'],($currency_info['is_crypto'] == 'Y')) : false;
+	$buy_stop_price1 = ($buy_stop) ? $buy_stop_price1 : false;
 	$buy_limit = (!empty($_REQUEST['buy_limit']));
 	$buy_limit = (!$buy_stop && !$buy_market_price1) ? 1 : $buy_limit;
 	$buy_price1 = ($buy_market_price1) ? $current_ask : $buy_price1;
@@ -166,7 +166,7 @@ if ($buy && !is_array(Errors::$errors)) {
 if ($sell && !is_array(Errors::$errors)) {
 	$sell_market_price1 = (!empty($_REQUEST['sell_market_price']));
 	$sell_stop = (!empty($_REQUEST['sell_stop']));
-	$sell_stop_price1 = ($sell_stop) ? String::currency($_REQUEST['sell_stop_price'],($currency_info['is_crypto'] == 'Y')) : false;
+	$sell_stop_price1 = ($sell_stop) ? $sell_stop_price1 : false;
 	$sell_limit = (!empty($_REQUEST['sell_limit']));
 	$sell_limit = (!$sell_stop && !$sell_market_price1) ? 1 : $sell_limit;
 	$sell_price1 = ($sell_market_price1) ? $current_bid : $sell_price1;
@@ -304,7 +304,7 @@ if (!$bypass) {
 							</div>
 							<div class="calc">
 								<div class="label"><?= Lang::string('buy-fee') ?> <a title="<?= Lang::string('account-view-fee-schedule') ?>" href="fee-schedule.php"><i class="fa fa-question-circle"></i></a></div>
-								<div class="value"><span id="buy_user_fee"><?= $user_fee_bid ?></span>%</div>
+								<div class="value"><span id="buy_user_fee"><?= String::currency($user_fee_bid) ?></span>%</div>
 								<div class="clear"></div>
 							</div>
 							<div class="calc bigger">
@@ -396,7 +396,7 @@ if (!$bypass) {
 							</div>
 							<div class="calc">
 								<div class="label"><?= Lang::string('buy-fee') ?> <a title="<?= Lang::string('account-view-fee-schedule') ?>" href="fee-schedule.php"><i class="fa fa-question-circle"></i></a></div>
-								<div class="value"><span id="sell_user_fee"><?= $user_fee_ask ?></span>%</div>
+								<div class="value"><span id="sell_user_fee"><?= String::currency($user_fee_ask) ?></span>%</div>
 								<div class="clear"></div>
 							</div>
 							<div class="calc bigger">

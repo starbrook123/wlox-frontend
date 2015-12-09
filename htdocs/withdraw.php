@@ -98,9 +98,8 @@ if (!empty($_REQUEST['bitcoins'])) {
 		Errors::add(Lang::string('withdraw-amount-zero'));
 	if ($btc_amount1 > $user_available[$c_currency_info['currency']])
 		Errors::add(Lang::string('withdraw-too-much'));
-
-	//if (!$query['BitcoinAddresses']['validateAddress']['results'][0])
-		//Errors::add(Lang::string('withdraw-address-invalid'));
+	if (!$query['BitcoinAddresses']['validateAddress']['results'][0])
+		Errors::add(Lang::string('withdraw-address-invalid'));
 	
 	if (!is_array(Errors::$errors)) {
 		if (User::$info['confirm_withdrawal_email_btc'] == 'Y' && !$request_2fa && !$token1) {
@@ -265,7 +264,7 @@ if (empty($_REQUEST['bypass'])) {
 							<div class="spacer"></div>
 							<div class="calc">
 								<div class="label"><?= Lang::string('withdraw-network-fee') ?> <a title="<?= Lang::string('withdraw-network-fee-explain') ?>" href="javascript:return false;"><i class="fa fa-question-circle"></i></a></div>
-								<div class="value"><span id="withdraw_btc_network_fee"><?= $wallet['bitcoin_sending_fee'] ?></span> <?= $c_currency_info['currency'] ?></div>
+								<div class="value"><span id="withdraw_btc_network_fee"><?= String::currencyOutput($wallet['bitcoin_sending_fee']) ?></span> <?= $c_currency_info['currency'] ?></div>
 								<div class="clear"></div>
 							</div>
 							<div class="calc bigger">
@@ -324,7 +323,7 @@ if (empty($_REQUEST['bypass'])) {
 							<div class="spacer"></div>
 							<div class="calc">
 								<div class="label"><?= str_replace('[currency]','<span class="currency_label">'.$currency_info['currency'].'</span>',Lang::string('buy-fee')) ?> <a title="<?= Lang::string('account-view-fee-schedule') ?>" href="fee-schedule.php"><i class="fa fa-question-circle"></i></a></div>
-								<div class="value"><span class="currency_char"><?= $currency_info['fa_symbol'] ?></span><span id="withdraw_fiat_fee"><?= String::currency($CFG->fiat_withdraw_fee) ?></span></div>
+								<div class="value"><span class="currency_char"><?= $currency_info['fa_symbol'] ?></span><span id="withdraw_fiat_fee"><?= String::currencyOutput($CFG->fiat_withdraw_fee) ?></span></div>
 								<div class="clear"></div>
 							</div>
 							<div class="calc bigger">
@@ -358,9 +357,9 @@ if (empty($_REQUEST['bypass'])) {
 				<form id="enable_tfa" action="withdraw.php" method="POST">
 					<input type="hidden" name="request_2fa" value="1" />
 					<input type="hidden" name="account" value="<?= $account1 ?>" />
-					<input type="hidden" name="fiat_amount" value="<?= $fiat_amount1 ?>" />
+					<input type="hidden" name="fiat_amount" value="<?= String::currencyOutput($fiat_amount1) ?>" />
 					<input type="hidden" name="btc_address" value="<?= $btc_address1 ?>" />
-					<input type="hidden" name="btc_amount" value="<?= $btc_amount1 ?>" />
+					<input type="hidden" name="btc_amount" value="<?= String::currencyOutput($btc_amount1) ?>" />
 					<input type="hidden" name="bitcoins" value="<?= ($_REQUEST['bitcoins']) ? '1' : '' ?>" />
 					<input type="hidden" name="fiat" value="<?= ($_REQUEST['fiat']) ? '1' : '' ?>" />
 					<div class="buyform">
