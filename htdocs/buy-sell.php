@@ -78,21 +78,31 @@ foreach ($CFG->currencies as $key => $currency) {
 if ($currency_info['is_crypto'] != 'Y')
 	$bank_accounts = $query['BankAccounts']['get']['results'][0];
 
-$buy_amount1 = (!empty($_REQUEST['buy_amount']) && $_REQUEST['buy_amount'] > 0) ? String::currencyInput($_REQUEST['buy_amount']) : 0;
-$buy_price1 = (!empty($_REQUEST['buy_price']) && $_REQUEST['buy_price'] > 0) ? String::currencyInput($_REQUEST['buy_price']) : $current_ask;
+$buy_amount1 = (!empty($_REQUEST['buy_amount'])) ? String::currencyInput($_REQUEST['buy_amount']) : 0;
+$buy_price1 = (!empty($_REQUEST['buy_price'])) ? String::currencyInput($_REQUEST['buy_price']) : $current_ask;
 $buy_subtotal1 = $buy_amount1 * $buy_price1;
 $buy_fee_amount1 = ($user_fee_bid * 0.01) * $buy_subtotal1;
 $buy_total1 = round($buy_subtotal1 + $buy_fee_amount1,($currency_info['is_crypto'] == 'Y' ? 8 : 2),PHP_ROUND_HALF_UP);
 $buy_stop = false;
 $buy_stop_price1 = false;
 
-$sell_amount1 = (!empty($_REQUEST['sell_amount']) && $_REQUEST['sell_amount'] > 0) ? String::currencyInput($_REQUEST['sell_amount']) : 0;
-$sell_price1 = (!empty($_REQUEST['sell_price']) && $_REQUEST['sell_price'] > 0) ? String::currencyInput($_REQUEST['sell_price']) : $current_bid;
+$sell_amount1 = (!empty($_REQUEST['sell_amount'])) ? String::currencyInput($_REQUEST['sell_amount']) : 0;
+$sell_price1 = (!empty($_REQUEST['sell_price'])) ? String::currencyInput($_REQUEST['sell_price']) : $current_bid;
 $sell_subtotal1 = $sell_amount1 * $sell_price1;
 $sell_fee_amount1 = ($user_fee_ask * 0.01) * $sell_subtotal1;
 $sell_total1 = round($sell_subtotal1 - $sell_fee_amount1,($currency_info['is_crypto'] == 'Y' ? 8 : 2),PHP_ROUND_HALF_UP);
 $sell_stop = false;
 $sell_stop_price1 = false;
+
+$user_fee_both = $query['FeeSchedule']['getRecord']['results'][0];
+$user_available = $query['User']['getAvailable']['results'][0];
+$current_bid = $query['Orders']['getBidAsk']['results'][0]['bid'];
+$current_ask =  $query['Orders']['getBidAsk']['results'][0]['ask'];
+$bids = $query['Orders']['get']['results'][0];
+$asks = $query['Orders']['get']['results'][1];
+$user_fee_bid = ($buy && (($buy_amount1 > 0 && $buy_price1 >= $asks[0]['btc_price']) || !empty($_REQUEST['buy_market_price']) || empty($_REQUEST['buy_amount']))) ? $query['FeeSchedule']['getRecord']['results'][0]['fee'] : $query['FeeSchedule']['getRecord']['results'][0]['fee1'];
+$user_fee_ask = ($sell && (($sell_amount1 > 0 && $sell_price1 <= $bids[0]['btc_price']) || !empty($_REQUEST['sell_market_price']) || empty($_REQUEST['sell_amount']))) ? $query['FeeSchedule']['getRecord']['results'][0]['fee'] : $query['FeeSchedule']['getRecord']['results'][0]['fee1'];
+$bank_accounts = $query['BankAccounts']['get']['results'][0];
 
 if ($CFG->trading_status == 'suspended')
 	Errors::add(Lang::string('buy-trading-disabled'));
