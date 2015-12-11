@@ -45,6 +45,7 @@ include 'includes/head.php';
 		<div class="mar_top3"></div>
 		<div class="clear"></div>
 		<div class="filters">
+			<input type="hidden" id="is_crypto" value="<?= $currency_info['is_crypto'] ?>" />
 			<form method="GET" action="order-book.php">
 				<ul class="list_empty">
 					<li>
@@ -79,7 +80,7 @@ include 'includes/head.php';
 					</li>
 					<li>
 						<label for="last_price"><?= Lang::string('home-stats-last-price') ?></label>
-						<input type="text" id="last_price" class="<?= $last_trans_color ?>" value="<?= $last_trans_symbol.String::currency($last_transaction['btc_price']).$last_trans_currency ?>" disabled="disabled" />
+						<input type="text" id="last_price" class="<?= $last_trans_color ?>" value="<?= ($currency_info['is_crypto'] != 'Y' ? $last_trans_symbol : '').String::currency($last_transaction['btc_price']).($currency_info['is_crypto'] == 'Y' ? ' '.$last_trans_symbol : '').$last_trans_currency ?>" disabled="disabled" />
 						<a target="_blank" href="" title="<?= Lang::string('order-book-last-price-explain') ?>"><i class="fa fa-question-circle"></i></a>
 					</li>
 				</ul>

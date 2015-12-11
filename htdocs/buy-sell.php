@@ -55,8 +55,8 @@ $current_bid = $query['Orders']['getBidAsk']['results'][0]['bid'];
 $current_ask =  $query['Orders']['getBidAsk']['results'][0]['ask'];
 $bids = $query['Orders']['get']['results'][0];
 $asks = $query['Orders']['get']['results'][1];
-$user_fee_bid = ($buy && ((!empty($_REQUEST['buy_amount']) && $_REQUEST['buy_amount'] > 0 && $_REQUEST['buy_price'] >= $asks[0]['btc_price']) || !empty($_REQUEST['buy_market_price']) || empty($_REQUEST['buy_amount']))) ? $query['FeeSchedule']['getRecord']['results'][0]['fee'] : $query['FeeSchedule']['getRecord']['results'][0]['fee1'];
-$user_fee_ask = ($sell && ((!empty($_REQUEST['sell_amount']) && $_REQUEST['sell_amount'] > 0 && $_REQUEST['sell_price'] <= $bids[0]['btc_price']) || !empty($_REQUEST['sell_market_price']) || empty($_REQUEST['sell_amount']))) ? $query['FeeSchedule']['getRecord']['results'][0]['fee'] : $query['FeeSchedule']['getRecord']['results'][0]['fee1'];
+$user_fee_bid = ($buy && ((String::currencyInput($_REQUEST['buy_amount']) > 0 && String::currencyInput($_REQUEST['buy_price']) >= $asks[0]['btc_price']) || !empty($_REQUEST['buy_market_price']) || empty($_REQUEST['buy_amount']))) ? $query['FeeSchedule']['getRecord']['results'][0]['fee'] : $query['FeeSchedule']['getRecord']['results'][0]['fee1'];
+$user_fee_ask = ($sell && ((String::currencyInput($_REQUEST['sell_amount']) > 0 && String::currencyInput($_REQUEST['sell_price']) <= $bids[0]['btc_price']) || !empty($_REQUEST['sell_market_price']) || empty($_REQUEST['sell_amount']))) ? $query['FeeSchedule']['getRecord']['results'][0]['fee'] : $query['FeeSchedule']['getRecord']['results'][0]['fee1'];
 $transactions = $query['Transactions']['get']['results'][0];
 $usd_field = 'usd_ask';
 
@@ -93,16 +93,6 @@ $sell_fee_amount1 = ($user_fee_ask * 0.01) * $sell_subtotal1;
 $sell_total1 = round($sell_subtotal1 - $sell_fee_amount1,($currency_info['is_crypto'] == 'Y' ? 8 : 2),PHP_ROUND_HALF_UP);
 $sell_stop = false;
 $sell_stop_price1 = false;
-
-$user_fee_both = $query['FeeSchedule']['getRecord']['results'][0];
-$user_available = $query['User']['getAvailable']['results'][0];
-$current_bid = $query['Orders']['getBidAsk']['results'][0]['bid'];
-$current_ask =  $query['Orders']['getBidAsk']['results'][0]['ask'];
-$bids = $query['Orders']['get']['results'][0];
-$asks = $query['Orders']['get']['results'][1];
-$user_fee_bid = ($buy && (($buy_amount1 > 0 && $buy_price1 >= $asks[0]['btc_price']) || !empty($_REQUEST['buy_market_price']) || empty($_REQUEST['buy_amount']))) ? $query['FeeSchedule']['getRecord']['results'][0]['fee'] : $query['FeeSchedule']['getRecord']['results'][0]['fee1'];
-$user_fee_ask = ($sell && (($sell_amount1 > 0 && $sell_price1 <= $bids[0]['btc_price']) || !empty($_REQUEST['sell_market_price']) || empty($_REQUEST['sell_amount']))) ? $query['FeeSchedule']['getRecord']['results'][0]['fee'] : $query['FeeSchedule']['getRecord']['results'][0]['fee1'];
-$bank_accounts = $query['BankAccounts']['get']['results'][0];
 
 if ($CFG->trading_status == 'suspended')
 	Errors::add(Lang::string('buy-trading-disabled'));
@@ -628,7 +618,7 @@ if (!$bypass) {
 						</tr>';
 							}
 						}
-						echo '<tr id="no_bids" style="'.(is_array($bids) ? 'display:none;' : '').'"><td colspan="4">'.Lang::string('orders-no-bid').'</td></tr>';
+						echo '<tr id="no_bids" style="'.(is_array($bids) && count($bids) > 0 ? 'display:none;' : '').'"><td colspan="4">'.Lang::string('orders-no-bid').'</td></tr>';
 	        			?>
 	        		</table>
 				</div>
@@ -654,7 +644,7 @@ if (!$bypass) {
 						</tr>';
 							}
 						}
-						echo '<tr id="no_asks" style="'.(is_array($asks) ? 'display:none;' : '').'"><td colspan="4">'.Lang::string('orders-no-ask').'</td></tr>';
+						echo '<tr id="no_asks" style="'.(is_array($asks) && count($asks) > 0 ? 'display:none;' : '').'"><td colspan="4">'.Lang::string('orders-no-ask').'</td></tr>';
 	        			?>
 					</table>
 				</div>

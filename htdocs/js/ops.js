@@ -1375,7 +1375,7 @@ function updateTransactions() {
 	var update = setInterval(function(){
 		var currency = (notrades) ? (($('#user_fee').length > 0) ? $('#buy_currency').val() : $('#graph_orders_currency').val()) : $('#graph_price_history_currency').val();
 		var c_currency = $('#c_currency').val();
-		var currency_id = (currency) ? $('.curr_abbr_'+currency.toUpperCase()).attr('name') : null;
+		var currency_id = (currency) ? $('#curr_abbr_'+currency).attr('name') : null;
 		var order_by = $('#order_by').val();
 		var is_crypto = ($('#is_crypto').length > 0) ? ($('#is_crypto').val() == 'Y') : null;
 		
@@ -1456,8 +1456,11 @@ function updateTransactions() {
 						$('#stats_min').html(formatCurrency(this.btc_price));
 					if (this.btc_price > current_max)
 						$('#stats_max').html(formatCurrency(this.btc_price));
-						insert_elem = elem;
 					
+					if (!notrades) {
+						var elem = $('<tr id="order_'+this.id+'"><td><span class="time_since"></span><input type="hidden" class="time_since_seconds" value="'+this.time_since+'" /></td><td>'+this.btc+' '+($('#curr_abbr_'+this.c_currency).val())+'</td><td><span class="buy_currency_char">' + this_fa_symbol + '</span><span>' + formatCurrency(this.btc_price,($('#is_crypto').val() == 'Y')) + '</span>' + this_currency_abbr + '</td></tr>').insertAfter(insert_elem);
+						insert_elem = elem;
+						
 						timeSince($(elem).find('.time_since'));
 						$(elem).children('td').effect("highlight",{color:"#A2EEEE"},2000);
 						$('#stats_traded').html(formatCurrency(json_data.btc_traded));
@@ -1466,7 +1469,7 @@ function updateTransactions() {
 						if (active_transactions > 5)
 							$('#transactions_list tr:not(#no_transactions):last').remove();
 						
-					}
+					}	
 					i++;
 				});
 			}
@@ -1967,10 +1970,10 @@ function switchBuyCurrency() {
 			
 			$('#filters_area').load('buy-sell.php?bypass=1&currency='+currency);
 			$('#buy_currency,#sell_currency').val(currency);
-			$('.sell_currency_label,.buy_currency_label').html(currency.toUpperCase());
+			$('.sell_currency_label,.buy_currency_label').html(json_data.currency_info.currency);
 			$('.sell_currency_char,.buy_currency_char').html(json_data.currency_info.fa_symbol);
-			$('#buy_price').val(json_data.current_ask.toString().replace(/\B(?=(\d{3})+(?!\d))/g,$('#cfg_thousands_separator').val()));
-			$('#sell_price').val(json_data.current_bid.toString().replace(/\B(?=(\d{3})+(?!\d))/g,$('#cfg_thousands_separator').val()));
+			$('#buy_price').val(json_data.current_ask.toString().replace('.',$('#cfg_decimal_separator').val()));
+			$('#sell_price').val(json_data.current_bid.toString().replace('.',$('#cfg_decimal_separator').val()));
 			$('#sell_user_available').html(json_data.available_btc);
 			$('#buy_user_available').html(json_data.available_fiat);
 			$('#this_currency_id').val(json_data.currency_info.id);
@@ -2042,7 +2045,10 @@ function reorderLabels(is_crypto) {
 	if (is_crypto) {
 		$('.buy_currency_char,.sell_currency_char').addClass('cc');
 		$('.stat1 .buy_currency_char,.stat2 .buy_currency_char,.trades .buy_currency_char').each(function(){
-			$(this).siblings('span:not(.cc):first').after(this);
+			if (($(this).siblings('.stats_min').length > 0))
+				$(this).siblings('span:not(.cc):first').after(this);
+			else
+				$(this).siblings('span:not(.cc):last').after(this);
 		});
 		$('.trades .buy_currency_char').each(function(){
 			if ($(this).siblings('a').length > 0)

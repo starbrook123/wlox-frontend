@@ -15,7 +15,7 @@ class String {
 		}
 	}
 	
-	public static function currency($amount,$crypto=false) {
+	public static function currency($amount,$crypto=false,$flex=false) {
 		global $CFG;
 		
 		if (!empty($amount) && $amount > 0) {
@@ -23,6 +23,15 @@ class String {
 			$decimal = ($CFG->decimal_separator) ? $CFG->decimal_separator : '.';
 			$dec_amount = (!is_numeric($crypto)) ? ($crypto ? 8 : 2) : $crypto;
 			
+			if ($flex) {
+				$flex = (!is_numeric($flex)) ? 8 : $flex;
+				$dec_detect = strlen(preg_replace("/[^0-9]/",'',strrchr($amount, "."))) - strlen(ltrim(preg_replace("/[^0-9]/",'',strrchr($amount, ".")),'0'));
+				if (strrchr($amount, ".") > 0) {
+					$dec_amount = max($dec_amount,$dec_detect + 1);
+					$dec_amount = ($dec_amount > $flex) ? $flex : $dec_amount;
+				}
+			}
+		 
 			return number_format($amount,$dec_amount,$decimal,$thousands);
 		}
 		else {

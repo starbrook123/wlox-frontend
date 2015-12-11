@@ -99,7 +99,7 @@ if (!User::isLoggedIn()) {
 						if (is_numeric($key) || $currency['id'] == $c_currency_info['id'])
 							continue;
 				
-						$last_price = String::currency($stats['last_price'] * ((empty($currency_info) || $currency_info['currency'] == 'USD') ? 1/$currency[$usd_field] : $currency_info[$usd_field] / $currency[$usd_field]));
+						$last_price = String::currency($stats['last_price'] * ((empty($currency_info) || $currency_info['currency'] == 'USD') ? 1/$currency[$usd_field] : $currency_info[$usd_field] / $currency[$usd_field]),2,4);
 						echo '<a class="'.(($currency_info['id'] == $currency['id']) ? $p_color.' selected' : '').'" href="index.php?currency='.$currency['id'].'"><span class="abbr">'.$currency['currency'].'</span> <span class="price_'.$currency['currency'].'">'.$last_price.'</span></a>';
 					}
 				}
@@ -165,19 +165,19 @@ if (!User::isLoggedIn()) {
         	<div class="panel-body">
 				<div class="one_fifth">
 		        	<div class="m_head"><?= Lang::string('home-stats-last-price') ?></div>
-		        	<p class="stat1 <?= ($query['Transactions']['get']['results'][0][0]['maker_type'] == 'sell') ? 'price-green' : 'price-red' ?>"><?= $arrow1.'<span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span id="stats_last_price">'.String::currency($stats['last_price']).'</span>'?><small id="stats_last_price_curr"><?= ($query['Transactions']['get']['results'][0][0]['currency'] != $currency_info['id'] && $query['Transactions']['get']['results'][0][0]['currency1'] != $currency_info['id'] && $query['Transactions']['get']['results'][0][0]['currency']) ? ' ('.$CFG->currencies[$query['Transactions']['get']['results'][0][0]['currency1']]['currency'].')' : '' ?></small></p>
+		        	<p class="stat1 <?= ($query['Transactions']['get']['results'][0][0]['maker_type'] == 'sell') ? 'price-green' : 'price-red' ?>"><?= $arrow1.'<span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span id="stats_last_price">'.String::currency($stats['last_price'],2,4).'</span>'?><small id="stats_last_price_curr"><?= ($query['Transactions']['get']['results'][0][0]['currency'] != $currency_info['id'] && $query['Transactions']['get']['results'][0][0]['currency1'] != $currency_info['id'] && $query['Transactions']['get']['results'][0][0]['currency']) ? ' ('.$CFG->currencies[$query['Transactions']['get']['results'][0][0]['currency1']]['currency'].')' : '' ?></small></p>
 		        </div>
 		        <div class="one_fifth">
 		        	<div class="m_head"><?= Lang::string('home-stats-daily-change') ?></div>
-		        	<p class="stat1"><?= $arrow.'<span id="stats_daily_change_abs">'.String::currency(abs($stats['daily_change'])).'</span>' ?> <small><?= '<span id="stats_daily_change_perc">'.String::currency(abs($stats['daily_change_percent'])).'</span>%'?></small></p>
+		        	<p class="stat1"><?= $arrow.'<span id="stats_daily_change_abs">'.String::currency(abs($stats['daily_change']),2,4).'</span>' ?> <small><?= '<span id="stats_daily_change_perc">'.String::currency(abs($stats['daily_change_percent'])).'</span>%'?></small></p>
 		        </div>
 		        <div class="one_fifth">
 		        	<div class="m_head"><?= Lang::string('home-stats-days-range') ?></div>
-		        	<p class="stat1"><?= '<span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span id="stats_min">'.String::currency($stats['min']).'</span> - <span id="stats_max">'.String::currency($stats['max']).'</span>' ?></p>
+		        	<p class="stat1"><?= '<span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span id="stats_min">'.String::currency($stats['min'],2,4).'</span> - <span id="stats_max">'.String::currency($stats['max'],2,4).'</span>' ?></p>
 		        </div>
 		        <div class="one_fifth">
 		        	<div class="m_head"><?= Lang::string('home-stats-todays-open') ?></div>
-		        	<p class="stat1"><?= '<span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span id="stats_open">'.String::currency($stats['open']).'</span>'?></p>
+		        	<p class="stat1"><?= '<span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span id="stats_open">'.String::currency($stats['open'],2,4).'</span>'?></p>
 		        </div>
 		        <div class="one_fifth last">
 		        	<div class="m_head"><?= Lang::string('home-stats-24h-volume') ?></div>
@@ -206,7 +206,7 @@ if (!User::isLoggedIn()) {
 					if (is_numeric($key) || $currency['id'] == $c_currency_info['id'])
 						continue;
 						
-					$last_price = String::currency($stats['last_price'] * ((empty($currency_info) || $currency_info['currency'] == 'USD') ? 1/$currency[$usd_field] : $currency_info[$usd_field] / $currency[$usd_field]));
+					$last_price = String::currency($stats['last_price'] * ((empty($currency_info) || $currency_info['currency'] == 'USD') ? 1/$currency[$usd_field] : $currency_info[$usd_field] / $currency[$usd_field]),2,4);
 					echo '<a class="'.(($currency_info['id'] == $currency['id']) ? $p_color.' selected' : '').'" href="index.php?currency='.$currency['id'].'#global_stats"><span class="abbr">'.$currency['currency'].'</span> <span class="price_'.$currency['currency'].'">'.$last_price.'</span></a>';
 				}
 			}
@@ -315,7 +315,7 @@ if (!User::isLoggedIn()) {
 					<tr id="order_'.$transaction['id'].'">
 						<td><span class="time_since"></span><input type="hidden" class="time_since_seconds" value="'.strtotime($transaction['date']).'" /></td>
 						<td>'.String::currency($transaction['btc'],true).' '.$c_currency_info['currency'].'</td>
-						<td><span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span>'.String::currency($transaction['btc_price'],($currency_info['is_crypto'] == 'Y')).(($transaction['currency'] == $currency_info['id']) ? false : (($transaction['currency1'] == $currency_info['id']) ? false : ' ('.$CFG->currencies[$transaction['currency1']]['currency'].')')).'</td>
+						<td><span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span>'.String::currency($transaction['btc_price'],($currency_info['is_crypto'] == 'Y')).'</span>'.(($transaction['currency'] == $currency_info['id']) ? false : (($transaction['currency1'] == $currency_info['id']) ? false : ' ('.$CFG->currencies[$transaction['currency1']]['currency'].')')).'</td>
 					</tr>';
 						}
 					}
