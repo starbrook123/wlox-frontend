@@ -1,37 +1,40 @@
 <?php
 include '../lib/common.php';
 
-if (empty($_REQUEST['currency']) && empty($_SESSION['currency']) && !empty(User::$info['default_currency_abbr']))
-	$_SESSION['currency'] = User::$info['default_currency_abbr'];
-elseif (empty($_REQUEST['currency']) && empty($_SESSION['currency']) && empty(User::$info['default_currency_abbr']))
-	$_SESSION['currency'] = 'usd';
-elseif (!empty($_REQUEST['currency']))
-	$_SESSION['currency'] = preg_replace("/[^a-z]/", "",$_REQUEST['currency']);
-
+$currencies = Settings::sessionCurrency();
 $page_title = Lang::string('home-title');
-$currency1 = (!empty($CFG->currencies[strtoupper($_SESSION['currency'])])) ? strtolower($_SESSION['currency']) : 'usd';
-$currency_symbol = strtoupper($currency1);
 $usd_field = 'usd_ask';
-$currency_info = $CFG->currencies[strtoupper($currency1)];
+$currency_info = $CFG->currencies[$currencies['currency']];
+$c_currency_info = $CFG->currencies[$currencies['c_currency']];
 $currency_majors = array('USD','EUR','CNY','RUB','CHF','JPY','GBP','CAD','AUD');
 $c_majors = count($currency_majors);
-$currencies = $CFG->currencies;
+$curr_list = $CFG->currencies;
 
-$currencies1 = array();
+$sma = (!empty($_SESSION['sma']) || !isset($_SESSION['sma']));
+$sma1 = (!empty($_SESSION['sma1'])) ? preg_replace("/[^0-9]/", "",$_SESSION['sma1']) : 8;
+$sma2 = (!empty($_SESSION['sma2'])) ? preg_replace("/[^0-9]/", "",$_SESSION['sma2']) : 30;
+$ema = (!empty($_SESSION['ema']));
+$ema1 = (!empty($_SESSION['ema1'])) ? preg_replace("/[^0-9]/", "",$_SESSION['ema1']) : 8;
+$ema2 = (!empty($_SESSION['ema2'])) ? preg_replace("/[^0-9]/", "",$_SESSION['ema2']) : 30;
+
+$curr_list1 = array();
 foreach ($currency_majors as $currency) {
-	$currencies1[$currency] = $currencies[$currency];
-	unset($currencies[$currency]);
+	if (empty($curr_list[$currency]))
+		continue;
+
+	$curr_list1[$currency] = $curr_list[$currency];
+	unset($curr_list[$currency]);
 }
-$currencies = array_merge($currencies1,$currencies);
+$curr_list = array_merge($curr_list1,$curr_list);
 
 if (!User::isLoggedIn()) {
 	API::add('Content','getRecord',array('home'));
 }
 
-API::add('Stats','getCurrent',array($currency_info['id']));
-API::add('Transactions','get',array(false,false,5,$currency1));
-API::add('Orders','get',array(false,false,5,$currency1,false,false,1));
-API::add('Orders','get',array(false,false,5,$currency1,false,false,false,false,1));
+API::add('Stats','getCurrent',array($currencies['c_currency'],$currencies['currency']));
+API::add('Transactions','get',array(false,false,5,$currencies['c_currency'],$currencies['currency']));
+API::add('Orders','get',array(false,false,5,$currencies['c_currency'],$currencies['currency'],false,false,1));
+API::add('Orders','get',array(false,false,5,$currencies['c_currency'],$currencies['currency'],false,false,false,false,1));
 API::add('News','get',array(false,false,3));
 $query = API::send();
 
@@ -91,13 +94,13 @@ if (!User::isLoggedIn()) {
 			<div class="contain">
 				<div class="scroll">
 				<?
-				if ($currencies) {
-					foreach ($currencies as $key => $currency) {
-						if (is_numeric($key) || $currency['currency'] == 'BTC')
+				if ($curr_list) {
+					foreach ($curr_list as $key => $currency) {
+						if (is_numeric($key) || $currency['id'] == $c_currency_info['id'])
 							continue;
 				
 						$last_price = number_format($stats['last_price'] * ((empty($currency_info) || $currency_info['currency'] == 'USD') ? 1/$currency[$usd_field] : $currency_info[$usd_field] / $currency[$usd_field]),2);
-						echo '<a class="'.(($currency_info['id'] == $currency['id']) ? $p_color.' selected' : '').'" href="index.php?currency='.strtolower($currency['currency']).'"><span class="abbr">'.$currency['currency'].'</span> <span class="price_'.$currency['currency'].'">'.$last_price.'</span></a>';
+						echo '<a class="'.(($currency_info['id'] == $currency['id']) ? $p_color.' selected' : '').'" href="index.php?currency='.$currency['id'].'"><span class="abbr">'.$currency['currency'].'</span> <span class="price_'.$currency['currency'].'">'.$last_price.'</span></a>';
 					}
 				}
 				?>
@@ -115,10 +118,38 @@ if (!User::isLoggedIn()) {
 	<div class="clearfix mar_top6"></div>
 	<div class="container">
 		<? if (!User::isLoggedIn()) { ?>
-    	<h2><?= Lang::string('home-bitcoin-market') ?></h2>
-        <p class="explain"><?= Lang::string('home-bitcoin-market-explain') ?></p>
+    	<h2>
+    		<select name="c_currency" id="c_currency" class="c_currency_big">
+    		<?
+    		if ($CFG->currencies) {
+    			foreach ($CFG->currencies as $key => $currency) {
+    				if (is_numeric($key) || $currency['is_crypto'] != 'Y')
+    					continue;
+    		
+    				echo '<option '.(($c_currency_info['id'] == $currency['id']) ? 'selected="selected"' : '').' value="'.$currency['id'].'">'.$currency['currency'].'</option>';
+    			}
+    		}
+    		?>
+    		</select>
+    		<?= Lang::string('home-bitcoin-market') ?>
+    	</h2>
+        <p class="explain"><?= str_replace('[c_currency]',$c_currency_info['name_'.$CFG->language],Lang::string('home-bitcoin-market-explain')) ?></p>
         <? } else { ?>
-        <h2><?= Lang::string('home-overview') ?></h2>
+        <h2>
+        	<select name="c_currency" id="c_currency" class="c_currency_big">
+    		<?
+    		if ($CFG->currencies) {
+    			foreach ($CFG->currencies as $key => $currency) {
+    				if (is_numeric($key) || $currency['is_crypto'] != 'Y')
+    					continue;
+    		
+    				echo '<option '.(($c_currency_info['id'] == $currency['id']) ? 'selected="selected"' : '').' value="'.$currency['id'].'">'.$currency['currency'].'</option>';
+    			}
+    		}
+    		?>
+    		</select>
+        	<?= Lang::string('home-overview') ?>
+        </h2>
         <? } ?>
         <div class="mar_top3"></div>
         <div class="clear"></div>
@@ -150,17 +181,17 @@ if (!User::isLoggedIn()) {
 		        </div>
 		        <div class="one_fifth last">
 		        	<div class="m_head"><?= Lang::string('home-stats-24h-volume') ?></div>
-		        	<p class="stat1"><?= '<span id="stats_traded">'.number_format($stats['total_btc_traded'],2).'</span>' ?> BTC</p>
+		        	<p class="stat1"><?= '<span id="stats_traded">'.number_format($stats['total_btc_traded'],2).'</span>' ?> <?= $c_currency_info['currency'] ?></p>
 		        </div>
 		        <div class="panel-divider"></div>
 		        <div class="one_third">
-		        	<h5><?= Lang::string('home-stats-market-cap') ?>: <em class="stat2">$<?= '<span id="stats_market_cap">'.number_format($stats['market_cap']).'</span>'?></em></h5>
+		        	<h5><?= Lang::string('home-stats-market-cap') ?>: <em class="stat2"><?= $currency_info['fa_symbol'].'<span id="stats_market_cap">'.number_format($stats['market_cap']/$currency_info['usd_ask']).'</span>'?></em></h5>
 		        </div>
 		        <div class="one_third">
-		        	<h5><?= Lang::string('home-stats-total-btc') ?>: <em class="stat2"><?= '<span id="stats_total_btc">'.number_format($stats['total_btc']).'</span>' ?></em></h5>
+		        	<h5><?= str_replace('[c_currency]',$c_currency_info['currency'],Lang::string('home-stats-total-btc')) ?>: <em class="stat2"><?= '<span id="stats_total_btc">'.number_format($stats['total_btc']).'</span>' ?></em></h5>
 		        </div>
 		        <div class="one_third last">
-		        	<h5><?= Lang::string('home-stats-global-volume') ?>: <em class="stat2">$<?= '<span id="stats_trade_volume">'.number_format($stats['trade_volume']).'</span>' ?></em></h5>
+		        	<h5><?= Lang::string('home-stats-global-volume') ?>: <em class="stat2"><?= $currency_info['fa_symbol'].'<span id="stats_trade_volume">'.number_format($stats['trade_volume']/$currency_info['usd_ask']).'</span>' ?></em></h5>
 		        </div>
 		        <div class="clear"></div>
 			</div>
@@ -170,13 +201,13 @@ if (!User::isLoggedIn()) {
         <div class="currencies panel panel-default">
         	<div class="panel-body">
 	        <? 
-	        if ($currencies) {
-				foreach ($currencies as $key => $currency) {
-					if (is_numeric($key) || $currency['currency'] == 'BTC')
+	        if ($curr_list) {
+				foreach ($curr_list as $key => $currency) {
+					if (is_numeric($key) || $currency['id'] == $c_currency_info['id'])
 						continue;
 						
 					$last_price = number_format($stats['last_price'] * ((empty($currency_info) || $currency_info['currency'] == 'USD') ? 1/$currency[$usd_field] : $currency_info[$usd_field] / $currency[$usd_field]),2);
-					echo '<a class="'.(($currency_info['id'] == $currency['id']) ? $p_color.' selected' : '').'" href="index.php?currency='.strtolower($currency['currency']).'#global_stats"><span class="abbr">'.$currency['currency'].'</span> <span class="price_'.$currency['currency'].'">'.$last_price.'</span></a>';
+					echo '<a class="'.(($currency_info['id'] == $currency['id']) ? $p_color.' selected' : '').'" href="index.php?currency='.$currency['id'].'#global_stats"><span class="abbr">'.$currency['currency'].'</span> <span class="price_'.$currency['currency'].'">'.$last_price.'</span></a>';
 				}
 			}
 	        ?>
@@ -225,11 +256,38 @@ if (!User::isLoggedIn()) {
 	        </div>
 	    */ ?>
         <div class="graph_contain">
-        	<input type="hidden" id="graph_price_history_currency" value="<?= ($currency1) ? $currency1 : 'usd' ?>" />
-        	<div id="graph_price_history"></div>
-        	<div id="tooltip">
-	        	<div class="date"></div>
-	        	<div class="price"></div>
+        	<input type="hidden" id="is_crypto" value="<?= $currency_info['is_crypto'] ?>" />
+        	<input type="hidden" id="graph_price_history_currency" value="<?= $currencies['currency'] ?>" />
+        	<input type="hidden" id="graph_price_history_c_currency" value="<?= $currencies['c_currency'] ?>" />
+        	<div id="graph_candles"></div>
+	        <div class="clear_300"></div>
+	        <div class="clear"></div>
+	        <div id="graph_price_history"></div>
+	        <div class="drag_zoom">
+	        	<div class="contain">
+		        	<div id="zl" class="handle"></div>
+		        	<div id="zr" class="handle"></div>
+		        	<div class="bg"></div>
+	        	</div>
+	        </div>
+	        <a id="graph_settings" class="fa fa-gear"></a>
+	        <div class="graph_settings">
+	        	<div class="label"><?= Lang::string('indicators') ?></div>
+	        	<div class="indicators">
+	        		<div class="row">
+	        			<input class="check" type="checkbox" id="sma" <?= ($sma) ? 'checked="checked"' : '' ?> />
+	        			<a class="selected" href="#">SMA</a>
+	        			<input id="sma1" class="indicator" value="<?= $sma1 ?>" type="text" style="background-color:#C4D5FF" />
+	        			<input id="sma2" class="indicator" value="<?= $sma2 ?>" type="text" style="background-color:#FFEFC4" />
+	        		</div>
+	        		<div class="row">
+	        			<input class="check" type="checkbox" id="ema" <?= ($ema) ? 'checked="checked"' : '' ?> />
+	        			<a class="selected" href="#">EMA</a>
+	        			<input id="ema1" class="indicator" value="<?= $ema1 ?>" type="text" style="background-color:#FCC4FF" />
+	        			<input id="ema2" class="indicator" value="<?= $ema2 ?>" type="text" style="background-color:#C5FFC4" />
+	        		</div>
+	        	</div>
+	        	<a class="highlight blue" href="#"><?= Lang::string('restore-defaults') ?></a>
 	        </div>
         </div>
         <div class="mar_top4"></div>
@@ -241,7 +299,7 @@ if (!User::isLoggedIn()) {
         			<tr>
         				<th><?= Lang::string('transactions-time-since') ?></th>
         				<th><?= Lang::string('transactions-amount') ?></th>
-        				<th><?= Lang::string('transactions-price') ?></th>
+        				<th><?= str_replace('[c_currency]',$c_currency_info['currency'],Lang::string('transactions-price')) ?></th>
         			</tr>
         			<? 
         			if ($transactions) {
@@ -249,8 +307,8 @@ if (!User::isLoggedIn()) {
 							echo '
 					<tr id="order_'.$transaction['id'].'">
 						<td><span class="time_since"></span><input type="hidden" class="time_since_seconds" value="'.strtotime($transaction['date']).'" /></td>
-						<td>'.number_format($transaction['btc'],8).' BTC</td>
-						<td>'.$currency_info['fa_symbol'].number_format($transaction['btc_price'],2).((strtolower($transaction['currency']) == $currency_info['id']) ? false : ((strtolower($transaction['currency1']) == $currency_info['id']) ? false : ' ('.$CFG->currencies[$transaction['currency1']]['currency'].')')).'</td>
+						<td>'.number_format($transaction['btc'],8).' '.$c_currency_info['currency'].'</td>
+						<td>'.$currency_info['fa_symbol'].number_format($transaction['btc_price'],2).(($transaction['currency'] == $currency_info['id']) ? false : (($transaction['currency1'] == $currency_info['id']) ? false : ' ('.$CFG->currencies[$transaction['currency1']]['currency'].')')).'</td>
 					</tr>';
 						}
 					}
@@ -273,7 +331,7 @@ if (!User::isLoggedIn()) {
 							$mine = (!empty(User::$info['user']) && $bid['user_id'] == User::$info['user'] && $bid['btc_price'] == $bid['fiat_price']) ? '<a class="fa fa-user" href="open-orders.php?id='.$bid['id'].'" title="'.Lang::string('home-your-order').'"></a>' : '';
 							echo '
 					<tr id="bid_'.$bid['id'].'" class="bid_tr">
-						<td>'.$mine.'<span class="order_amount">'.number_format($bid['btc'],8).'</span> BTC<input type="hidden" id="order_id" value="'.$bid['id'].'" /></td>
+						<td>'.$mine.'<span class="order_amount">'.number_format($bid['btc'],8).'</span> '.$c_currency_info['currency'].'<input type="hidden" id="order_id" value="'.$bid['id'].'" /></td>
 						<td>'.$currency_info['fa_symbol'].'<span class="order_price">'.number_format($bid['btc_price'],2).'</span> '.(($bid['btc_price'] != $bid['fiat_price']) ? '<a title="'.str_replace('[currency]',$CFG->currencies[$bid['currency']]['currency'],Lang::string('orders-converted-from')).'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '').'</td>
 					</tr>';
 						}
@@ -295,7 +353,7 @@ if (!User::isLoggedIn()) {
 							$mine = (!empty(User::$info['user']) && $ask['user_id'] == User::$info['user'] && $ask['btc_price'] == $ask['fiat_price']) ? '<a class="fa fa-user" href="open-orders.php?id='.$ask['id'].'" title="'.Lang::string('home-your-order').'"></a>' : '';
 							echo '
 					<tr id="ask_'.$ask['id'].'" class="ask_tr">
-						<td>'.$mine.'<span class="order_amount">'.number_format($ask['btc'],8).'</span> BTC<input type="hidden" id="order_id" value="'.$ask['id'].'" /></td>
+						<td>'.$mine.'<span class="order_amount">'.number_format($ask['btc'],8).'</span> '.$c_currency_info['currency'].'<input type="hidden" id="order_id" value="'.$ask['id'].'" /></td>
 						<td>'.$currency_info['fa_symbol'].'<span class="order_price">'.number_format($ask['btc_price'],2).'</span> '.(($ask['btc_price'] != $ask['fiat_price']) ? '<a title="'.str_replace('[currency]',$CFG->currencies[$ask['currency']]['currency'],Lang::string('orders-converted-from')).'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '').'</td>
 					</tr>';
 						}

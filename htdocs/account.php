@@ -18,6 +18,7 @@ API::add('User','getAvailable');
 API::add('User','getVolume');
 API::add('FeeSchedule','getRecord',array(User::$info['fee_schedule']));
 API::add('Stats','getBTCTraded');
+API::add('Currencies','getMain');
 $query = API::send();
 
 $currencies = $CFG->currencies;
@@ -26,11 +27,14 @@ $available = $query['User']['getAvailable']['results'][0];
 $volume = $query['User']['getVolume']['results'][0];
 $fee_bracket = $query['FeeSchedule']['getRecord']['results'][0];
 $total_btc_volume = $query['Stats']['getBTCTraded']['results'][0][0]['total_btc_traded'];
+$main = $query['Currencies']['getMain']['results'][0];
 
 $referer = substr($_SERVER['HTTP_REFERER'],strrpos($_SERVER['HTTP_REFERER'],'/')+1);
 if ($referer == 'login.php' || $referer == 'verify-token.php' || $referer == 'first-login.php') {
-	if (!empty(User::$info['default_currency_abbr']))
-		$_SESSION['currency'] = strtolower(User::$info['default_currency_abbr']);
+	if (!empty(User::$info['default_currency']))
+		$_SESSION['currency'] = User::$info['default_currency'];
+	if (!empty(User::$info['default_currency']))
+		$_SESSION['c_currency'] = User::$info['default_c_currency'];
 	
 	API::add('User','notifyLogin');
 	$query = API::send();
@@ -75,20 +79,21 @@ include 'includes/head.php';
                 <div class="clear"></div>
                 <div class="balances">
                 	<div class="one_half">
-                		<div class="label">BTC <?= Lang::string('account-available') ?></div>
-                		<div class="amount"><?= number_format($available['BTC'],8) ?></div>
+                		<div class="label"><?= $CFG->currencies[$main['crypto']]['currency'].' '.Lang::string('account-available') ?></div>
+                		<div class="amount"><?= number_format($main['crypto'],8) ?></div>
                 	</div>
 	            	<?
 	            	$i = 2;
 	            	foreach ($available as $currency => $balance) {
-						if ($currency == 'BTC')
+						if ($currency == $CFG->currencies[$main['crypto']]['currency'])
 							continue;
 						
 						$last_class = ($i % 2 == 0) ? 'last' : '';
+						$is_crypto = ($CFG->currencies[$currency]['is_crypto'] == 'Y');
 					?>
 					<div class="one_half <?= $last_class ?>">
-                		<div class="label"><?= $currency.' '.Lang::string('account-available') ?>:</div>
-                		<div class="amount"><?= $CFG->currencies[$currency]['fa_symbol'].number_format($balance,2) ?></div>
+                		<div class="label"><?= (!$is_crypto ? $currency.' ' : '').Lang::string('account-available') ?>:</div>
+                		<div class="amount"><?= $CFG->currencies[$currency]['fa_symbol'].number_format($balance,($is_crypto ? 8 : 2)) ?></div>
                 	</div>
 					<?
 						$i++;
@@ -110,15 +115,18 @@ include 'includes/head.php';
 	            	<?
 	            	if ($on_hold) {
 	            		foreach ($on_hold as $currency => $balance) {
-	            			$decimals = ($currency == 'BTC') ? 8 : 2;
+	            			if ($CFG->currencies[$currency]['id'] != $main['crypto'] && (empty($balance['order']) && empty($balance['withdrawal'])))
+	            				continue;
+	            			
+	            			$is_crypto = ($CFG->currencies[$currency]['is_crypto'] == 'Y');
 					?>
 					<div class="one_half">
                 		<div class="label"><?= $currency.' '.Lang::string('account-on-order') ?>:</div>
-                		<div class="amount"><?= (($CFG->currencies[$currency]['fa_symbol'] != 'BTC') ? $CFG->currencies[$currency]['fa_symbol'] : '').(!empty($balance['order']) ? number_format($balance['order'],$decimals) : '0.00') ?></div>
+                		<div class="amount"><?= ((!$is_crypto) ? $CFG->currencies[$currency]['fa_symbol'] : '').(!empty($balance['order']) ? number_format($balance['order'],($is_crypto ? 8 : 2)) : '0.00') ?></div>
                 	</div>
                 	<div class="one_half last">
                 		<div class="label"><?= $currency.' '.Lang::string('account-on-widthdrawal') ?>:</div>
-                		<div class="amount"><?= (($CFG->currencies[$currency]['fa_symbol'] != 'BTC') ? $CFG->currencies[$currency]['fa_symbol'] : '').(!empty($balance['withdrawal']) ? number_format($balance['withdrawal'],$decimals) : '0.00') ?></div>
+                		<div class="amount"><?= ((!$is_crypto) ? $CFG->currencies[$currency]['fa_symbol'] : '').(!empty($balance['withdrawal']) ? number_format($balance['withdrawal'],($is_crypto ? 8 : 2)) : '0.00') ?></div>
                 	</div>
 					<?
 						} 
@@ -148,12 +156,8 @@ include 'includes/head.php';
 						<div class="amount"><?= $fee_bracket['fee'] ?>% <a title="<?= Lang::string('account-view-fee-schedule') ?>" href="fee-schedule.php"><i class="fa fa-question-circle"></i></a></div>
 	                </div>
 	                <div class="one_half">
-	                	<div class="label"><?= Lang::string('account-30-day-vol') ?>:</div>
-	                	<div class="amount">$<?= number_format($volume,2) ?></div>
-	                </div>
-	                 <div class="one_half last">
-	                	<div class="label"><?= Lang::string('account-global-btc') ?>:</div>
-	                	<div class="amount"><?= number_format($total_btc_volume,8) ?></div>
+	                	<div class="label"><?= str_replace('[currency]',$CFG->currencies[$main['fiat']]['currency'],Lang::string('account-30-day-vol')) ?>:</div>
+	                	<div class="amount"><?= $CFG->currencies[$main['fiat']]['fa_symbol'].number_format(round($volume / $CFG->currencies[$main['fiat']]['usd_ask'],2,PHP_ROUND_HALF_UP),2) ?></div>
 	                </div>
 		            <div class="clear"></div>
 	            </div>

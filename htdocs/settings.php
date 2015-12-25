@@ -16,11 +16,12 @@ $request_2fa = false;
 $too_few_chars = false;
 $expired = false;
 $no_token = false;
+$same_currency = false;
 
 API::add('User','getInfo',array($_SESSION['session_id']));
-//API::add('User','getCountries');
+API::add('Currencies','getMain');
 $query = API::send();
-//$countries = $query['User']['getCountries']['results'][0];
+$main = $query['Currencies']['getMain']['results'][0];
 
 if (!empty($_REQUEST['ex_request'])) {
 	$uniq = $_REQUEST['uniq'];
@@ -69,6 +70,11 @@ if (!empty($_REQUEST['settings'])) {
 		$_REQUEST['settings']['pass2'] = preg_replace($CFG->pass_regex, "",$_REQUEST['settings']['pass2']);
 	}
 	
+	if ($_REQUEST['settings']['default_currency'] == $_REQUEST['settings']['default_c_currency']) {
+		$same_currency = true;
+		$_REQUEST['settings']['default_currency'] = false;
+	}
+	
 	//$_REQUEST['settings']['first_name'] = preg_replace("/[^\pL a-zA-Z0-9@\s\._-]/u", "",$_REQUEST['settings']['first_name']);
 	//$_REQUEST['settings']['last_name'] = preg_replace("/[^\pL a-zA-Z0-9@\._-\s]/u", "",$_REQUEST['settings']['last_name']);
 	//$_REQUEST['settings']['country'] = preg_replace("/[^0-9]/", "",$_REQUEST['settings']['country']);
@@ -91,6 +97,8 @@ if ($match)
 	$personal->errors[] = htmlentities(str_replace('[characters]',implode(',',array_unique($matches[0])),Lang::string('login-pass-chars-error')));
 if ($too_few_chars)	
 	$personal->errors[] = Lang::string('login-password-error');
+if ($same_currency)
+	$personal->errors[] = Lang::string('same-currency-error');
 
 
 if (!empty($_REQUEST['submitted']) && empty($_REQUEST['settings'])) {
@@ -386,10 +394,20 @@ if (!empty($_REQUEST['notice']) && $_REQUEST['notice'] == 'email')
 $cur_sel = array();
 if ($CFG->currencies) {
 	foreach ($CFG->currencies as $key => $currency) {
-		if (is_numeric($key) || $currency['currency'] == 'BTC')
+		if (is_numeric($key))
 			continue;
 		
 		$cur_sel[$key] = $currency;
+	}
+}
+
+$cur_sel1 = array();
+if ($CFG->currencies) {
+	foreach ($CFG->currencies as $key => $currency) {
+		if (is_numeric($key) || $currency['is_crypto'] != 'Y')
+			continue;
+
+		$cur_sel1[$key] = $currency;
 	}
 }
 
@@ -428,7 +446,8 @@ include 'includes/head.php';
                 //$personal->selectInput('country',Lang::string('settings-country'),false,false,$countries,false,array('name'));
                 $personal->textInput('email',Lang::string('settings-email'),'email');
                 $personal->textInput('chat_handle',Lang::string('chat-handle'));
-                $personal->selectInput('default_currency',Lang::string('default-currency'),0,$CFG->currencies['USD']['id'],$cur_sel,false,array('currency'));
+                $personal->selectInput('default_c_currency',Lang::string('default-c-currency'),0,$main['crypto'],$cur_sel1,false,array('currency'));
+                $personal->selectInput('default_currency',Lang::string('default-currency'),0,$main['fiat'],$cur_sel,false,array('currency'));
                 $personal->HTML('<div class="form_button"><input type="submit" name="submit" value="'.Lang::string('settings-save-info').'" class="but_user" /></div><input type="hidden" name="submitted" value="1" />');
                 $personal->hiddenInput('uniq',1,$_SESSION["settings_uniq"]);
                 $personal->display();

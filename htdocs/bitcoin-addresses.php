@@ -8,7 +8,15 @@ elseif (User::$awaiting_token)
 elseif (!User::isLoggedIn())
 	Link::redirect('login.php');
 
-API::add('BitcoinAddresses','get',array(false,false,30,1));
+
+if ((!empty($_REQUEST['c_currency']) && array_key_exists(strtoupper($_REQUEST['c_currency']),$CFG->currencies)))
+	$_SESSION['ba_c_currency'] = $_REQUEST['c_currency'];
+else if (empty($_SESSION['ba_c_currency']))
+	$_SESSION['ba_c_currency'] = $_SESSION['c_currency'];
+
+
+$c_currency = $_SESSION['ba_c_currency'];
+API::add('BitcoinAddresses','get',array(false,$c_currency,false,30,1));
 API::add('Content','getRecord',array('bitcoin-addresses'));
 $query = API::send();
 
@@ -21,8 +29,8 @@ if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'add' && $_SESSION["bt
 		Errors::add(Lang::string('bitcoin-addresses-too-soon'));
 	
 	if (!is_array(Errors::$errors)) {
-		API::add('BitcoinAddresses','getNew');
-		API::add('BitcoinAddresses','get',array(false,false,30,1));
+		API::add('BitcoinAddresses','getNew',array($c_currency));
+		API::add('BitcoinAddresses','get',array(false,$c_currency,false,30,1));
 		$query = API::send();
 		$bitcoin_addresses = $query['BitcoinAddresses']['get']['results'][0];
 		
@@ -48,13 +56,29 @@ include 'includes/head.php';
     	<? Errors::display(); ?>
     	<? Messages::display(); ?>
     	<div class="clear"></div>
-    	<ul class="list_empty">
-			<li><a href="bitcoin-addresses.php?action=add&uniq=<?= $_SESSION["btc_uniq"] ?>" class="but_user"><i class="fa fa-plus fa-lg"></i> <?= Lang::string('bitcoin-addresses-add') ?></a></li>
-		</ul>
+    	<div class="filters">
+	    	<ul class="list_empty">
+	    		<li>
+	    			<label for="c_currency"><?= Lang::string('currency') ?></label>
+	    			<select id="c_currency">
+	    			<? 
+					foreach ($CFG->currencies as $key => $currency1) {
+						if (is_numeric($key) || $currency1['is_crypto'] != 'Y')
+							continue;
+						
+						echo '<option value="'.$currency1['id'].'" '.($currency1['id'] == $c_currency ? 'selected="selected"' : '').'>'.$currency1['currency'].'</option>';
+					}
+					?>
+	    			</select>
+	    		</li>
+				<li><a href="bitcoin-addresses.php?action=add&c_currency=<?= $c_currency ?>&uniq=<?= $_SESSION["btc_uniq"] ?>" class="but_user"><i class="fa fa-plus fa-lg"></i> <?= Lang::string('bitcoin-addresses-add') ?></a></li>
+			</ul>
+		</div>
 		<div id="filters_area">
 	    	<div class="table-style">
 	    		<table class="table-list trades">
 					<tr>
+						<th><?= Lang::string('currency') ?></th>
 						<th><?= Lang::string('bitcoin-addresses-date') ?></th>
 						<th><?= Lang::string('bitcoin-addresses-address') ?></th>
 					</tr>
@@ -63,6 +87,7 @@ include 'includes/head.php';
 						foreach ($bitcoin_addresses as $address) {
 					?>
 					<tr>
+						<td><?= $CFG->currencies[$address['c_currency']]['currency'] ?></td>
 						<td><input type="hidden" class="localdate" value="<?= (strtotime($address['date']) + $CFG->timezone_offset) ?>" /></td>
 						<td><?= $address['address'] ?></td>
 					</tr>

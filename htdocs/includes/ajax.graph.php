@@ -29,9 +29,11 @@ else if ($action == 'chat_setting') {
 	$_SESSION['chat_height'] = $_REQUEST['height'];
 }
 else if ($action == 'order_book') {
-	$currency1 = (!empty($CFG->currencies[strtoupper($_REQUEST['currency'])])) ? $_REQUEST['currency'] : 'usd';
-	API::add('Orders','get',array(false,false,false,$currency1,false,false,1));
-	API::add('Orders','get',array(false,false,false,$currency1,false,false,false,false,1));
+	$currency1 = (!empty($CFG->currencies[$_REQUEST['currency']])) ? $_REQUEST['currency'] : false;
+	$c_currency1 = (!empty($CFG->currencies[$_REQUEST['c_currency']])) ? $_REQUEST['c_currency'] : false;
+	
+	API::add('Orders','get',array(false,false,false,$c_currency1,$currency1,false,false,1));
+	API::add('Orders','get',array(false,false,false,$c_currency1,$currency1,false,false,false,false,1));
 	$query = API::send();
 	$bids = $query['Orders']['get']['results'][0];
 	$asks = $query['Orders']['get']['results'][1];
@@ -76,12 +78,20 @@ else if ($action == 'order_book') {
 }
 
 $timeframe1 = (!empty($_REQUEST['timeframe'])) ? preg_replace("/[^0-9a-zA-Z]/", "",$_REQUEST['timeframe']) : false;
-$currency1 = (!empty($CFG->currencies[strtoupper($_REQUEST['currency'])])) ? $_REQUEST['currency'] : 'usd';
-$action1 = (!empty($_REQUEST['action'])) ? preg_replace("/[^0-9a-zA-Z]/", "",$_REQUEST['action']) : false;
+$timeframe2 = (!empty($_REQUEST['timeframe1'])) ? preg_replace("/[^0-9a-zA-Z]/", "",$_REQUEST['timeframe1']) : false;
+$currency1 = (!empty($CFG->currencies[$_REQUEST['currency']])) ? $_REQUEST['currency'] : false;
+$c_currency1 = (!empty($CFG->currencies[$_REQUEST['c_currency']])) ? $_REQUEST['c_currency'] : false;
+$first = (!empty($_REQUEST['first'])) ? preg_replace("/[^0-9]/", "",$_REQUEST['first']) : false;
+$last = (!empty($_REQUEST['last'])) ? preg_replace("/[^0-9]/", "",$_REQUEST['last']) : false;
+$_SESSION['timeframe'] = $timeframe1;
 
-if (!$action1) {
-	API::add('Stats','getHistorical',array($timeframe1,$currency1));
-	$query = API::send();
+if ($action != 'more')
+	API::add('Stats','getHistorical',array($timeframe2,$c_currency1,$currency1));
+
+API::add('Transactions','candlesticks',array($timeframe1,$c_currency1,$currency1,false,$first,$last));
+$query = API::send();
+
+if ($action != 'more') {
 	$stats = $query['Stats']['getHistorical']['results'][0];
 	if ($stats) {
 		foreach ($stats as $row) {

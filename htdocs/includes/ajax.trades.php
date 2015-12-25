@@ -4,31 +4,34 @@ chdir('..');
 $ajax = true;
 include '../lib/common.php';
 
-$currency1 = (array_key_exists(strtoupper($_REQUEST['currency']),$CFG->currencies)) ? strtolower($_REQUEST['currency']) : false;
+$currency1 = (array_key_exists($_REQUEST['currency'],$CFG->currencies)) ? $_REQUEST['currency'] : false;
+$c_currency1 = (array_key_exists($_REQUEST['c_currency'],$CFG->currencies)) ? $_REQUEST['c_currency'] : false;
 $notrades = (!empty($_REQUEST['notrades']));
 $limit = (!empty($_REQUEST['get10'])) ? 10 : 5;
 $user = (!empty($_REQUEST['user']));
-$currency_info = ($currency1) ? $CFG->currencies[strtoupper($currency1)] : $CFG->currencies['USD'];
+$currency_info = $CFG->currencies[$currency1];
+$c_currency_info = $CFG->currencies[$c_currency1];
 $usd_field = 'usd_ask';
 
 
 if (!$notrades) {
-	API::add('Transactions','get',array(false,false,5,$currency1));
-	API::add('Stats','getBTCTraded');
+	API::add('Transactions','get',array(false,false,5,$c_currency1,$currency1));
+	API::add('Stats','getBTCTraded',$c_currency1);
 }
 elseif (empty($_REQUEST['get10'])) {
 	$limit = (!$user) ? 30 : false;
 }
 
 if (!empty($_REQUEST['last_price']) && $notrades) {
-	API::add('Transactions','get',array(false,false,1,$currency1));
+	API::add('Transactions','get',array(false,false,1,$c_currency1,$currency1));
+	API::add('Stats','getCurrent',array($c_currency1,$currency1));
 	
 	if ($currency1)
 		API::add('User','getAvailable');
 }
 
-API::add('Orders','get',array(false,false,$limit,$currency1,$user,false,1,false,false,$user));
-API::add('Orders','get',array(false,false,$limit,$currency1,$user,false,false,false,1,$user));
+API::add('Orders','get',array(false,false,$limit,$c_currency1,$currency1,$user,false,1,false,false,$user));
+API::add('Orders','get',array(false,false,$limit,$c_currency1,$currency1,$user,false,false,false,1,$user));
 $query = API::send();
 
 $return['asks'][] = $query['Orders']['get']['results'][1];
@@ -46,19 +49,17 @@ if (!empty($_REQUEST['last_price'])) {
 	$return['last_trans_color'] = ($query['Transactions']['get']['results'][0][0]['maker_type'] == 'sell') ? 'price-green' : 'price-red';
 	
 	if ($currency1) {
-		$return['available_fiat'] = (!empty($query['User']['getAvailable']['results'][0][strtoupper($currency1)])) ? number_format($query['User']['getAvailable']['results'][0][strtoupper($currency1)],($currency_info['is_crypto'] == 'Y' ? 8 : 2)) : '0';
-		$return['available_btc'] = (!empty($query['User']['getAvailable']['results'][0]['BTC'])) ? number_format($query['User']['getAvailable']['results'][0]['BTC'],8) : '0';
+		$return['available_fiat'] = (!empty($query['User']['getAvailable']['results'][0][$currency_info['currency']])) ? number_format($query['User']['getAvailable']['results'][0][$currency_info['currency']],($currency_info['is_crypto'] == 'Y' ? 8 : 2)) : '0';
+		$return['available_btc'] = (!empty($query['User']['getAvailable']['results'][0][$c_currency_info['currency']])) ? number_format($query['User']['getAvailable']['results'][0][$c_currency_info['currency']],8) : '0';
 	}
 	
-	if (!$notrades) {
-		if ($CFG->currencies) {
-			foreach ($CFG->currencies as $key => $currency) {
-				if (is_numeric($key) || $currency['currency'] == 'BTC')
-					continue;
-		
-				$last_price = number_format($return['last_price'] * ((empty($currency_info) || $currency_info['currency'] == 'USD') ? 1/$currency[$usd_field] : $currency_info[$usd_field] / $currency[$usd_field]),2);
-				$return['last_price_cnv'][$currency['currency']] = $last_price;
-			}
+	if ($CFG->currencies) {
+		foreach ($CFG->currencies as $key => $currency) {
+			if (is_numeric($key) || $currency['id'] == $c_currency1 || $currency['id'] == $currency1)
+				continue;
+	
+			$last_price = number_format($return['last_price'] * ((empty($currency_info) || $currency_info['currency'] == 'USD') ? 1/$currency[$usd_field] : $currency_info[$usd_field] / $currency[$usd_field]),($currency_info['is_crypto'] == 'Y' ? 8 : 2));
+			$return['last_price_cnv'][$currency['currency']] = $last_price;
 		}
 	}
 }

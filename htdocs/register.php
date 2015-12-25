@@ -18,6 +18,10 @@ unset($register->info['uniq']);
 $register->verify();
 $register->reCaptchaCheck();
 
+if (!empty($_REQUEST['register']) && $_REQUEST['register']['default_currency'] == $_REQUEST['register']['default_c_currency']) {
+	$register->errors[] = Lang::string('same-currency-error');
+}
+
 if (!empty($_REQUEST['register']) && (empty($_SESSION["register_uniq"]) || $_SESSION["register_uniq"] != $_REQUEST['register']['uniq']))
 	$register->errors[] = 'Page expired.';
 
@@ -87,10 +91,20 @@ include 'includes/head.php';
                 $currencies_list = array();
                 if ($CFG->currencies) {
                 	foreach ($CFG->currencies as $key => $currency) {
-                		if (is_numeric($key) || $currency['currency'] == 'BTC')
+                		if (is_numeric($key))
                 			continue;
                 		
                 		$currencies_list[$key] = $currency;
+                	}
+                }
+                
+                $currencies_list1 = array();
+                if ($CFG->currencies) {
+                	foreach ($CFG->currencies as $key => $currency) {
+                		if (is_numeric($key) || $currency['is_crypt'] != 'Y')
+                			continue;
+                
+                		$currencies_list1[$key] = $currency;
                 	}
                 }
                 
@@ -98,6 +112,7 @@ include 'includes/head.php';
                 //$register->textInput('last_name',Lang::string('settings-last-name'),false);
                 //$register->selectInput('country',Lang::string('settings-country'),false,false,$countries,false,array('name'));
                 $register->textInput('email',Lang::string('settings-email'),'email');
+                $register->selectInput('default_c_currency',Lang::string('default-c-currency'),1,false,$currencies_list1,false,array('currency'));
                 $register->selectInput('default_currency',Lang::string('default-currency'),1,false,$currencies_list,false,array('currency'));
                 $register->checkBox('terms',Lang::string('settings-terms-accept'),false,false,false,false,false,false,'checkbox_label');
                 $register->captcha(Lang::string('settings-capcha'));
