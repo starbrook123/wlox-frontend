@@ -8,20 +8,35 @@ elseif (User::$awaiting_token)
 elseif (!User::isLoggedIn())
 	Link::redirect('login.php');
 
-$currency1 = (!empty($_REQUEST['currency'])) ? preg_replace("/[^a-z]/", "",strtolower($_REQUEST['currency'])) : false;
-$order_by1 = (!empty($_REQUEST['order_by'])) ? preg_replace("/[^a-z]/", "",$_REQUEST['order_by']) : false;
-$order_desc1 = (!empty($_REQUEST['order_desc'])) ? preg_replace("/[^0-9]/", "",$_REQUEST['order_desc']) : false;
+if ((!empty($_REQUEST['c_currency']) && array_key_exists(strtoupper($_REQUEST['c_currency']),$CFG->currencies)))
+	$_SESSION['tr_c_currency'] = preg_replace("/[^0-9]/", "",$_REQUEST['c_currency']);
+else if (empty($_SESSION['tr_c_currency']) || $_REQUEST['c_currency'] == 'All')
+	$_SESSION['tr_c_currency'] = false;
+
+if ((!empty($_REQUEST['currency']) && array_key_exists(strtoupper($_REQUEST['currency']),$CFG->currencies)))
+	$_SESSION['tr_currency'] = preg_replace("/[^0-9]/", "",$_REQUEST['currency']);
+else if (empty($_SESSION['tr_currency']) || $_REQUEST['currency'] == 'All')
+	$_SESSION['tr_currency'] = false;
+
+if ((!empty($_REQUEST['order_by'])))
+	$_SESSION['tr_order_by'] = preg_replace("/[^a-z]/", "",$_REQUEST['order_by']);
+else if (empty($_SESSION['tr_order_by']))
+	$_SESSION['tr_order_by'] = false;
+
+$currency1 = $_SESSION['tr_currency'];
+$c_currency1 = $_SESSION['tr_c_currency'];
+$order_by1 = $_SESSION['tr_order_by'];
 $start_date1 = false;
 $type1 = (!empty($_REQUEST['type'])) ? preg_replace("/[^0-9]/", "",$_REQUEST['type']) : false;
 $page1 = (!empty($_REQUEST['page'])) ? preg_replace("/[^0-9]/", "",$_REQUEST['page']) : false;
 $trans_realized1 = (!empty($_REQUEST['transactions'])) ? preg_replace("/[^0-9]/", "",$_REQUEST['transactions']) : false;
 $bypass = !empty($_REQUEST['bypass']);
 
-API::add('Transactions','get',array(1,$page1,30,$currency1,1,$start_date1,$type1,$order_by1,$order_desc1));
+API::add('Transactions','get',array(1,$page1,30,$c_currency1,$currency1,1,$start_date1,$type1,$order_by1));
 $query = API::send();
 $total = $query['Transactions']['get']['results'][0];
 
-API::add('Transactions','get',array(false,$page1,30,$currency1,1,$start_date1,$type1,$order_by1,$order_desc1));
+API::add('Transactions','get',array(false,$page1,30,$c_currency1,$currency1,1,$start_date1,$type1,$order_by1));
 API::add('Transactions','getTypes');
 $query = API::send();
 
@@ -55,16 +70,32 @@ if (!$bypass) {
 			<form id="filters" method="GET" action="transactions.php">
 				<ul class="list_empty">
 					<li>
+						<label for="c_currency1"><?= Lang::string('market') ?></label>
+						<select name="c_currency" id="c_currency1">
+							<option value="All"><?= Lang::string('all-currencies') ?></option>
+							<?
+							if ($CFG->currencies) {
+								foreach ($CFG->currencies as $key => $currency) {
+									if (is_numeric($key) || $currency['is_crypto'] != 'Y')
+										continue;
+									
+									echo '<option '.(($currency['id'] == $c_currency1) ? 'selected="selected"' : '').' value="'.$currency['id'].'">'.$currency['currency'].'</option>';
+								}
+							}	
+							?>
+						</select>
+					</li>
+					<li>
 						<label for="graph_orders_currency"><?= Lang::string('orders-filter-currency') ?></label>
 						<select id="graph_orders_currency" name="currency">
-							<option value=""><?= Lang::string('transactions-any') ?></option>
+							<option value="All"><?= Lang::string('transactions-any') ?></option>
 							<? 
 							if ($CFG->currencies) {
 								foreach ($CFG->currencies as $key => $currency) {
-									if (is_numeric($key) || $currency['currency'] == 'BTC')
+									if (is_numeric($key))
 										continue;
 									
-									echo '<option '.((strtolower($currency['currency']) == $currency1) ? 'selected="selected"' : '').' value="'.strtolower($currency['currency']).'">'.$currency['currency'].'</option>';
+									echo '<option '.((strtolower($currency['currency']) == $currency1) ? 'selected="selected"' : '').' value="'.$currency['id'].'">'.$currency['currency'].'</option>';
 								}
 							}
 							?>
@@ -107,9 +138,9 @@ if (!$bypass) {
         			<tr id="table_first">
         				<th><?= Lang::string('transactions-type') ?></th>
         				<th><?= Lang::string('transactions-time') ?></th>
-        				<th><?= Lang::string('transactions-btc') ?></th>
+        				<th><?= Lang::string('orders-amount') ?></th>
         				<th><?= Lang::string('transactions-fiat') ?></th>
-        				<th><?= Lang::string('transactions-price') ?></th>
+        				<th><?= Lang::string('orders-price') ?></th>
         				<th><?= Lang::string('transactions-fee') ?></th>
         			</tr>
         			<? 
@@ -118,12 +149,13 @@ if (!$bypass) {
 							$trans_symbol = $CFG->currencies[$transaction['currency']]['fa_symbol'];
 							echo '
 					<tr id="transaction_'.$transaction['id'].'">
+						<input type="hidden" class="is_crypto" value="'.$transaction['is_crypto'].'" />
 						<td>'.$transaction['type'].'</td>
-						<td><input type="hidden" class="localdate" value="'.(strtotime($transaction['date'])/* + $CFG->timezone_offset*/).'" /></td>
-						<td>'.number_format($transaction['btc'],8).'</td>
-						<td>'.$trans_symbol.number_format($transaction['btc_net'] * $transaction['fiat_price'],2).'</td>
-						<td>'.$trans_symbol.number_format($transaction['fiat_price'],2).'</td>
-						<td>'.$trans_symbol.number_format($transaction['fee'] * $transaction['fiat_price'],2).'</td>
+						<td><input type="hidden" class="localdate" value="'.(strtotime($transaction['date'])).'" /></td>
+						<td>'.number_format($transaction['btc'],8).' '.$CFG->currencies[$transaction['c_currency']]['fa_symbol'].'</td>
+						<td><span class="currency_char">'.$trans_symbol.'</span><span>'.number_format($transaction['btc_net'] * $transaction['fiat_price'],($transaction['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
+						<td><span class="currency_char">'.$trans_symbol.'</span><span>'.number_format($transaction['fiat_price'],($transaction['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
+						<td><span class="currency_char">'.$trans_symbol.'</span><span>'.number_format($transaction['fee'] * $transaction['fiat_price'],($transaction['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
 					</tr>';
 						}
 					}

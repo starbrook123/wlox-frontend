@@ -101,7 +101,7 @@ include 'includes/head.php';
                 $currencies_list1 = array();
                 if ($CFG->currencies) {
                 	foreach ($CFG->currencies as $key => $currency) {
-                		if (is_numeric($key) || $currency['is_crypt'] != 'Y')
+                		if (is_numeric($key) || $currency['is_crypto'] != 'Y')
                 			continue;
                 
                 		$currencies_list1[$key] = $currency;

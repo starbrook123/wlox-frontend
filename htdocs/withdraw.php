@@ -8,6 +8,8 @@ elseif (User::$awaiting_token)
 elseif (!User::isLoggedIn())
 	Link::redirect('login.php');
 
+$currencies = Settings::sessionCurrency();
+$c_currency_info = $CFG->currencies[$currencies['c_currency']];
 $page1 = (!empty($_REQUEST['page'])) ? preg_replace("/[^0-9]/", "",$_REQUEST['page']) : false;
 $btc_address1 = (!empty($_REQUEST['btc_address'])) ?  preg_replace("/[^\da-z]/i", "",$_REQUEST['btc_address']) : false;
 $btc_amount1 = (!empty($_REQUEST['btc_amount']) && $_REQUEST['btc_amount'] > 0) ? preg_replace("/[^0-9.]/", "",$_REQUEST['btc_amount']) : 0;
@@ -54,16 +56,25 @@ if ($authcode1) {
 	}
 }
 
-API::add('Status','get');
+API::add('Content','getRecord',array('deposit-no-bank'));
+API::add('User','getAvailable');
 API::add('Requests','get',array(1,false,false,1));
 API::add('Requests','get',array(false,$page1,15,1));
 API::add('BankAccounts','get');
-if ($account1 > 0) {
+API::add('Wallets','getWallet',array($currencies['c_currency']));
+if ($account1 > 0)
 	API::add('BankAccounts','getRecord',array($account1));
-}
+if ($btc_address1)
+	API::add('BitcoinAddresses','validateAddress',array($currencies['c_currency'],$btc_address1));
 $query = API::send();
 
+$user_available = $query['User']['getAvailable']['results'][0];
+$bank_instructions = $query['Content']['getRecord']['results'][0];
 $bank_accounts = $query['BankAccounts']['get']['results'][0];
+$total = $query['Requests']['get']['results'][0];
+$requests = $query['Requests']['get']['results'][1];
+$wallet = $query['Wallet']['getWallet']['results'][0];
+
 if ($account1 > 0) {
 	$bank_account = $query['BankAccounts']['getRecord']['results'][0];
 }
@@ -72,58 +83,34 @@ elseif ($bank_accounts) {
 	$bank_account = $bank_accounts[$key];	
 }
 
-$total = $query['Requests']['get']['results'][0];
-$requests = $query['Requests']['get']['results'][1];
-$status = $query['Status']['get']['results'][0];
-
-API::add('User','getAvailable');
 if ($bank_account) {
-	if (is_numeric($bank_account['currency'])) {
-		API::add('Currencies','getRecord',array(false,$bank_account['currency']));
-		API::add('Currencies','getRecord',array(false,$bank_account['currency']));
-	}
-	else {
-		API::add('Currencies','getRecord',array($bank_account['currency']));
-		API::add('Currencies','getRecord',array($bank_account['currency']));
-	}
-	$query = API::send();
-	
-	$currency_info = $query['Currencies']['getRecord']['results'][0];
+	$currency_info = $CFG->currencies[$bank_account['currency']];
 	$currency1 = $currency_info['currency'];
-	$bank_account_currency = $query['Currencies']['getRecord']['results'][1];
 }
-else {
-	API::add('Content','getRecord',array('deposit-no-bank'));
-	$query = API::send();
-	$bank_instructions = $query['Content']['getRecord']['results'][0];
-}
-$user_available = $query['User']['getAvailable']['results'][0];
+
 $pagination = Content::pagination('withdraw.php',$page1,$total,15,5,false);
 
 if ($CFG->withdrawals_status == 'suspended')
 	Errors::add(Lang::string('withdrawal-suspended'));
 
 if (!empty($_REQUEST['bitcoins'])) {
-	if (($btc_amount1 - $CFG->bitcoin_sending_fee) < 0.00000001)
+	if (($btc_amount1 - $wallet['bitcoin_sending_fee']) < 0.00000001)
 		Errors::add(Lang::string('withdraw-amount-zero'));
-	if ($btc_amount1 > $user_available['BTC'])
+	if ($btc_amount1 > $user_available[$c_currency_info['currency']])
 		Errors::add(Lang::string('withdraw-too-much'));
-	
-	API::add('BitcoinAddresses','validateAddress',array($btc_address1));
-	$query = API::send();
 
-	if (!$query['BitcoinAddresses']['validateAddress']['results'][0])
-		Errors::add(Lang::string('withdraw-address-invalid'));
+	//if (!$query['BitcoinAddresses']['validateAddress']['results'][0])
+		//Errors::add(Lang::string('withdraw-address-invalid'));
 	
 	if (!is_array(Errors::$errors)) {
 		if (User::$info['confirm_withdrawal_email_btc'] == 'Y' && !$request_2fa && !$token1) {
-			API::add('Requests','insert',array(1,false,$btc_amount1,$btc_address1));
+			API::add('Requests','insert',array($c_currency_info['id'],$btc_amount1,$btc_address1));
 			$query = API::send();
 			Link::redirect('withdraw.php?notice=email');
 		}
 		elseif (!$request_2fa) {
 			API::token($token1);
-			API::add('Requests','insert',array(1,false,$btc_amount1,$btc_address1));
+			API::add('Requests','insert',array($c_currency_info['id'],$btc_amount1,$btc_address1));
 			$query = API::send();
 			
 			if ($query['error'] == 'security-com-error')
@@ -168,13 +155,13 @@ elseif (!empty($_REQUEST['fiat'])) {
 		
 	if (!is_array(Errors::$errors)) {
 		if (User::$info['confirm_withdrawal_email_bank'] == 'Y' && !$request_2fa && !$token1) {
-			API::add('Requests','insert',array(false,$bank_account['currency'],$fiat_amount1,false,$bank_account['account_number']));
+			API::add('Requests','insert',array($bank_account['currency'],$fiat_amount1,false,$bank_account['account_number']));
 			$query = API::send();
 			Link::redirect('withdraw.php?notice=email');
 		}
 		elseif (!$request_2fa) {
 			API::token($token1);
-			API::add('Requests','insert',array(false,$bank_account['currency'],$fiat_amount1,false,$bank_account['account_number']));
+			API::add('Requests','insert',array($bank_account['currency'],$fiat_amount1,false,$bank_account['account_number']));
 			$query = API::send();
 			
 			if ($query['error'] == 'security-com-error')
@@ -244,11 +231,27 @@ if (empty($_REQUEST['bypass'])) {
 						<div class="buyform">
 							<div class="spacer"></div>
 							<div class="calc dotted">
-								<div class="label"><?= Lang::string('sell-btc-available') ?></div>
-								<div class="value"><?= number_format($user_available['BTC'],8) ?> BTC</div>
+								<div class="label"><?= str_replace('[c_currency]',$c_currency_info['currency'],Lang::string('sell-btc-available')) ?></div>
+								<div class="value"><?= number_format($user_available[$c_currency_info['currency']],8) ?> <?= $c_currency_info['currency'] ?></div>
 								<div class="clear"></div>
 							</div>
 							<div class="spacer"></div>
+							<div class="param">
+								<label for="c_currency"><?= Lang::string('withdraw-withdraw') ?></label>
+								<select id="c_currency" name="currency">
+								<?
+								if ($CFG->currencies) {
+									foreach ($CFG->currencies as $key => $currency) {
+										if (is_numeric($key) || $currency['is_crypto'] != 'Y')
+											continue;
+										
+										echo '<option '.(($currency['id'] == $currencies['c_currency']) ? 'selected="selected"' : '').' value="'.$currency['id'].'">'.$currency['currency'].'</option>';
+									}
+								}	
+								?>
+								</select>
+								<div class="clear"></div>
+							</div>
 							<div class="param">
 								<label for="btc_address"><?= Lang::string('withdraw-send-to-address') ?></label>
 								<input type="text" id="btc_address" name="btc_address" value="<?= $btc_address1 ?>" />
@@ -257,18 +260,18 @@ if (empty($_REQUEST['bypass'])) {
 							<div class="param">
 								<label for="btc_amount"><?= Lang::string('withdraw-send-amount') ?></label>
 								<input type="text" id="btc_amount" name="btc_amount" value="<?= number_format($btc_amount1,8) ?>" />
-								<div class="qualify">BTC</div>
+								<div class="qualify"><?= $c_currency_info['currency'] ?></div>
 								<div class="clear"></div>
 							</div>
 							<div class="spacer"></div>
 							<div class="calc">
 								<div class="label"><?= Lang::string('withdraw-network-fee') ?> <a title="<?= Lang::string('withdraw-network-fee-explain') ?>" href="javascript:return false;"><i class="fa fa-question-circle"></i></a></div>
-								<div class="value"><span id="withdraw_btc_network_fee"><?= $CFG->bitcoin_sending_fee ?></span> BTC</div>
+								<div class="value"><span id="withdraw_btc_network_fee"><?= $CFG->bitcoin_sending_fee ?></span> <?= $c_currency_info['currency'] ?></div>
 								<div class="clear"></div>
 							</div>
 							<div class="calc bigger">
 								<div class="label">
-									<span id="withdraw_btc_total_label"><?= Lang::string('withdraw-btc-total') ?></span>
+									<span id="withdraw_btc_total_label"><?= str_replace('[c_currency]',$c_currency_info['currency'],Lang::string('withdraw-btc-total')) ?></span>
 								</div>
 								<div class="value"><span id="withdraw_btc_total"><?= number_format($btc_total1,8) ?></span></div>
 								<div class="clear"></div>
@@ -408,14 +411,14 @@ if (empty($_REQUEST['bypass'])) {
 						<td>'.$request['id'].'</td>
 						<td><input type="hidden" class="localdate" value="'.(strtotime($request['date'])/* + $CFG->timezone_offset*/).'" /></td>
 						<td>'.$request['description'].'</td>
-						<td>'.(($request['fa_symbol'] == 'BTC') ? number_format($request['amount'],8).' '.$request['fa_symbol'] : $request['fa_symbol'].number_format($request['amount'],2)).'</td>
-    					<td>'.(($request['fa_symbol'] == 'BTC') ? number_format((($request['net_amount'] > 0) ? $request['net_amount'] : ($request['amount'] - $request['fee'])),8).' '.$request['fa_symbol'] : $request['fa_symbol'].number_format((($request['net_amount'] > 0) ? $request['net_amount'] : ($request['amount'] - $request['fee'])),2)).'</td>
+						<td>'.(($CFG->currencies[$request['currency']]['is_crypto'] == 'Y') ? number_format($request['amount'],8).' '.$request['fa_symbol'] : $request['fa_symbol'].number_format($request['amount'],2)).'</td>
+    					<td>'.(($CFG->currencies[$request['currency']]['is_crypto'] == 'Y') ? number_format((($request['net_amount'] > 0) ? $request['net_amount'] : ($request['amount'] - $request['fee'])),8).' '.$request['fa_symbol'] : $request['fa_symbol'].number_format((($request['net_amount'] > 0) ? $request['net_amount'] : ($request['amount'] - $request['fee'])),2)).'</td>
 						<td>'.$request['status'].'</td>
 					</tr>';
 						}
 					}
 					else {
-						echo '<tr><td colspan="5">'.Lang::string('withdraw-no').'</td></tr>';
+						echo '<tr><td colspan="6">'.Lang::string('withdraw-no').'</td></tr>';
 					}
         			?>
         		</table>

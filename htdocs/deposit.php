@@ -9,9 +9,9 @@ elseif (!User::isLoggedIn())
 	Link::redirect('login.php');
 
 $page1 = (!empty($_REQUEST['page'])) ? preg_replace("/[^0-9]/", "",$_REQUEST['page']) : false;
-
+$currencies = Settings::sessionCurrency();
 API::add('BankAccounts','get');
-API::add('BitcoinAddresses','get',array(false,false,1,1));
+API::add('BitcoinAddresses','get',array(false,$currencies['c_currency'],false,1,1));
 API::add('Requests','get',array(1));
 API::add('Requests','get',array(false,$page1,15));
 API::add('Content','getRecord',array('deposit-bank-instructions'));
@@ -53,6 +53,22 @@ if (empty($_REQUEST['bypass'])) {
 					<div class="clear"></div>
 					<div class="buyform">
 						<div class="spacer"></div>
+						<div class="param">
+							<label for="c_currency"><?= Lang::string('deposit-c-currency') ?></label>
+							<select id="c_currency" name="currency">
+							<?
+							if ($CFG->currencies) {
+								foreach ($CFG->currencies as $key => $currency) {
+									if (is_numeric($key) || $currency['is_crypto'] != 'Y')
+										continue;
+									
+									echo '<option '.(($currency['id'] == $currencies['c_currency']) ? 'selected="selected"' : '').' value="'.$currency['id'].'">'.$currency['currency'].'</option>';
+								}
+							}	
+							?>
+							</select>
+							<div class="clear"></div>
+						</div>
 						<div class="param">
 							<label for="deposit_address"><?= Lang::string('deposit-send-to-address') ?></label>
 							<input type="text" id="deposit_address" name="deposit_address" value="<?= $bitcoin_addresses[0]['address'] ?>" />

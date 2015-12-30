@@ -95,7 +95,7 @@ include 'includes/head.php';
 						}
 					}
 					else {
-						echo '<tr><td colspan="3">'.Lang::string('bitcoin-addresses-no').'</td></tr>';
+						echo '<tr><td colspan="3">'.str_replace('[c_currency]',$CFG->currencies[$c_currency]['currency'],Lang::string('bitcoin-addresses-no')).'</td></tr>';
 					}
 					?>
 				</table>

@@ -98,6 +98,9 @@ class Lang {
 		global $CFG;
 		
 		foreach ($CFG->currencies as $currency) {
+			if ($currency['is_crypto'] == 'Y')
+				echo '<input type="hidden" class="curr_crypto_'.$currency['currency'].'" id="curr_crypto_'.$currency['id'].'" value="1" />';
+			
 			echo '<input type="hidden" class="curr_abbr_'.$currency['currency'].'" id="curr_abbr_'.$currency['id'].'" name="'.$currency['id'].'" value="'.$currency['currency'].'" />';
 			echo '<input type="hidden" class="curr_sym_'.$currency['currency'].'" id="curr_sym_'.$currency['id'].'" name="'.$currency['id'].'" value="'.$currency['fa_symbol'].'" />';
 		}

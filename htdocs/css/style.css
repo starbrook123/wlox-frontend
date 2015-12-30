@@ -1092,8 +1092,10 @@ a.button_slider:hover {
 .graph_contain{position:relative;margin:0;background-color: #fff;border: 1px solid #ddd;}
 .global_stats{}
 .global_stats .stat1{font-size: 20px;color: #383634;white-space: nowrap;padding:10px 0;height: 22px;}
+.global_stats .stat1 .cc{float:none;}
 .global_stats .stat1 small{font-size: 14px;}
 .global_stats .stat2{font-size: 20px;font-style: normal;margin-left: 10px;color:#727272;font-weight: normal;height: 22px;}
+.global_stats .stat2 .cc{float:none;}
 .global_stats h6{margin-bottom: 5px;}
 .global_stats h5{}
 #graph_price_history{width:100%;height:300px;float: left;}
@@ -3991,12 +3993,14 @@ h3 .highlight{
 
 .trades{}
 .trades th{padding: 10px;color: #383634;background-color:#ffffff;padding: 10px;}
-.trades td{padding: 10px;color: #383634;}
-.trades td a{color:#727272;margin-right: 6px;}
+.trades td{padding: 10px 0;color: #383634;position:relative;white-space: nowrap;}
+.trades td .cc{float:none;}
+.trades td a{color:#727272;margin-right:4px;}
+.trades td a:last{margin-right:0;}
 .trades td a:hover{color: #007F99;}
 .trades td a.click{color:#383634;margin-right:0;text-decoration:underline;}
 .trades td a.click:hover{color: #007F99;}
-.trades td .identify{color:#FFFFFF;font-weight:bold;margin: -9px;height: 31px;position: relative;padding-top: 8px;font-size:15px;}
+.trades td .identify{bottom: 0;color: #ffffff;display: table-cell;font-size: 15px;font-weight: bold;left: 0;position: absolute;right: 0;top: 0;display: flex;flex-direction: column;justify-content: center;}
 .trades td .identify.market_order{background-color:#EFE62F;}
 .trades td .identify.limit_order{background-color:#FF8282;}
 .trades td .identify.stop_order{background-color:#DB82FF;}
@@ -4651,6 +4655,32 @@ ul.list_empty.form_buttons {
 .buyform .but_user{
 	cursor:pointer;
 	width: 100%;
+}
+.currency_char {
+	margin-left:0;
+	margin-right:1px;
+}
+.currency_char.cc {
+	margin-left:3px;
+	margin-right:0;	
+}
+.buy_currency_char{
+	margin-right:0;
+	margin-right:1px;
+}
+.buy_currency_char.cc{
+	float: right;
+    margin-left:3px;
+	margin-right:0;
+}
+.sell_currency_char{
+	margin-right:0;
+	margin-right:3px;
+}
+.sell_currency_char.cc{
+	float: right;
+    margin-left:3px;
+	margin-right:0;
 }
 .errors,.messages{
 	margin-bottom: 20px;

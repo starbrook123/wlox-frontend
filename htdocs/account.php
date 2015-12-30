@@ -8,16 +8,23 @@ elseif (User::$awaiting_token)
 elseif (!User::isLoggedIn())
 	Link::redirect('login.php');
 
-if ($_SERVER['HTTP_REFERER'] == 'first_login.php') {
-	API::add('User','disableNeverLoggedIn');
-	API::send();
+$referer = substr($_SERVER['HTTP_REFERER'],strrpos($_SERVER['HTTP_REFERER'],'/')+1);
+if ($referer == 'login.php' || $referer == 'verify-token.php' || $referer == 'first-login.php') {
+	if (!empty(User::$info['default_currency']))
+		$_SESSION['currency'] = User::$info['default_currency'];
+	if (!empty(User::$info['default_currency']))
+		$_SESSION['c_currency'] = User::$info['default_c_currency'];
+
+	API::add('User','notifyLogin');
 }
+else if ($referer == 'first_login.php')
+	API::add('User','disableNeverLoggedIn');
 
 API::add('User','getOnHold');
 API::add('User','getAvailable');
 API::add('User','getVolume');
 API::add('FeeSchedule','getRecord',array(User::$info['fee_schedule']));
-API::add('Stats','getBTCTraded');
+API::add('Stats','getBTCTraded',array($_SESSION['c_currency']));
 API::add('Currencies','getMain');
 $query = API::send();
 
@@ -28,17 +35,6 @@ $volume = $query['User']['getVolume']['results'][0];
 $fee_bracket = $query['FeeSchedule']['getRecord']['results'][0];
 $total_btc_volume = $query['Stats']['getBTCTraded']['results'][0][0]['total_btc_traded'];
 $main = $query['Currencies']['getMain']['results'][0];
-
-$referer = substr($_SERVER['HTTP_REFERER'],strrpos($_SERVER['HTTP_REFERER'],'/')+1);
-if ($referer == 'login.php' || $referer == 'verify-token.php' || $referer == 'first-login.php') {
-	if (!empty(User::$info['default_currency']))
-		$_SESSION['currency'] = User::$info['default_currency'];
-	if (!empty(User::$info['default_currency']))
-		$_SESSION['c_currency'] = User::$info['default_c_currency'];
-	
-	API::add('User','notifyLogin');
-	$query = API::send();
-}
 
 if (!empty($_REQUEST['message'])) {
 	if ($_REQUEST['message'] == 'settings-personal-message')
@@ -80,7 +76,7 @@ include 'includes/head.php';
                 <div class="balances">
                 	<div class="one_half">
                 		<div class="label"><?= $CFG->currencies[$main['crypto']]['currency'].' '.Lang::string('account-available') ?></div>
-                		<div class="amount"><?= number_format($main['crypto'],8) ?></div>
+                		<div class="amount"><?= number_format($available[$CFG->currencies[$main['crypto']]['currency']],8) ?></div>
                 	</div>
 	            	<?
 	            	$i = 2;
@@ -92,8 +88,8 @@ include 'includes/head.php';
 						$is_crypto = ($CFG->currencies[$currency]['is_crypto'] == 'Y');
 					?>
 					<div class="one_half <?= $last_class ?>">
-                		<div class="label"><?= (!$is_crypto ? $currency.' ' : '').Lang::string('account-available') ?>:</div>
-                		<div class="amount"><?= $CFG->currencies[$currency]['fa_symbol'].number_format($balance,($is_crypto ? 8 : 2)) ?></div>
+                		<div class="label"><?= $currency.' '.Lang::string('account-available') ?>:</div>
+                		<div class="amount"><?= (!$is_crypto ? $CFG->currencies[$currency]['fa_symbol'].' ' : '').number_format($balance,($is_crypto ? 8 : 2)) ?></div>
                 	</div>
 					<?
 						$i++;

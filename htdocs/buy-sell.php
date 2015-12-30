@@ -30,12 +30,18 @@ if ($buy || $sell) {
 		Errors::add('Page expired.');
 }
 
+foreach ($CFG->currencies as $key => $currency) {
+	if (is_numeric($key) || $currency['is_crypto'] != 'Y')
+		continue;
+		
+	API::add('Stats','getCurrent',array($currency['id'],$currency1));
+}
+
 API::add('FeeSchedule','getRecord',array(User::$info['fee_schedule']));
 API::add('User','getAvailable');
 API::add('Orders','getBidAsk',array($c_currency1,$currency1));
 API::add('Orders','get',array(false,false,10,$c_currency1,$currency1,false,false,1));
 API::add('Orders','get',array(false,false,10,$c_currency1,$currency1,false,false,false,false,1));
-API::add('Stats','getCurrent',array($c_currency1,$currency1));
 API::add('Transactions','get',array(false,false,1,$c_currency1,$currency1));
 
 if ($currency_info['is_crypto'] != 'Y')
@@ -51,14 +57,28 @@ $bids = $query['Orders']['get']['results'][0];
 $asks = $query['Orders']['get']['results'][1];
 $user_fee_bid = ($buy && ((!empty($_REQUEST['buy_amount']) && $_REQUEST['buy_amount'] > 0 && $_REQUEST['buy_price'] >= $asks[0]['btc_price']) || !empty($_REQUEST['buy_market_price']) || empty($_REQUEST['buy_amount']))) ? $query['FeeSchedule']['getRecord']['results'][0]['fee'] : $query['FeeSchedule']['getRecord']['results'][0]['fee1'];
 $user_fee_ask = ($sell && ((!empty($_REQUEST['sell_amount']) && $_REQUEST['sell_amount'] > 0 && $_REQUEST['sell_price'] <= $bids[0]['btc_price']) || !empty($_REQUEST['sell_market_price']) || empty($_REQUEST['sell_amount']))) ? $query['FeeSchedule']['getRecord']['results'][0]['fee'] : $query['FeeSchedule']['getRecord']['results'][0]['fee1'];
-$stats = $query['Stats']['getCurrent']['results'][0];
 $transactions = $query['Transactions']['get']['results'][0];
 $usd_field = 'usd_ask';
+
+$i = 0;
+$stats = array();
+$market_stats = array();
+foreach ($CFG->currencies as $key => $currency) {
+	if (is_numeric($key) || $currency['is_crypto'] != 'Y')
+		continue;
+
+	$k = $query['Stats']['getCurrent']['results'][$i]['market'];
+	if ($CFG->currencies[$k]['id'] == $c_currency1)
+		$stats = $query['Stats']['getCurrent']['results'][$i];
+	
+	$market_stats[$k] = $query['Stats']['getCurrent']['results'][$i];
+	$i++;
+}
 
 if ($currency_info['is_crypto'] != 'Y')
 	$bank_accounts = $query['BankAccounts']['get']['results'][0];
 
-$buy_amount1 = (!empty($_REQUEST['buy_price']) && $_REQUEST['buy_amount'] > 0) ? rtrim(number_format(preg_replace("/[^0-9.]/", "",$_REQUEST['buy_amount']),8,'.',''),'0') : 0;
+$buy_amount1 = (!empty($_REQUEST['buy_amount']) && $_REQUEST['buy_amount'] > 0) ? rtrim(number_format(preg_replace("/[^0-9.]/", "",$_REQUEST['buy_amount']),8,'.',''),'0') : 0;
 $buy_price1 = (!empty($_REQUEST['buy_price']) && $_REQUEST['buy_price'] > 0) ? rtrim(number_format(preg_replace("/[^0-9.]/", "",$_REQUEST['buy_price']),($currency_info['is_crypto'] == 'Y' ? 8 : 2),'.',''),'0') : $current_ask;
 $buy_subtotal1 = $buy_amount1 * $buy_price1;
 $buy_fee_amount1 = ($user_fee_bid * 0.01) * $buy_subtotal1;
@@ -185,7 +205,7 @@ if ($sell && !is_array(Errors::$errors)) {
 
 $notice = '';
 if ($ask_confirm && $sell) {
-	if (!$bank_accounts)
+	if (!$bank_accounts && $currency_info['is_crypto'] != 'Y')
 		$notice .= '<div class="message-box-wrap">'.str_replace('[currency]',$currency_info['currency'],Lang::string('buy-errors-no-bank-account')).'</div>';
 	
 	if (($buy_limit && $buy_stop) || ($sell_limit && $sell_stop))
@@ -596,9 +616,9 @@ if (!$bypass) {
 								$mine = (!empty(User::$info['user']) && $bid['user_id'] == User::$info['user'] && $bid['btc_price'] == $bid['fiat_price']) ? '<a class="fa fa-user" href="open-orders.php?id='.$bid['id'].'" title="'.Lang::string('home-your-order').'"></a>' : '';
 								echo '
 						<tr id="bid_'.$bid['id'].'" class="bid_tr">
-							<td>'.$mine.$currency_info['fa_symbol'].'<a class="order_price click" title="'.Lang::string('orders-click-price-sell').'" href="#">'.number_format($bid['btc_price'],($currency_info['is_crypto'] == 'Y' ? 8 : 2)).'</a> '.(($bid['btc_price'] != $bid['fiat_price']) ? '<a title="'.str_replace('[currency]',$CFG->currencies[$bid['currency']]['currency'],Lang::string('orders-converted-from')).'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '').'</td>
+							<td>'.$mine.'<span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><a class="order_price click" title="'.Lang::string('orders-click-price-sell').'" href="#">'.number_format($bid['btc_price'],($currency_info['is_crypto'] == 'Y' ? 8 : 2)).'</a> '.(($bid['btc_price'] != $bid['fiat_price']) ? '<a title="'.str_replace('[currency]',$CFG->currencies[$bid['currency']]['currency'],Lang::string('orders-converted-from')).'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '').'</td>
 							<td><a class="order_amount click" title="'.Lang::string('orders-click-amount-sell').'" href="#">'.number_format($bid['btc'],8).'</a></td>
-							<td>'.$currency_info['fa_symbol'].'<span class="order_value">'.number_format(($bid['btc_price'] * $bid['btc']),($currency_info['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
+							<td><span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span class="order_value">'.number_format(($bid['btc_price'] * $bid['btc']),($currency_info['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
 						</tr>';
 							}
 						}
@@ -622,9 +642,9 @@ if (!$bypass) {
 								$mine = (!empty(User::$info['user']) && $ask['user_id'] == User::$info['user'] && $ask['btc_price'] == $ask['fiat_price']) ? '<a class="fa fa-user" href="open-orders.php?id='.$ask['id'].'" title="'.Lang::string('home-your-order').'"></a>' : '';
 								echo '
 						<tr id="ask_'.$ask['id'].'" class="ask_tr">
-							<td>'.$mine.$currency_info['fa_symbol'].'<a class="order_price click" title="'.Lang::string('orders-click-price-buy').'" href="#">'.number_format($ask['btc_price'],($currency_info['is_crypto'] == 'Y' ? 8 : 2)).'</a> '.(($ask['btc_price'] != $ask['fiat_price']) ? '<a title="'.str_replace('[currency]',$CFG->currencies[$ask['currency']]['currency'],Lang::string('orders-converted-from')).'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '').'</td>
+							<td>'.$mine.'<span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><a class="order_price click" title="'.Lang::string('orders-click-price-buy').'" href="#">'.number_format($ask['btc_price'],($currency_info['is_crypto'] == 'Y' ? 8 : 2)).'</a> '.(($ask['btc_price'] != $ask['fiat_price']) ? '<a title="'.str_replace('[currency]',$CFG->currencies[$ask['currency']]['currency'],Lang::string('orders-converted-from')).'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '').'</td>
 							<td><a class="order_amount click" title="'.Lang::string('orders-click-amount-buy').'" href="#">'.number_format($ask['btc'],8).'</a></td>
-							<td>'.$currency_info['fa_symbol'].'<span class="order_value">'.number_format(($ask['btc_price'] * $ask['btc']),($currency_info['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
+							<td><span class="buy_currency_char">'.$currency_info['fa_symbol'].'</span><span class="order_value">'.number_format(($ask['btc_price'] * $ask['btc']),($currency_info['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
 						</tr>';
 							}
 						}

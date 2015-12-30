@@ -16,7 +16,7 @@ $usd_field = 'usd_ask';
 
 if (!$notrades) {
 	API::add('Transactions','get',array(false,false,5,$c_currency1,$currency1));
-	API::add('Stats','getBTCTraded',$c_currency1);
+	API::add('Stats','getBTCTraded',array($c_currency1));
 }
 elseif (empty($_REQUEST['get10'])) {
 	$limit = (!$user) ? 30 : false;

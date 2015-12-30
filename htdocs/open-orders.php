@@ -41,12 +41,12 @@ if ($delete_all && $_SESSION["openorders_uniq"] == $_REQUEST['uniq']) {
 }
 
 if ((!empty($_REQUEST['c_currency']) && array_key_exists(strtoupper($_REQUEST['c_currency']),$CFG->currencies)))
-	$_SESSION['oo_c_currency'] = $_REQUEST['c_currency'];
+	$_SESSION['oo_c_currency'] = preg_replace("/[^0-9]/", "",$_REQUEST['c_currency']);
 else if (empty($_SESSION['oo_c_currency']) || $_REQUEST['c_currency'] == 'All')
 	$_SESSION['oo_c_currency'] = false;
 
 if ((!empty($_REQUEST['currency']) && array_key_exists(strtoupper($_REQUEST['currency']),$CFG->currencies)))
-	$_SESSION['oo_currency'] = $_REQUEST['currency'];
+	$_SESSION['oo_currency'] = preg_replace("/[^0-9]/", "",$_REQUEST['currency']);
 else if (empty($_SESSION['oo_currency']) || $_REQUEST['currency'] == 'All')
 	$_SESSION['oo_currency'] = false;
 
@@ -113,9 +113,9 @@ if (!$bypass) {
 			<form id="filters" method="GET" action="open-orders.php">
 				<ul class="list_empty">
 					<li>
-						<label for="c_currency"><?= Lang::string('market') ?></label>
-						<select id="c_currency">
-							<option><?= Lang::string('all-currencies') ?></option>
+						<label for="c_currency1"><?= Lang::string('market') ?></label>
+						<select name="c_currency" id="c_currency1">
+							<option value="All"><?= Lang::string('all-currencies') ?></option>
 							<?
 							if ($CFG->currencies) {
 								foreach ($CFG->currencies as $key => $currency) {
@@ -131,14 +131,14 @@ if (!$bypass) {
 					<li>
 						<label for="graph_orders_currency"><?= Lang::string('orders-filter-currency') ?></label>
 						<select id="graph_orders_currency" name="currency">
-							<option><?= Lang::string('all-currencies') ?></option>
+							<option value="All"><?= Lang::string('all-currencies') ?></option>
 							<? 
 							if ($CFG->currencies) {
 								foreach ($CFG->currencies as $key => $currency) {
-									if (is_numeric($key) || $currency['currency'] == $CFG->currencies[$c_currency1]['currency'])
+									if (is_numeric($key))
 										continue;
 									
-									echo '<option '.((strtolower($currency['currency']) == $currency1) ? 'selected="selected"' : '').' value="'.strtolower($currency['currency']).'">'.$currency['currency'].'</option>';
+									echo '<option '.((strtolower($currency['currency']) == $currency1) ? 'selected="selected"' : '').' value="'.$currency['id'].'">'.$currency['currency'].'</option>';
 								}
 							}
 							?>
@@ -194,19 +194,21 @@ if (!$bypass) {
 						<tr id="bid_'.$bid['id'].'" class="bid_tr '.$blink.'">
 							<input type="hidden" class="usd_price" value="'.number_format(((empty($bid['usd_price'])) ? $bid['usd_price'] : $bid['btc_price']),($CFG->currencies[$bid['currency']]['is_crypto'] == 'Y' ? 8 : 2)).'" />
 							<input type="hidden" class="order_date" value="'.$bid['date'].'" />
+							<input type="hidden" class="is_crypto" value="'.$bid['is_crypto'].'" />
 							<td>'.$type.'</td>
-							<td>'.$CFG->currencies[$bid['currency']]['fa_symbol'].'<span class="order_price">'.number_format(($bid['fiat_price'] > 0) ? $bid['fiat_price'] : $bid['stop_price'],($CFG->currencies[$bid['currency']]['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
+							<td><span class="currency_char">'.$CFG->currencies[$bid['currency']]['fa_symbol'].'</span><span class="order_price">'.number_format(($bid['fiat_price'] > 0) ? $bid['fiat_price'] : $bid['stop_price'],($CFG->currencies[$bid['currency']]['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
 							<td><span class="order_amount">'.number_format($bid['btc'],8).'</span> '.$CFG->currencies[$bid['c_currency']]['currency'].'</td>
-							<td>'.$CFG->currencies[$bid['currency']]['fa_symbol'].'<span class="order_value">'.number_format($bid['btc'] * (($bid['fiat_price'] > 0) ? $bid['fiat_price'] : $bid['stop_price']),($CFG->currencies[$bid['currency']]['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
+							<td><span class="currency_char">'.$CFG->currencies[$bid['currency']]['fa_symbol'].'</span><span class="order_value">'.number_format($bid['btc'] * (($bid['fiat_price'] > 0) ? $bid['fiat_price'] : $bid['stop_price']),($CFG->currencies[$bid['currency']]['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
 							<td><a href="edit-order.php?order_id='.$bid['id'].'" title="'.Lang::string('orders-edit').'"><i class="fa fa-pencil"></i></a> <a href="open-orders.php?delete_id='.$bid['id'].'&uniq='.$_SESSION["openorders_uniq"].'" title="'.Lang::string('orders-delete').'"><i class="fa fa-times"></i></a></td>
 						</tr>';
 								if ($double) {
 									echo '
 						<tr id="bid_'.$bid['id'].'" class="bid_tr double">
+							<input type="hidden" class="is_crypto" value="'.$bid['is_crypto'].'" />
 							<td><div class="identify stop_order">S</div></td>
-							<td>'.$CFG->currencies[$bid['currency']]['fa_symbol'].'<span class="order_price">'.number_format($bid['stop_price'],($CFG->currencies[$bid['currency']]['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
+							<td><span class="currency_char">'.$CFG->currencies[$bid['currency']]['fa_symbol'].'</span><span class="order_price">'.number_format($bid['stop_price'],($CFG->currencies[$bid['currency']]['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
 							<td><span class="order_amount">'.number_format($bid['btc'],8).'</span> '.$CFG->currencies[$bid['c_currency']]['currency'].'</td>
-							<td>'.$CFG->currencies[$bid['currency']]['fa_symbol'].'<span class="order_value">'.number_format($bid['btc']*$bid['stop_price'],($CFG->currencies[$bid['currency']]['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
+							<td><span class="currency_char">'.$CFG->currencies[$bid['currency']]['fa_symbol'].'</span><span class="order_value">'.number_format($bid['btc']*$bid['stop_price'],($CFG->currencies[$bid['currency']]['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
 							<td><span class="oco"><i class="fa fa-arrow-up"></i> OCO</span></td>
 						</tr>';
 								}
@@ -248,20 +250,22 @@ if (!$bypass) {
 						<tr id="ask_'.$ask['id'].'" class="ask_tr '.$blink.'">
 							<input type="hidden" class="usd_price" value="'.number_format(((empty($ask['usd_price'])) ? $ask['usd_price'] : $ask['btc_price']),($CFG->currencies[$ask['currency']]['is_crypto'] == 'Y' ? 8 : 2)).'" />
 							<input type="hidden" class="order_date" value="'.$ask['date'].'" />
+							<input type="hidden" class="is_crypto" value="'.$ask['is_crypto'].'" />
 							<td>'.$type.'</td>
-							<td>'.$CFG->currencies[$ask['currency']]['fa_symbol'].'<span class="order_price">'.number_format(($ask['fiat_price'] > 0) ? $ask['fiat_price'] : $ask['stop_price'],($CFG->currencies[$ask['currency']]['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
+							<td><span class="currency_char">'.$CFG->currencies[$ask['currency']]['fa_symbol'].'</span><span class="order_price">'.number_format(($ask['fiat_price'] > 0) ? $ask['fiat_price'] : $ask['stop_price'],($CFG->currencies[$ask['currency']]['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
 							<td><span class="order_amount">'.number_format($ask['btc'],8).'</span> '.$CFG->currencies[$ask['c_currency']]['currency'].'</td>
-							<td>'.$CFG->currencies[$ask['currency']]['fa_symbol'].'<span class="order_value">'.number_format($ask['btc'] * (($ask['fiat_price'] > 0) ? $ask['fiat_price'] : $ask['stop_price']),($CFG->currencies[$ask['currency']]['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
+							<td><span class="currency_char">'.$CFG->currencies[$ask['currency']]['fa_symbol'].'</span><span class="order_value">'.number_format($ask['btc'] * (($ask['fiat_price'] > 0) ? $ask['fiat_price'] : $ask['stop_price']),($CFG->currencies[$ask['currency']]['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
 							<td><a href="edit-order.php?order_id='.$ask['id'].'" title="'.Lang::string('orders-edit').'"><i class="fa fa-pencil"></i></a> <a href="open-orders.php?delete_id='.$ask['id'].'&uniq='.$_SESSION["openorders_uniq"].'" title="'.Lang::string('orders-delete').'"><i class="fa fa-times"></i></a></td>
 						</tr>';
 								
 								if ($double) {
 									echo '
 						<tr id="ask_'.$ask['id'].'" class="ask_tr double">
+							<input type="hidden" class="is_crypto" value="'.$ask['is_crypto'].'" />
 							<td><div class="identify stop_order">S</div></td>
-							<td>'.$CFG->currencies[$ask['currency']]['fa_symbol'].'<span class="order_price">'.number_format($ask['stop_price'],($CFG->currencies[$ask['currency']]['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
+							<td><span class="currency_char">'.$CFG->currencies[$ask['currency']]['fa_symbol'].'</span><span class="order_price">'.number_format($ask['stop_price'],($CFG->currencies[$ask['currency']]['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
 							<td><span class="order_amount">'.number_format($ask['btc'],8).'</span> '.$CFG->currencies[$ask['c_currency']]['currency'].'</td>
-							<td>'.$CFG->currencies[$ask['currency']]['fa_symbol'].'<span class="order_value">'.number_format($ask['stop_price']*$ask['btc'],($CFG->currencies[$ask['currency']]['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
+							<td><span class="currency_char">'.$CFG->currencies[$ask['currency']]['fa_symbol'].'</span><span class="order_value">'.number_format($ask['stop_price']*$ask['btc'],($CFG->currencies[$ask['currency']]['is_crypto'] == 'Y' ? 8 : 2)).'</span></td>
 							<td><span class="oco"><i class="fa fa-arrow-up"></i> OCO</span></td>
 						</tr>';
 								}
