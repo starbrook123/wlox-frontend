@@ -1169,8 +1169,6 @@ function updateTransactions() {
 										
 								}
 							}
-							
-							drawGauges(this);
 						}
 					}
 					
