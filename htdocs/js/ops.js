@@ -1570,12 +1570,13 @@ function updateTransactionsList() {
 	
 	var gmt_offset = parseInt($('#gmt_offset').val()) * -1;
 	var update = setInterval(function(){
+		var c_currency = $('#c_currency1').val();
 		var currency = $('#graph_orders_currency').val();
 		var type = $('#type').val();
 		var order_by = $('#order_by').val();
 		var page = $('#page').val();
 		
-		$.getJSON("includes/ajax.transactions.php?currency="+currency+'&type='+type+'&order_by='+order_by+'&page='+page,function(transactions) {
+		$.getJSON("includes/ajax.transactions.php?c_currency="+c_currency+'&currency='+currency+'&type='+type+'&order_by='+order_by+'&page='+page,function(transactions) {
 			if (transactions != null) {
 				var last = false;
 				$.each(transactions,function(i) {
