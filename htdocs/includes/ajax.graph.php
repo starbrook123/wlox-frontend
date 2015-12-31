@@ -1,7 +1,9 @@
 <?php
 chdir('..');
 
-$ajax = true;
+if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'more')
+	$ajax = true;
+
 include '../lib/common.php';
 
 $action = $_REQUEST['action'];
@@ -29,8 +31,8 @@ else if ($action == 'chat_setting') {
 	$_SESSION['chat_height'] = $_REQUEST['height'];
 }
 else if ($action == 'order_book') {
-	$currency1 = (!empty($CFG->currencies[$_REQUEST['currency']])) ? $_REQUEST['currency'] : false;
-	$c_currency1 = (!empty($CFG->currencies[$_REQUEST['c_currency']])) ? $_REQUEST['c_currency'] : false;
+	$currency1 = (!empty($CFG->currencies[strtoupper($_REQUEST['currency'])])) ? strtoupper($_REQUEST['currency']) : false;
+	$c_currency1 = (!empty($CFG->currencies[strtoupper($_REQUEST['c_currency'])])) ? strtoupper($_REQUEST['c_currency']) : false;
 	
 	API::add('Orders','get',array(false,false,false,$c_currency1,$currency1,false,false,1));
 	API::add('Orders','get',array(false,false,false,$c_currency1,$currency1,false,false,false,false,1));
