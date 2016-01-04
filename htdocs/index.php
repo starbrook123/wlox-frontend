@@ -50,7 +50,7 @@ $news = $query['News']['get']['results'][0];
 if ($stats['daily_change'] > 0)
 	$arrow = '<i id="up_or_down" class="fa fa-caret-up price-green"></i> ';
 elseif ($stats['daily_change'] < 0)
-$arrow = '<i id="up_or_down" class="fa fa-caret-down price-red"></i> ';
+	$arrow = '<i id="up_or_down" class="fa fa-caret-down price-red"></i> ';
 else
 	$arrow = '<i id="up_or_down" class="fa fa-minus"></i> ';
 
@@ -224,37 +224,42 @@ if (!User::isLoggedIn()) {
         	<div class="repeat-line o10"></div>
         </div>
         <div class="graph_options">
-        	<a href="#" class="selected" data-option="1mon">1m</a>
-        	<a href="#" data-option="3mon">3m</a>
-        	<a href="#" data-option="6mon">6m</a>
-        	<a href="#" data-option="ytd">YTD</a>
-        	<a href="#" class="last" data-option="1year">1y</a>
+        	<div id="graph_time">
+				<a href="#" <?= ($_SESSION['timeframe'] == '1min') ? 'class="selected"' : '' ?> data-option="1min">1m</a>
+				<a href="#" <?= ($_SESSION['timeframe'] == '3min') ? 'class="selected"' : '' ?> data-option="3min">3m</a>
+	        	<a href="#" <?= (!$_SESSION['timeframe'] || $_SESSION['timeframe'] == '5min') ? 'class="selected"' : '' ?> data-option="5min">5m</a>
+	        	<a href="#" <?= ($_SESSION['timeframe'] == '15min') ? 'class="selected"' : '' ?> class="last" data-option="15min">15m</a>
+	        	<a href="#" <?= ($_SESSION['timeframe'] == '30min') ? 'class="selected"' : '' ?> data-option="30min">30m</a>
+	        	<a href="#" <?= ($_SESSION['timeframe'] == '1h') ? 'class="selected"' : '' ?> data-option="1h">1h</a>
+	        	<a href="#" <?= ($_SESSION['timeframe'] == '2h') ? 'class="selected"' : '' ?> data-option="2h">2h</a>
+	        	<a href="#" <?= ($_SESSION['timeframe'] == '4h') ? 'class="selected"' : '' ?> data-option="4h">4h</a>
+	        	<a href="#" <?= ($_SESSION['timeframe'] == '6h') ? 'class="selected"' : '' ?> data-option="6h">6h</a>
+	        	<a href="#" <?= ($_SESSION['timeframe'] == '12h') ? 'class="selected"' : '' ?> class="last" data-option="12h">12h</a>
+	        	<a href="#" <?= ($_SESSION['timeframe'] == '1d') ? 'class="selected"' : '' ?> data-option="1d">1d</a>
+	        	<a href="#" <?= ($_SESSION['timeframe'] == '3d') ? 'class="selected"' : '' ?> data-option="3d">3d</a>
+	        	<a href="#" <?= ($_SESSION['timeframe'] == '1w') ? 'class="selected"' : '' ?> class="last" data-option="1w">1w</a>
+	        	<div class="repeat-line o1"></div>
+	        	<div class="repeat-line o2"></div>
+	        	<div class="repeat-line o3"></div>
+	        	<div class="repeat-line o4"></div>
+	        	<div class="repeat-line o5"></div>
+	        	<div class="clear"></div>
+        	</div>
+        	<div id="graph_over">
+        		<span class="g_over"><b>Open:</b> <span id="g_open"></span></span>
+				<span class="g_over"><b>Close:</b> <span id="g_close"></span></span>
+				<span class="g_over"><b>High:</b> <span id="g_high"></span></span>
+				<span class="g_over"><b>Low:</b> <span id="g_low"></span></span>
+				<span class="g_over"><b>Vol:</b> <span id="g_vol"></span></span>
+				<div class="repeat-line o1"></div>
+	        	<div class="repeat-line o2"></div>
+	        	<div class="repeat-line o3"></div>
+	        	<div class="repeat-line o4"></div>
+	        	<div class="repeat-line o5"></div>
+        		<div class="clear"></div>
+        	</div>
         	<div class="clear"></div>
         </div>
-        <?php /*
-	        <div class="graph_options">
-	        	<a href="#" data-option="1mon">1m</a>
-	        	<a href="#" data-option="3mon">3m</a>
-	        	<a href="#" data-option="6mon">6m</a>
-	        	<a href="#" data-option="ytd">YTD</a>
-	        	<a href="#" class="selected last" data-option="1year">1y</a>
-	        	<span>
-	        	<label for="currency_selector"><?= Lang::string('currency') ?></label>
-	        	<select id="currency_selector">
-	        	<? 
-	        	if ($CFG->currencies) {
-					foreach ($CFG->currencies as $key => $currency) {
-						if (is_numeric($key) || $currency['currency'] == 'BTC')
-							continue;
-						
-						echo '<option value="'.strtolower($currency['currency']).'" '.(($currency1 == strtolower($currency['currency']) || (!$currency1 && strtolower($currency['currency']) == 'usd')) ? 'selected="selected"' : '').'>'.$currency['currency'].'</option>';
-					}
-				}
-	        	?>
-	        	</select>
-	        	</span>
-	        </div>
-	    */ ?>
         <div class="graph_contain">
         	<input type="hidden" id="is_crypto" value="<?= $currency_info['is_crypto'] ?>" />
         	<input type="hidden" id="graph_price_history_currency" value="<?= $currencies['currency'] ?>" />
@@ -289,6 +294,8 @@ if (!User::isLoggedIn()) {
 	        	</div>
 	        	<a class="highlight blue" href="#"><?= Lang::string('restore-defaults') ?></a>
 	        </div>
+	        <div class="clear_50"></div>
+	        <div class="clear"></div>
         </div>
         <div class="mar_top4"></div>
         <div class="one_half">
@@ -336,7 +343,7 @@ if (!User::isLoggedIn()) {
 					</tr>';
 						}
 					}
-					echo '<tr id="no_bids" style="'.(is_array($bids) ? 'display:none;' : '').'"><td colspan="2">'.Lang::string('orders-no-bid').'</td></tr>';
+					echo '<tr id="no_bids" style="'.((is_array($bids) && count($bids) > 0) ? 'display:none;' : '').'"><td colspan="2">'.Lang::string('orders-no-bid').'</td></tr>';
         			?>
         		</table>
         		</div>
@@ -358,7 +365,7 @@ if (!User::isLoggedIn()) {
 					</tr>';
 						}
 					}
-					echo '<tr id="no_asks" style="'.(is_array($asks) ? 'display:none;' : '').'"><td colspan="2">'.Lang::string('orders-no-ask').'</td></tr>';
+					echo '<tr id="no_asks" style="'.((is_array($asks) && count($asks) > 0) ? 'display:none;' : '').'"><td colspan="2">'.Lang::string('orders-no-ask').'</td></tr>';
         			?>
         		</table>
         		</div>

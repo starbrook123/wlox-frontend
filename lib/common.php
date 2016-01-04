@@ -29,7 +29,7 @@ if (!empty($hostname) && !stristr($hostname,'localhost')) {
 		}
 	}
 	
-	ini_set('session.cookie_domain','.'.$hostname);
+	//ini_set('session.cookie_domain','.'.$hostname);
 }
 
 if (!empty($_SERVER["HTTPS"]))

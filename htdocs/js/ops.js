@@ -55,7 +55,7 @@ function graphPriceHistory(refresh) {
 		parsed = graphFillGaps(json_data.candles,candle_options[timeframe][0],100);
 		data = parsed[0];
 		data_vol = parsed[1];
-		data1 = json_data.history;
+		data1 = (json_data.history) ? json_data.history : [];
 		c = (data) ? data.length - 1 : 0;
 		c_half = Math.ceil(c - 50);
 		c1 = data1.length;
@@ -237,17 +237,185 @@ function graphPriceHistory(refresh) {
 			p = Math.ceil(axes1.xaxis.c2p(zl_r + 7));
 			min = (max - p > axes_total) ? p : max - axes_total;
 			
-			var date_options = { year: "numeric", month: "short",day: "numeric" };
-			var axes = plot.getAxes();
-			var dataset = plot.getData();
-			var left_offset = 30;
-			var bottom_offset = 50;
-			var flip;
-			var max_x;
-			var currency1 = currency.toUpperCase();
+			if (min < data_min && !data_loading) {
+				data_loading = true;
+				if (loaded_remaining && loaded_remaining.length > 0) {
+					new_data = graphFillGaps(loaded_remaining,candle_options[timeframe][0],100,data_min);
+					data_res = new_data[0].concat(data_res);
+					data_vol = new_data[1].concat(data_vol);
+					data_min = data_res[0][0];
+					loaded_remaining = new_data[4];
+					data_loading = false;
+					return true;
+				}
+				else {
+					graphLoadNew(first_id,function(json_data) {
+						new_data = graphFillGaps(json_data.candles,candle_options[timeframe][0],100,data_min);
+						data_res = new_data[0].concat(data_res);
+						data_vol = new_data[1].concat(data_vol);
+						data_min = data_res[0][0];
+						first_id = json_data.first_id;
+						loaded_remaining = new_data[4];
+						data_loading = false;
+						return true;
+					});
+				}
+			}
+
+			data_zoom = Math.ceil((max - min) / (axes_total * 8));
+			thinned = graphThinData(data_res,data_zoom,max,min);
+			data = thinned[0];
+			volume_options.data = data_vol;
+			max_y = thinned[1];
+			min_y = thinned[2];
+
+			candlestick_options.lineWidth = Math.ceil((axes_total / (max - min)) * candle_w) + 'px';
+			candlestick_options.rangeWidth = Math.ceil((axes_total / (max - min)) * candle_line_w);
+			series = $.plot.candlestick.createCandlestick({
+				data:data,
+				candlestick:candlestick_options
+			});
 			
-			$("#graph_price_history").bind("plothover", function (event, pos, item) {
-				plot.unhighlight();
+			series.push(volume_options);
+			series.reverse();
+
+			var j = 0;
+			for (i in window.indicators) {
+				indicators_options[i].data = thinned[3][j];
+				series.push(indicators_options[i]);
+				j++;
+			}
+
+			plot.setData(series);
+			plot.getAxes().yaxis.options.min = thinned[2];
+			plot.getAxes().yaxis.options.max = thinned[1];
+			plot.getAxes().xaxis.options.min = min;
+			plot.setupGrid();
+			plot.draw();
+			
+			$('.drag_zoom .bg').css('left',zl_r+'px').css('width',((zr_l + 7) - zl_r)+'px');
+		}});
+		$('.drag_zoom #zr').draggable({ axis:"x",containment:'.graph_contain',drag: function(e,ui){
+			e.stopPropagation();
+			ui.position.left = Math.max(zl_r + p_diff,ui.position.left);
+			zr_l = ui.position.left;
+			p = axes1.xaxis.c2p(ui.position.left + 7);
+			max = (min + p > axes_total) ? p : min + axes_total;
+
+			data_zoom = Math.ceil((max - min) / (axes_total * 8));
+			thinned = graphThinData(data_res,data_zoom,max,min);
+			data = thinned[0];
+			volume_options.data = data_vol;
+			max_y = thinned[1];
+			min_y = thinned[2];
+			
+			candlestick_options.lineWidth = Math.ceil((axes_total / (max - min)) * candle_w) + 'px';
+			candlestick_options.rangeWidth = Math.ceil((axes_total / (max - min)) * candle_line_w);
+			series = $.plot.candlestick.createCandlestick({
+				data:data,
+				candlestick:candlestick_options
+			});
+			
+			series.push(volume_options);
+			series.reverse();
+			
+			var j = 0;
+			for (i in window.indicators) {
+				indicators_options[i].data = thinned[3][j];
+				series.push(indicators_options[i]);
+				j++;
+			}
+			
+			plot.setData(series);
+			plot.getAxes().yaxis.options.min = thinned[2];
+			plot.getAxes().yaxis.options.max = thinned[1];
+			plot.getAxes().xaxis.options.max = max;
+			plot.setupGrid();
+			plot.draw();
+			
+			$('.drag_zoom .bg').css('width',((zr_l + 7) - zl_r)+'px');
+		}});
+		$('.drag_zoom .bg').draggable({ axis:"x",containment:'.graph_contain',drag: function(e,ui){
+			w = $('.drag_zoom .bg').width();
+			zl_r = ui.position.left;
+			zr_l = ui.position.left + w - 7;
+			ui.position.left = Math.min(Math.max(7,ui.position.left),axes1_max - w - 7);
+			min = axes1.xaxis.c2p(ui.position.left + 7);
+			max = axes1.xaxis.c2p(ui.position.left + w + 7);
+			
+			if (min < data_min && !data_loading) {
+				data_loading = true;
+				if (loaded_remaining && loaded_remaining.length > 0) {
+					new_data = graphFillGaps(loaded_remaining,candle_options[timeframe][0],100,data_min);
+					data_res = new_data[0].concat(data_res);
+					data_vol = new_data[1].concat(data_vol);
+					data_min = data_res[0][0];
+					loaded_remaining = new_data[4];
+					data_loading = false;
+					return true;
+				}
+				else {
+					graphLoadNew(first_id,function(json_data) {
+						new_data = graphFillGaps(json_data.candles,candle_options[timeframe][0],100,data_min);
+						data_res = new_data[0].concat(data_res);
+						data_vol = new_data[1].concat(data_vol);
+						data_min = data_res[0][0];
+						first_id = json_data.first_id;
+						loaded_remaining = new_data[4];
+						data_loading = false;
+						return true;
+					});
+				}
+			}
+			
+			thinned = graphThinData(data_res,data_zoom,max,min);
+			data = thinned[0];
+			volume_options.data = data_vol;
+			max_y = thinned[1];
+			min_y = thinned[2];
+			
+			candlestick_options.lineWidth = Math.ceil((axes_total / (max - min)) * candle_w) + 'px';
+			candlestick_options.rangeWidth = Math.ceil((axes_total / (max - min)) * candle_line_w);
+			series = $.plot.candlestick.createCandlestick({
+				data:data,
+				candlestick:candlestick_options
+			});
+			
+			series.push(volume_options);
+			series.reverse();
+			
+			var j = 0;
+			for (i in window.indicators) {
+				indicators_options[i].data = thinned[3][j];
+				series.push(indicators_options[i]);
+				j++;
+			}
+			
+			plot.setData(series);
+			plot.getAxes().yaxis.options.min = thinned[2];
+			plot.getAxes().yaxis.options.max = thinned[1];
+			plot.getAxes().xaxis.options.max = max;
+			plot.getAxes().xaxis.options.min = min;
+			plot.setupGrid();
+			plot.draw();
+			
+			$('.drag_zoom #zl').css('left',(ui.position.left - 7)+'px');
+			$('.drag_zoom #zr').css('left',(ui.position.left + w)+'px');
+		}});
+		
+		var axes = plot.getAxes();
+		var dataset = plot.getData();
+		var left_offset = 30;
+		var bottom_offset = 50;
+		var flip;
+		var max_x;
+		var currency1 = currency.toUpperCase();
+
+		$("#graph_candles").bind("plothover", function (event, pos, item) {
+			if (pos.x < min || pos.x > max || pos.y < min_y || pos.y > max_y) {
+				if ($('#graph_over').is(':visible'))
+					$('#graph_over').fadeOut(200);
+				
 				return false;
 			}
 			else {
@@ -323,6 +491,7 @@ function graphLoadNew(first,callback) {
 				thinned = graphThinData(data_res,data_zoom,max,min);
 				max_y = (thinned[3] > max_y) ? thinned[3] : max_y;
 				min_y = (thinned[4] > min_y) ? thinned[4] : min_y;
+				
 				data = thinned[0];
 				volume_options.data = data_vol;
 				candlestick_options.lineWidth = Math.ceil((axes_total / (max - min)) * candle_w) + 'px';
@@ -332,9 +501,68 @@ function graphLoadNew(first,callback) {
 					data:data,
 					candlestick:candlestick_options
 				});
-			}); 
+				
+				series.push({data:data_vol,bars:{show:true,lineWidth:0,barWidth:bar_width,fillColor:"#f0f0f0",fill:true,align:"center"},yaxis:2});
+				series.reverse();
+				
+				var j = 0;
+				for (i in window.indicators) {
+					indicators_options[i].data = thinned[3][j];
+					series.push(indicators_options[i]);
+					j++;
+				}
+				
+				plot.setData(series);
+				plot.getAxes().yaxis.options.min = min_y;
+				plot.getAxes().yaxis.options.max = max_y;
+				plot.getAxes().xaxis.options.max = max;
+				plot.setupGrid();
+				plot.draw();
 			
-			$("#graph_price_history").remove('.tp-loader');
+			}
+			else {
+				diff = Math.max(data_res[data_res.length - 1][0] - last_max,0);
+				diff_pix = Math.ceil(axes1.xaxis.p2c(max1)) - Math.ceil(axes1.xaxis.p2c(max1 - diff));
+				zl_r -= diff_pix;
+				zr_l -= diff_pix;
+
+				$('.drag_zoom .bg').css('left',(parseInt($('.drag_zoom .bg').css('left')) - diff_pix)+'px');
+				$('.drag_zoom #zl').css('left',(parseInt($('.drag_zoom #zl').css('left')) - diff_pix)+'px');
+				$('.drag_zoom #zr').css('left',(parseInt($('.drag_zoom #zr').css('left')) - diff_pix)+'px');
+			}
+		}
+		else {
+			callback(json_data);
+		}
+	});
+}
+
+function graphSettings() {
+	if (!window.indicators) {
+		window.indicators = {
+			sma1:{value:$('#sma1').val(),data:[],color:'#77A0FF',type:'sma',active:($('#sma1').siblings('.check').is(':checked') && $('#sma1').val() > 0)},
+			sma2:{value:$('#sma2').val(),data:[],color:'#FFD877',type:'sma',active:($('#sma2').siblings('.check').is(':checked') && $('#sma2').val() > 0)},
+			ema1:{value:$('#ema1').val(),data:[],color:'#F67CFF',type:'ema',active:($('#ema1').siblings('.check').is(':checked') && $('#ema1').val() > 0)},
+			ema2:{value:$('#ema2').val(),data:[],color:'#77FF72',type:'ema',active:($('#ema2').siblings('.check').is(':checked') && $('#ema2').val() > 0)}
+		}
+	}
+	
+	$('.indicator').bind("keyup change",function(){
+		elem = $(this);
+		id = elem.attr('id');
+		val = elem.val();
+		
+		window.indicators[id].value = val;
+		$.get('includes/ajax.graph.php?action=indicators&'+id+'='+val, function(){});
+	});
+	
+	$('.indicators .check').bind("click",function(){
+		var checked = $(this).is(':checked');
+		$.get('includes/ajax.graph.php?action=indicators&'+($(this).attr('id'))+'='+(checked), function(){});
+		
+		series = $.plot.candlestick.createCandlestick({
+			data:data,
+			candlestick:candlestick_options
 		});
 		
 		series.push(candlestick_options);
@@ -421,7 +649,6 @@ function graphOrders(json_data,refresh) {
 	
 	var currency = $('#graph_orders_currency').val();
 	var c_currency = $('#c_currency').val();
-
 	if (!json_data) {
 		try {
 			json_data = static_data;
@@ -435,6 +662,7 @@ function graphOrders(json_data,refresh) {
 			}
 			
 			console.log(e);
+			return false;
 		}
 	}
 	
@@ -494,15 +722,14 @@ function graphOrders(json_data,refresh) {
     	}
  	];
 	
-	if (plot) {
-		plot.setData(series);
-		plot.setupGrid();
-		plot.draw();
+	if (plot_o) {
+		plot_o.setData(series);
+		plot_o.setupGrid();
+		plot_o.draw();
 		return false;
 	}
 	 
-	plot = $.plot($("#graph_orders"),series,
- 	{
+	plot_o = $.plot($("#graph_orders"),series,{
  		xaxis: {
  			tickLength: 0
  		},
@@ -522,22 +749,23 @@ function graphOrders(json_data,refresh) {
  	});
 	
 	var date_options = { year: "numeric", month: "short",day: "numeric" };
-	var axes = plot.getAxes();
-	var dataset = plot.getData();
+	var axes = plot_o.getAxes();
+	var dataset = plot_o.getData();
 	var left_offset = 30;
 	var bottom_offset = 50;
 	var flip;
 	var max_x;
 	var currency1 = currency.toUpperCase();
 	var last_type = false;
+	
 	$("#graph_orders").bind("plothover", function (event, pos, item) {
-		plot.unhighlight();
-		
+		plot_o.unhighlight();
+
 		if (pos.x < axes.xaxis.min || pos.x > axes.xaxis.max || pos.y < axes.yaxis.min || pos.y > axes.yaxis.max) {
 			$('#tooltip').css('display','none');
 			return false;
 		}
-		
+
 		updateLegend(pos,axes,dataset,false,function(graph_point,graph_i,graph_j) {
 			var ask = (graph_i == 1);
 			
@@ -588,7 +816,7 @@ function graphOrders(json_data,refresh) {
 				$('#tooltip').css('top',(y_pix-bottom_offset)+'px');
 			}
 			
-			plot.highlight(graph_i,graph_j);
+			plot_o.highlight(graph_i,graph_j);
 		});
 	}); 
 	
@@ -718,7 +946,7 @@ function graphControls() {
 		graphPriceHistory($(this).attr('data-option'),currency);
 		return false;
 	});
-
+	
 	$('#graph_time').bind("keyup change", function(){
 		graphPriceHistory($(this).val(),$('#graph_price_history_currency').val());
 	});
@@ -777,6 +1005,9 @@ function graphFillGaps(json_data,candle_size,candle_amount,start) {
 	var first_i = false;
 	var last_i = false;
 	var j = 0;
+	
+	if (!json_data)
+		json_data = [];
 	
 	/*
 	var indicators_options = {};
@@ -1112,7 +1343,7 @@ function updateTransactions() {
 		
 		$.getJSON("includes/ajax.trades.php?currency="+currency+'&c_currency='+c_currency+((order_by) ? '&order_by='+order_by : '')+((notrades) ? '&notrades=1' : '')+((open_orders_user) ? '&user=1' : '&last_price=1')+((get_10) ? '&get10=1' : ''),function(json_data) {
 			var depth_chart_data = {bids:[],asks: []}; 
-			if (json_data.transactions[0] != null && !notrades) {
+			if (json_data.transactions && !notrades) {
 				var i = 0;
 				var insert_elem = ('#transactions_list tr:first');
 				$.each(json_data.transactions[0],function(i) {
@@ -1200,7 +1431,7 @@ function updateTransactions() {
 			}
 			
 			$.each($('.bid_tr'),function(index) {
-				if (!index || index >= 30)
+				if (typeof index != 'number' || index >= 30)
 					return false;
 				
 				var elem = this;
@@ -1312,7 +1543,7 @@ function updateTransactions() {
 						
 						if (notrades) {
 							var usd_price = '';
-							var reorder_class = (open_orders_user) ? 'buy_currency_char' : 'currency_char';
+							var reorder_class = (open_orders_user) ? 'currency_char' : 'buy_currency_char';
 							var crypto_hidden = (open_orders_user) ? '<input type="hidden" class="is_crypto" value="'+json_elem.is_crypto+'" />' : '';
 							
 							if (open_orders_user) {
@@ -1332,13 +1563,13 @@ function updateTransactions() {
 							}
 							
 							var edit_str = (open_orders_user) ? '<td><a title="'+$('#cfg_orders_edit').val()+'" href="edit-order.php?order_id='+json_elem.id+'"><i class="fa fa-pencil"></i></a> <a title="'+$('#cfg_orders_delete').val()+'" href="open-orders.php?delete_id='+json_elem.id+'&uniq='+$('#uniq').val()+'"><i class="fa fa-times"></i></a></td>' : false;
-							var string = '<tr class="bid_tr" id="bid_'+json_elem.id+'">'+crypto_hidden+usd_price+type+'<td>'+mine+'<span class="'+reorder_class+'">'+fa_symbol+'</span><span class="order_price">'+formatCurrency(((json_elem.btc_price > 0) ? json_elem.btc_price : json_elem.stop_price),is_crypto)+'</span> '+((json_elem.btc_price != json_elem.fiat_price) ? '<a title="'+$('#orders_converted_from').val().replace('[currency]',currency_abbr)+'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '')+'</td><td><span class="order_amount">'+json_elem.btc+'</span></td><td>'+fa_symbol+'<span class="order_value">'+formatCurrency(parseFloat(json_elem.btc) * parseFloat(json_elem.btc_price),is_crypto)+'</span></td>'+edit_str+'</tr>';
+							var string = '<tr class="bid_tr" id="bid_'+json_elem.id+'">'+crypto_hidden+usd_price+type+'<td>'+mine+'<span class="'+reorder_class+'">'+fa_symbol+'</span><span class="order_price">'+formatCurrency(((json_elem.btc_price > 0) ? json_elem.btc_price : json_elem.stop_price),is_crypto)+'</span> '+((parseFloat(json_elem.btc_price) != parseFloat(json_elem.fiat_price)) ? '<a title="'+$('#orders_converted_from').val().replace('[currency]',currency_abbr)+'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '')+'</td><td><span class="order_amount">'+json_elem.btc+'</span></td><td><span class="'+reorder_class+'">'+fa_symbol+'</span><span class="order_value">'+formatCurrency(parseFloat(json_elem.btc) * parseFloat(json_elem.btc_price),is_crypto)+'</span></td>'+edit_str+'</tr>';
 						
 							if (double)
-								string += '<tr class="bid_tr double" id="bid_'+json_elem.id+'">'+crypto_hidden+'<td><div class="identify stop_order">S</div></td><td>'+mine+'<span class="'+reorder_class+'">'+fa_symbol+'</span><span class="order_price">'+(formatCurrency(json_elem.stop_price,is_crypto))+'</span></td><td><span class="order_amount">'+json_elem.btc+'</span></td><td>'+fa_symbol+'<span class="order_value">'+formatCurrency(parseFloat(json_elem.btc) * parseFloat(json_elem.btc_price),is_crypto)+'</span></td><td><span class="oco"><i class="fa fa-arrow-up"></i> OCO</span></td></tr>';
+								string += '<tr class="bid_tr double" id="bid_'+json_elem.id+'">'+crypto_hidden+'<td><div class="identify stop_order">S</div></td><td>'+mine+'<span class="'+reorder_class+'">'+fa_symbol+'</span><span class="order_price">'+(formatCurrency(json_elem.stop_price,is_crypto))+'</span></td><td><span class="order_amount">'+json_elem.btc+'</span></td><td><span class="'+reorder_class+'">'+fa_symbol+'</span><span class="order_value">'+formatCurrency(parseFloat(json_elem.btc) * parseFloat(json_elem.btc_price),is_crypto)+'</span></td><td><span class="oco"><i class="fa fa-arrow-up"></i> OCO</span></td></tr>';
 						}
 						else
-							var string = '<tr class="bid_tr" id="bid_'+json_elem.id+'"><td>'+mine+'<span class="order_amount">'+json_elem.btc+'</span> '+($('#curr_abbr_'+json_elem.c_currency).val())+'</td><td><span class="buy_currency_char">'+fa_symbol+'</span><span class="order_price">'+(formatCurrency(json_elem.btc_price),is_crypto)+'</span> '+((json_elem.btc_price != json_elem.fiat_price) ? '<a title="'+$('#orders_converted_from').val().replace('[currency]',currency_abbr)+'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '')+'</td></tr>';
+							var string = '<tr class="bid_tr" id="bid_'+json_elem.id+'"><td>'+mine+'<span class="order_amount">'+json_elem.btc+'</span> '+($('#curr_abbr_'+json_elem.c_currency).val())+'</td><td><span class="buy_currency_char">'+fa_symbol+'</span><span class="order_price">'+(formatCurrency(json_elem.btc_price),is_crypto)+'</span> '+((parseFloat(json_elem.btc_price) != parseFloat(json_elem.fiat_price)) ? '<a title="'+$('#orders_converted_from').val().replace('[currency]',currency_abbr)+'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '')+'</td></tr>';
 						
 						if (before)
 							var elem = $(string).insertBefore(insert_elem);
@@ -1356,7 +1587,7 @@ function updateTransactions() {
 			}
 
 			$.each($('.ask_tr'),function(index) {
-				if (!index || index >= 30)
+				if (typeof index != 'number' || index >= 30)
 					return false;
 				
 				var elem = this;
@@ -1469,7 +1700,7 @@ function updateTransactions() {
 						
 						if (notrades) {
 							var usd_price = '';
-							var reorder_class = (open_orders_user) ? 'buy_currency_char' : 'currency_char';
+							var reorder_class = (open_orders_user) ? 'currency_char' : 'buy_currency_char';
 							var crypto_hidden = (open_orders_user) ? '<input type="hidden" class="is_crypto" value="'+json_elem.is_crypto+'" />' : '';
 							
 							if (open_orders_user) {
@@ -1489,13 +1720,13 @@ function updateTransactions() {
 							}
 							
 							var edit_str = (open_orders_user) ? '<td><a title="'+$('#cfg_orders_edit').val()+'" href="edit-order.php?order_id='+json_elem.id+'"><i class="fa fa-pencil"></i></a> <a title="'+$('#cfg_orders_delete').val()+'" href="open-orders.php?delete_id='+json_elem.id+'&uniq='+$('#uniq').val()+'"><i class="fa fa-times"></i></a></td>' : false;
-							var string = '<tr class="ask_tr" id="ask_'+json_elem.id+'">'+crypto_hidden+usd_price+type+'<td>'+mine+'<span class="'+reorder_class+'">'+fa_symbol+'</span><span class="order_price">'+(formatCurrency((json_elem.btc_price > 0) ? json_elem.btc_price : json_elem.stop_price,is_crypto))+'</span> '+((json_elem.btc_price != json_elem.fiat_price) ? '<a title="'+$('#orders_converted_from').val().replace('[currency]',currency_abbr)+'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '')+'</td><td><span class="order_amount">'+json_elem.btc+'</span></td><td>'+fa_symbol+'<span class="order_value">'+formatCurrency(parseFloat(json_elem.btc) * parseFloat(json_elem.btc_price),is_crypto)+'</span></td>'+edit_str+'</tr>';
+							var string = '<tr class="ask_tr" id="ask_'+json_elem.id+'">'+crypto_hidden+usd_price+type+'<td>'+mine+'<span class="'+reorder_class+'">'+fa_symbol+'</span><span class="order_price">'+(formatCurrency((json_elem.btc_price > 0) ? json_elem.btc_price : json_elem.stop_price,is_crypto))+'</span> '+((parseFloat(json_elem.btc_price) != parseFloat(json_elem.fiat_price)) ? '<a title="'+$('#orders_converted_from').val().replace('[currency]',currency_abbr)+'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '')+'</td><td><span class="order_amount">'+json_elem.btc+'</span></td><td><span class="'+reorder_class+'">'+fa_symbol+'</span><span class="order_value">'+formatCurrency(parseFloat(json_elem.btc) * parseFloat(json_elem.btc_price),is_crypto)+'</span></td>'+edit_str+'</tr>';
 							
 							if (double)
 								string += '<tr class="ask_tr double" id="ask_'+json_elem.id+'">'+crypto_hidden+'<td><div class="identify stop_order">S</div></td><td>'+mine+'<span class="'+reorder_class+'">'+fa_symbol+'</span><span class="order_price">'+(formatCurrency(json_elem.stop_price,is_crypto))+'</span></td><td><span class="order_amount">'+json_elem.btc+'</span></td><td>'+fa_symbol+'<span class="order_value">'+formatCurrency(parseFloat(json_elem.btc) * parseFloat(json_elem.btc_price),is_crypto)+'</span></td><td><span class="oco"><i class="fa fa-arrow-up"></i> OCO</span></td></tr>';
 						}
 						else
-							var string = '<tr class="ask_tr" id="ask_'+json_elem.id+'"><td>'+mine+'<span class="order_amount">'+json_elem.btc+'</span> '+($('#curr_abbr_'+json_elem.c_currency).val())+'</td><td><span class="buy_currency_char">'+fa_symbol+'</span><span class="order_price">'+(formatCurrency(json_elem.btc_price,is_crypto))+'</span> '+((json_elem.btc_price != json_elem.fiat_price) ? '<a title="'+$('#orders_converted_from').val().replace('[currency]',currency_abbr)+'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '')+'</td></tr>';
+							var string = '<tr class="ask_tr" id="ask_'+json_elem.id+'"><td>'+mine+'<span class="order_amount">'+json_elem.btc+'</span> '+($('#curr_abbr_'+json_elem.c_currency).val())+'</td><td><span class="buy_currency_char">'+fa_symbol+'</span><span class="order_price">'+(formatCurrency(json_elem.btc_price,is_crypto))+'</span> '+((parseFloat(json_elem.btc_price) != parseFloat(json_elem.fiat_price)) ? '<a title="'+$('#orders_converted_from').val().replace('[currency]',currency_abbr)+'" class="fa fa-exchange" href="" onclick="return false;"></a>' : '')+'</td></tr>';
 						
 						if (before)
 							var elem = $(string).insertBefore(insert_elem);
@@ -1647,6 +1878,16 @@ function filtersUpdate() {
 
 function paginationUpdate() {
 	$('.pagination a').click(function(e) {
+		if ($('#share-screen').length > 0) {
+			var id = ($('.ts_view.selected').attr('data-option') == 'dividends') ? '#filters_area' : '#filters_area1';
+			var bypass = ($('.ts_view.selected').attr('data-option') == 'dividends') ? 'bypass' : 'bypass1';
+		}
+		else {
+			var bypass = 'bypass';
+			var id = '#filters_area';
+		}
+			
+		
 		$('#filters_area').append('<div class="tp-loader"></div>');
 		var url = $(this).attr('href');
 		var query = $('#filters').serialize();
@@ -1985,11 +2226,12 @@ function calculateBuy() {
 
 function calculateBuyPrice() {
 	if ($('#unit_cost').length > 0) {
-		var unit_cost = parseFloat($('#unit_cost').val()) / parseFloat($('#usd_ask').val());
+		var unit_cost = (parseFloat($('#unit_cost').val()) / parseFloat($('#usd_ask').val())).toFixed(($('#is_crypto').val() == 'Y' ? '8' : '2'));
+		var unit_cost_sell = (parseFloat($('#unit_cost_sell').val()) / parseFloat($('#usd_ask').val())).toFixed(($('#is_crypto').val() == 'Y' ? '8' : '2'));
 		var buy_amount = ($('#buy_amount').val()) ? parseFloat($('#buy_amount').val().replace(',','')) : 0;
 		var sell_amount = ($('#sell_amount').val()) ? parseFloat($('#sell_amount').val().replace(',','')) : 0;
-		$('#buy_total').html(formatCurrency(buy_amount * unit_cost));
-		$('#sell_total').html(formatCurrency(sell_amount * unit_cost));
+		$('#buy_total').html(formatCurrency(buy_amount * unit_cost,($('#is_crypto').val() == 'Y')));
+		$('#sell_total').html(formatCurrency(sell_amount * unit_cost_sell,($('#is_crypto').val() == 'Y')));
 		return false;
 	}
 	
@@ -2220,7 +2462,6 @@ function startTicker() {
 		}
 		if (elem_f && elem_f.offset()) {
 			if ((elem_f.offset().left * -1) >= elem_f.outerWidth() && cloned) {
-				console.log(elem_f.offset().left);
 				elem_f.remove();
 				elem_f = $('.ticker .scroll:first');
 				cloned = false;
@@ -2232,14 +2473,14 @@ function startTicker() {
 }
 
 $(document).ready(function() {
-	if ($("#graph_price_history").length > 0) {
+	if ($(".ticker").length > 0) {
 		var currency = $('#graph_price_history_currency').val();
-		graphPriceHistory('1mon',currency);
 		startTicker();
+		graphPriceHistory();
 		graphClickAdd();
 	}
 	
-	if ($("#graph_orders").length > 0) {
+	if ($("#graph_orders").length > 0 && $("#graph_orders").is(':visible')) {
 		graphOrders();
 		//var update = setInterval(graphOrders,10000);
 		updateTransactions();
@@ -2331,6 +2572,10 @@ $(document).ready(function() {
 		else if (!($(first_text).val().length > 0))
 			$(first_text).focus();
 	}
+	
+	$(window).resize(function() {
+		graphResize();
+	});
 	
 	$(window).scroll(function(){
         if ($(this).scrollTop() > 100) {
