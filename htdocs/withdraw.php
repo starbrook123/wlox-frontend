@@ -9,12 +9,16 @@ elseif (!User::isLoggedIn())
 	Link::redirect('login.php');
 
 $currencies = Settings::sessionCurrency();
+API::add('Wallets','getWallet',array($currencies['c_currency']));
+$query = API::send();
+
+$wallet = $query['Wallets']['getWallet']['results'][0];
 $c_currency_info = $CFG->currencies[$currencies['c_currency']];
 $page1 = (!empty($_REQUEST['page'])) ? preg_replace("/[^0-9]/", "",$_REQUEST['page']) : false;
 $btc_address1 = (!empty($_REQUEST['btc_address'])) ?  preg_replace("/[^\da-z]/i", "",$_REQUEST['btc_address']) : false;
 $btc_amount1 = (!empty($_REQUEST['btc_amount']) && $_REQUEST['btc_amount'] > 0) ? preg_replace("/[^0-9.]/", "",$_REQUEST['btc_amount']) : 0;
 $btc_amount1 = rtrim(number_format($btc_amount1,8,'.',''),'0');
-$btc_total1 = (!empty($_REQUEST['btc_amount']) && $_REQUEST['btc_amount'] > 0) ? $btc_amount1 - $CFG->bitcoin_sending_fee : 0;
+$btc_total1 = (!empty($_REQUEST['btc_amount']) && $_REQUEST['btc_amount'] > 0) ? $btc_amount1 - $wallet['bitcoin_sending_fee'] : 0;
 $account1 = (!empty($_REQUEST['account'])) ? preg_replace("/[^0-9]/", "",$_REQUEST['account']) : false;
 $fiat_amount1 = (!empty($_REQUEST['fiat_amount']) && $_REQUEST['fiat_amount'] > 0) ? preg_replace("/[^0-9.]/", "",$_REQUEST['fiat_amount']) : 0;
 $fiat_amount1 = rtrim(number_format($fiat_amount1,2,'.',''),'0');
@@ -61,7 +65,6 @@ API::add('User','getAvailable');
 API::add('Requests','get',array(1,false,false,1));
 API::add('Requests','get',array(false,$page1,15,1));
 API::add('BankAccounts','get');
-API::add('Wallets','getWallet',array($currencies['c_currency']));
 if ($account1 > 0)
 	API::add('BankAccounts','getRecord',array($account1));
 if ($btc_address1)
@@ -73,7 +76,6 @@ $bank_instructions = $query['Content']['getRecord']['results'][0];
 $bank_accounts = $query['BankAccounts']['get']['results'][0];
 $total = $query['Requests']['get']['results'][0];
 $requests = $query['Requests']['get']['results'][1];
-$wallet = $query['Wallet']['getWallet']['results'][0];
 
 if ($account1 > 0) {
 	$bank_account = $query['BankAccounts']['getRecord']['results'][0];
@@ -266,7 +268,7 @@ if (empty($_REQUEST['bypass'])) {
 							<div class="spacer"></div>
 							<div class="calc">
 								<div class="label"><?= Lang::string('withdraw-network-fee') ?> <a title="<?= Lang::string('withdraw-network-fee-explain') ?>" href="javascript:return false;"><i class="fa fa-question-circle"></i></a></div>
-								<div class="value"><span id="withdraw_btc_network_fee"><?= $CFG->bitcoin_sending_fee ?></span> <?= $c_currency_info['currency'] ?></div>
+								<div class="value"><span id="withdraw_btc_network_fee"><?= $wallet['bitcoin_sending_fee'] ?></span> <?= $c_currency_info['currency'] ?></div>
 								<div class="clear"></div>
 							</div>
 							<div class="calc bigger">
