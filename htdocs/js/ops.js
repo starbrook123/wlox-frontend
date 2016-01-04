@@ -2265,7 +2265,7 @@ $(document).ready(function() {
 		shareControls();
 	}
 	
-	$('#c_currency').bind("keyup change", function(){
+	$('.change_c_currency,#c_currency').bind("keyup change", function(){
 		window.location.href = window.location.pathname+'?c_currency='+$(this).val();
 	});
 	

@@ -212,7 +212,7 @@ if ($ask_confirm && $sell) {
 		$notice .= '<div class="message-box-wrap">'.Lang::string('buy-notify-two-orders').'</div>';
 }
 
-$select = '<select id="c_currency">';
+$select = '<select id="c_currency" class="change_c_currency">';
 foreach ($CFG->currencies as $key => $currency) {
 	if (is_numeric($key) || $currency['is_crypto'] != 'Y')
 		continue;
@@ -249,7 +249,6 @@ if (!$bypass) {
 			<div class="one_half">
 				<div class="content">
 					<h3 class="section_label">
-						<span class="left"><i class="fa fa-btc fa-2x"></i></span>
 						<span class="right"><?= str_replace('[c_currency]',$select,Lang::string('buy-bitcoins')) ?></span>
 					</h3>
 					<div class="clear"></div>
@@ -341,7 +340,6 @@ if (!$bypass) {
 			<div class="one_half last">
 				<div class="content">
 					<h3 class="section_label">
-						<span class="left"><i class="fa fa-money fa-2x"></i></span>
 						<span class="right"><?= str_replace('[c_currency]',$select,Lang::string('sell-bitcoins')) ?></span>
 					</h3>
 					<div class="clear"></div>

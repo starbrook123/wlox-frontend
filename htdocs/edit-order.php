@@ -235,7 +235,6 @@ if (!$bypass) {
 			<div class="one_half last" <?= ($order_info['is_bid']) ? '' : 'style="display:none;"' ?>>
 				<div class="content">
 					<h3 class="section_label">
-						<span class="left"><i class="fa fa-btc fa-2x"></i></span>
 						<span class="right"><?= $page_title ?></span>
 					</h3>
 					<div class="clear"></div>
