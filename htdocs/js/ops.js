@@ -1,3 +1,5 @@
+var plot = false;
+
 var ajax_active = false;
 $(document).ajaxStop(function() {
 	ajax_active = false;
@@ -7,563 +9,91 @@ $(document).ajaxStart(function() {
 	ajax_active = true;
 });
 
-//options and strings
-var browser_w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-var candle_w = (browser_w < 1000) ? 4 : 8;
-var candle_line_w = (browser_w < 1000) ? 1 : 2;
-
-var month_abbr = {
-	0:$('#javascript_mon_0').val(),
-	1:$('#javascript_mon_1').val(),
-	2:$('#javascript_mon_2').val(),
-	3:$('#javascript_mon_3').val(),
-	4:$('#javascript_mon_4').val(),
-	5:$('#javascript_mon_5').val(),
-	6:$('#javascript_mon_6').val(),
-	7:$('#javascript_mon_7').val(),
-	8:$('#javascript_mon_8').val(),
-	9:$('#javascript_mon_9').val(),
-	10:$('#javascript_mon_10').val(),
-	11:$('#javascript_mon_11').val(),
-};
-
-var candle_options = {
-	'1min':[60,'1mon'],
-	'3min':[180,'1mon'],
-	'5min':[300,'1mon'],
-	'15min':[900,'1mon'],
-	'30min':[1800,'3mon'],
-	'1h':[3600,'3mon'],
-	'2h':[7200,'3mon'],
-	'4h':[14400,'3mon'],
-	'6h':[21600,'3mon'],
-	'12h':[43200,'6mon'],
-	'1d':[86400,'6mon'],
-	'3d':[259200,'1year'],
-	'1w':[604800,'1year']
-};
-
-var plot,plot1,timeframe,data_res,data_zoom,data,data_vol,data1,series,series1,axes1,axes1_max,axes1_total,axes_total,p_min_x,p_max_x,p_diff,zl_r,zr_l,min,max,min1,max1,min_y,max_y,bar_width,first_id,last_id,loaded_remaining,data_min,loaded_min,data_loading,last_w,candlestick_options,volume_options,indicators_options;
-function graphPriceHistory() {
-	var currency = $('#graph_price_history_currency').val();
-	timeframe = ($('#graph_time').is('select')) ? $('#graph_time').val() : $('#graph_time a.selected').attr('data-option');
-	$("#graph_candles").append('<div class="tp-loader"></div>');
+function graphPriceHistory(timeframe,currency) {
+	$("#graph_price_history").append('<div class="tp-loader"></div>');
 	
-	$.getJSON("includes/ajax.graph.php?timeframe="+timeframe+'&timeframe1='+candle_options[timeframe][1]+'&currency='+currency,function(json_data) {
-		// get indicators
-		if (!plot)
-			graphSettings();
-		
-		// parse data
-		parsed = graphFillGaps(json_data.candles,candle_options[timeframe][0],100);
-		data = parsed[0];
-		data_vol = parsed[1];
-		data1 = json_data.history;
-		c = (data) ? data.length - 1 : 0;
-		c_half = Math.ceil(c - 50);
-		c1 = data1.length;
-		data1.push([data[c][0],data[c][2]]);
-		max = data[c][0];
-		min = data[c_half][0];
-		max_y = parsed[2];
-		min_y = parsed[3];
-		max1 = data1[c1][0];
-		min1 = data1[0][0];
-		bar_width = (candle_options[timeframe][0] * 1000 / 3);
-		first_id = json_data.first_id;
-		last_id = json_data.last_id;
-		loaded_remaining = parsed[4];
-		loaded_min = parsed[0][0];
-		data_min = data[0][0];
-		data_res = data;
-		data_zoom = 1;
-		
-		// setup candles series
-		candlestick_options = {show:true,lineWidth:candle_w+'px',rangeWidth:candle_line_w,downColor:'#e51919',upColor:'#16e758',rangeColor:'#848484',neutralColor:'#848484'};
-		series = $.plot.candlestick.createCandlestick({
-			data:data,
-			candlestick:candlestick_options
-		});
-		
-		// add volume
-		volume_options = {data:data_vol,bars:{show:true,lineWidth:0,barWidth:bar_width,fillColor:"#f0f0f0",fill:true,align:"center"},yaxis:2};
-		series.push(volume_options);
-		series.reverse();
-		
-		// add indicators
-		indicators_options = {};
-		indicators_data = {};
-		for (i in data) {
-			var j = 4;
-			for (h in window.indicators) {
-				j++;
-				if (!indicators_data[h])
-					indicators_data[h] = [];
+	while (!ajax_active) {
+		$.getJSON("includes/ajax.graph.php?timeframe="+timeframe+'&currency='+currency,function(json_data) {
+			plot = $.plot($("#graph_price_history"),[
+	            	{
+	             	data: json_data,
+	                 lines: { show: true, fill: true },
+	                 points: { show: false, fill: false },
+	                 color: '#17D6D6'
+	            	}
+	     	],
+	     	{
+	     		xaxis: {
+	     			mode: "time",
+	     			timeformat: ((timeframe == '1mon' || timeframe == '3mon' || timeframe == '6mon') ? "%b %e" : "%b %y"),
+	     			minTickSize: [1, "day"],
+	     			tickLength: 0
+	     		},
+	     		yaxis: {
+	     			labelWidth:0
+	     		},
+	     		grid: { 
+	     			backgroundColor: '#FFFFFF',
+	     			borderWidth: 1,
+	     			borderColor: '#dddddd',
+	     			hoverable: true
+	     		},
+	     		crosshair: {
+	     			mode:"x",
+	     		    color: "#aaaaaa",
+	     		    lineWidth: 1
+	     		}
+	     	});
+			
+			var date_options = { year: "numeric", month: "short",day: "numeric" };
+			var axes = plot.getAxes();
+			var dataset = plot.getData();
+			var left_offset = 30;
+			var bottom_offset = 50;
+			var flip;
+			var max_x;
+			var currency1 = currency.toUpperCase();
+			
+			$("#graph_price_history").bind("plothover", function (event, pos, item) {
+				plot.unhighlight();
 				
-				indicators_data[h].push([data[i][0],data[i][j]]);
-			}
-		}
-		for (i in window.indicators) {
-			indicators_options[i] = {data: indicators_data[i], color: window.indicators[i].color, lines:{show:window.indicators[i].active,fill:false,lineWidth:1},yaxis:1,shadowSize:0};
-			series.push(indicators_options[i]);
-		}
-		
-		series1 = [{data:data1,color:'#00bdbd',lines:{show:true,lineWidth:1},shadowSize:0}];
-		
-		if (plot) {
-			plot1.getAxes().xaxis.options.min = min1;
-			plot1.getAxes().xaxis.options.max = max1;
-			plot1.setData(series1);
-			plot1.setupGrid();
-			plot1.draw();
-			
-			axes1 = plot1.getAxes();
-			axes1_max = Math.round(axes1.xaxis.p2c(max1));
-			axes1_total = max1 - min1;
-			axes_total = max - min;
-			p_min_x = Math.ceil(axes1.xaxis.p2c(min)) - 14;
-			p_max_x = Math.ceil(axes1.xaxis.p2c(max)) - 7;
-			p_diff = p_max_x - (p_min_x + 7);
-			zl_r = p_min_x + 7;
-			zr_l = p_max_x - 7;
-			last_w = candle_w;
-			$('.drag_zoom .bg').css('left',zl_r+'px').css('width',((zr_l + 7) - zl_r)+'px');
-			$('.drag_zoom #zl').css('left',p_min_x+'px');
-			$('.drag_zoom #zr').css('left',p_max_x+'px');
-			
-			plot.getAxes().xaxis.options.min = min;
-			plot.getAxes().xaxis.options.max = max;
-			plot.getAxes().yaxis.options.min = min_y;
-			plot.getAxes().yaxis.options.max = max_y;
-			plot.setData(series);
-			plot.setupGrid();
-			plot.draw();
-			$("#graph_candles .tp-loader").remove();
-			return false;
-		}
-		
-		// candlestick chart
-		var last_d = new Date();
-		plot = $.plot($("#graph_candles"),series,{
-			series: {candlestick:{active:true}},
-			xaxis: {
-				mode: "time",
-				max: max,
-				min: min,
-     			tickLength: 5,
-     			tickFormatter: function (val, axis) {
-     				d = new Date(val);
-     				ret = false;
-
-     				if ((d - last_d) >= (86400 * 1000)) {
-     					year = d.getFullYear();
-     					month = d.getMonth();
-     					day = d.getDate();
-     					
-     					if (year != last_d.getFullYear())
-     						ret = year;
-     					else
-     						ret = month_abbr[month] + ' ' + day;
-     						
-     				}
-     				else {
-     					month = d.getMonth();
-     					day = d.getDate();
-     					mins = d.getMinutes().toString();
-     					pad = "00";
-     					ret = d.getHours() + ':' + pad.substring(0, pad.length - mins.length) + mins + (day != last_d.getDate() ? '/'+month_abbr[d.getMonth()]+' '+d.getDate()+'' : '');
-     				}
-     			   
-     			    last_d = d;
-     			    return ret;
-     			}
-     		},
-     		yaxes: [{
- 		    	labelWidth:0,
- 		    	position:"right",
- 		    	zoomRange: [1,1],
- 		    	max: max_y,
- 		    	min: min_y,
- 		    	tickFormatter: function (val, axis) {
- 		    		return val.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
- 		    	}
-     		},
-     		{
-     			show:false
-     		}],
-     		grid: { 
-     			borderWidth: 0,
-     			hoverable: true
-     		},
-     		crosshair: {
-     			mode:"x",
-     		    color: "#aaaaaa",
-     		    lineWidth: 1
-     		}
-		});
-		
-		// price history
-		plot1 = $.plot($("#graph_price_history"),series1,{
-			xaxis: {
-				mode: "time",
-				max: max1,
-				min: min1,
-				show:false
-     		},
-     		yaxis: {
-     			show:false
-     		},
-     		grid: { 
-     			show:false
-     		}
-		});
-		
-		// zooming and panning
-		axes1 = plot1.getAxes();
-		axes1_max = Math.round(axes1.xaxis.p2c(max1));
-		axes1_total = max1 - min1;
-		axes_total = max - min;
-		p_min_x = Math.ceil(axes1.xaxis.p2c(min)) - 14;
-		p_max_x = Math.ceil(axes1.xaxis.p2c(max)) - 7;
-		p_diff = p_max_x - (p_min_x + 7);
-		zl_r = p_min_x + 7;
-		zr_l = p_max_x - 7;
-		last_w = candle_w;
-
-		$('.drag_zoom .bg').css('left',zl_r+'px').css('width',((zr_l + 7) - zl_r)+'px');
-		$('.drag_zoom #zl').css('left',p_min_x+'px');
-		$('.drag_zoom #zr').css('left',p_max_x+'px');
-		$('.drag_zoom #zl').draggable({ axis:"x",containment:'.graph_contain',drag: function(e,ui){
-			e.stopPropagation();
-			ui.position.left = Math.min(zr_l - p_diff,ui.position.left);
-			zl_r = ui.position.left + 7;
-			p = Math.ceil(axes1.xaxis.c2p(zl_r + 7));
-			min = (max - p > axes_total) ? p : max - axes_total;
-			
-			if (min < data_min && !data_loading) {
-				data_loading = true;
-				if (loaded_remaining && loaded_remaining.length > 0) {
-					new_data = graphFillGaps(loaded_remaining,candle_options[timeframe][0],100,data_min);
-					data_res = new_data[0].concat(data_res);
-					data_vol = new_data[1].concat(data_vol);
-					data_min = data_res[0][0];
-					loaded_remaining = new_data[4];
-					data_loading = false;
-					return true;
+				if (pos.x < axes.xaxis.min || pos.x > axes.xaxis.max || pos.y < axes.yaxis.min || pos.y > axes.yaxis.max) {
+					$('#tooltip').css('display','none');
+					return false;
 				}
-				else {
-					graphLoadNew(first_id,function(json_data) {
-						new_data = graphFillGaps(json_data.candles,candle_options[timeframe][0],100,data_min);
-						data_res = new_data[0].concat(data_res);
-						data_vol = new_data[1].concat(data_vol);
-						data_min = data_res[0][0];
-						first_id = json_data.first_id;
-						loaded_remaining = new_data[4];
-						data_loading = false;
-						return true;
-					});
-				}
-			}
-
-			data_zoom = Math.ceil((max - min) / (axes_total * 8));
-			thinned = graphThinData(data_res,data_zoom,max,min);
-			data = thinned[0];
-			volume_options.data = data_vol;
-			max_y = thinned[1];
-			min_y = thinned[2];
-
-			candlestick_options.lineWidth = Math.ceil((axes_total / (max - min)) * candle_w) + 'px';
-			candlestick_options.rangeWidth = Math.ceil((axes_total / (max - min)) * candle_line_w);
-			series = $.plot.candlestick.createCandlestick({
-				data:data,
-				candlestick:candlestick_options
-			});
-			
-			series.push(volume_options);
-			series.reverse();
-
-			var j = 0;
-			for (i in window.indicators) {
-				indicators_options[i].data = thinned[3][j];
-				series.push(indicators_options[i]);
-				j++;
-			}
-
-			plot.setData(series);
-			plot.getAxes().yaxis.options.min = thinned[2];
-			plot.getAxes().yaxis.options.max = thinned[1];
-			plot.getAxes().xaxis.options.min = min;
-			plot.setupGrid();
-			plot.draw();
-			
-			$('.drag_zoom .bg').css('left',zl_r+'px').css('width',((zr_l + 7) - zl_r)+'px');
-		}});
-		$('.drag_zoom #zr').draggable({ axis:"x",containment:'.graph_contain',drag: function(e,ui){
-			e.stopPropagation();
-			ui.position.left = Math.max(zl_r + p_diff,ui.position.left);
-			zr_l = ui.position.left;
-			p = axes1.xaxis.c2p(ui.position.left + 7);
-			max = (min + p > axes_total) ? p : min + axes_total;
-
-			data_zoom = Math.ceil((max - min) / (axes_total * 8));
-			thinned = graphThinData(data_res,data_zoom,max,min);
-			data = thinned[0];
-			volume_options.data = data_vol;
-			max_y = thinned[1];
-			min_y = thinned[2];
-			
-			candlestick_options.lineWidth = Math.ceil((axes_total / (max - min)) * candle_w) + 'px';
-			candlestick_options.rangeWidth = Math.ceil((axes_total / (max - min)) * candle_line_w);
-			series = $.plot.candlestick.createCandlestick({
-				data:data,
-				candlestick:candlestick_options
-			});
-			
-			series.push(volume_options);
-			series.reverse();
-			
-			var j = 0;
-			for (i in window.indicators) {
-				indicators_options[i].data = thinned[3][j];
-				series.push(indicators_options[i]);
-				j++;
-			}
-			
-			plot.setData(series);
-			plot.getAxes().yaxis.options.min = thinned[2];
-			plot.getAxes().yaxis.options.max = thinned[1];
-			plot.getAxes().xaxis.options.max = max;
-			plot.setupGrid();
-			plot.draw();
-			
-			$('.drag_zoom .bg').css('width',((zr_l + 7) - zl_r)+'px');
-		}});
-		$('.drag_zoom .bg').draggable({ axis:"x",containment:'.graph_contain',drag: function(e,ui){
-			w = $('.drag_zoom .bg').width();
-			zl_r = ui.position.left;
-			zr_l = ui.position.left + w - 7;
-			ui.position.left = Math.min(Math.max(7,ui.position.left),axes1_max - w - 7);
-			min = axes1.xaxis.c2p(ui.position.left + 7);
-			max = axes1.xaxis.c2p(ui.position.left + w + 7);
-			
-			if (min < data_min && !data_loading) {
-				data_loading = true;
-				if (loaded_remaining && loaded_remaining.length > 0) {
-					new_data = graphFillGaps(loaded_remaining,candle_options[timeframe][0],100,data_min);
-					data_res = new_data[0].concat(data_res);
-					data_vol = new_data[1].concat(data_vol);
-					data_min = data_res[0][0];
-					loaded_remaining = new_data[4];
-					data_loading = false;
-					return true;
-				}
-				else {
-					graphLoadNew(first_id,function(json_data) {
-						new_data = graphFillGaps(json_data.candles,candle_options[timeframe][0],100,data_min);
-						data_res = new_data[0].concat(data_res);
-						data_vol = new_data[1].concat(data_vol);
-						data_min = data_res[0][0];
-						first_id = json_data.first_id;
-						loaded_remaining = new_data[4];
-						data_loading = false;
-						return true;
-					});
-				}
-			}
-			
-			thinned = graphThinData(data_res,data_zoom,max,min);
-			data = thinned[0];
-			volume_options.data = data_vol;
-			max_y = thinned[1];
-			min_y = thinned[2];
-			
-			candlestick_options.lineWidth = Math.ceil((axes_total / (max - min)) * candle_w) + 'px';
-			candlestick_options.rangeWidth = Math.ceil((axes_total / (max - min)) * candle_line_w);
-			series = $.plot.candlestick.createCandlestick({
-				data:data,
-				candlestick:candlestick_options
-			});
-			
-			series.push(volume_options);
-			series.reverse();
-			
-			var j = 0;
-			for (i in window.indicators) {
-				indicators_options[i].data = thinned[3][j];
-				series.push(indicators_options[i]);
-				j++;
-			}
-			
-			plot.setData(series);
-			plot.getAxes().yaxis.options.min = thinned[2];
-			plot.getAxes().yaxis.options.max = thinned[1];
-			plot.getAxes().xaxis.options.max = max;
-			plot.getAxes().xaxis.options.min = min;
-			plot.setupGrid();
-			plot.draw();
-			
-			$('.drag_zoom #zl').css('left',(ui.position.left - 7)+'px');
-			$('.drag_zoom #zr').css('left',(ui.position.left + w)+'px');
-		}});
-		
-		var axes = plot.getAxes();
-		var dataset = plot.getData();
-		var left_offset = 30;
-		var bottom_offset = 50;
-		var flip;
-		var max_x;
-		var currency1 = currency.toUpperCase();
-
-		$("#graph_candles").bind("plothover", function (event, pos, item) {
-			if (pos.x < min || pos.x > max || pos.y < min_y || pos.y > max_y) {
-				if ($('#graph_over').is(':visible'))
-					$('#graph_over').fadeOut(200);
 				
-				return false;
-			}
-			else {
-				if ($('#graph_over').is(':hidden'))
-					$('#graph_over').fadeIn(200);
-			}
-			
-			for (i in data_res) {
-				if (pos.x >= (data_res[i][0] - ((candle_options[timeframe][0] * 1000) / 2)) && pos.x <= (data_res[i][0] + ((candle_options[timeframe][0] * 1000) / 2))) {
-					data_res[i][1] = (!data_res[i][1]) ? 0 : data_res[i][1];
-					data_res[i][2] = (!data_res[i][2]) ? 0 : data_res[i][2];
-					data_res[i][3] = (!data_res[i][3]) ? 0 : data_res[i][3];
-					data_res[i][4] = (!data_res[i][4]) ? 0 : data_res[i][4];
-					$('#g_open').html(formatCurrency(data_res[i][1]));
-					$('#g_close').html(formatCurrency(data_res[i][2]));
-					$('#g_low').html(formatCurrency(data_res[i][3]));
-					$('#g_high').html(formatCurrency(data_res[i][4]));
-					break;
-				}
-			}
-			
-			for (i in data_vol) {
-				if (pos.x >= (data_res[i][0] - ((candle_options[timeframe][0] * 1000) / 2)) && pos.x <= (data_res[i][0] + ((candle_options[timeframe][0] * 1000) / 2))) {
-					$('#g_vol').html(formatCurrency(data_vol[i][1]));
-					break;
-				}
-			}
-		}); 
+				updateLegend(pos,axes,dataset,true,function(graph_point,graph_i,graph_j) {
+					if (graph_point == undefined)
+						return false;
+					
+					date = new Date(parseInt(graph_point[0]));
+					$('#tooltip').css('display','block');
+					$('#tooltip .date').html($('#javascript_mon_'+date.getMonth()).val()+' '+date.getDate()+', '+date.getFullYear());
+					$('#tooltip .price').html(currency1+' '+graph_point[1]);
+					
+					var x_pix = dataset[graph_i].xaxis.p2c(graph_point[0]);
+					var y_pix = dataset[graph_i].yaxis.p2c(graph_point[1]);
+					max_x = dataset[graph_i].xaxis.p2c(axes.xaxis.max);
 		
-		setInterval(function(){
-			graphLoadNew();
-		},10000);
-		
-		$("#graph_candles .tp-loader").remove();
-	});
-}
-
-function graphLoadNew(first,callback) {
-	var currency = $('#graph_price_history_currency').val();
-	timeframe = timeframe = ($('#graph_time').is('select')) ? $('#graph_time').val() : $('#graph_time a.selected').attr('data-option');
-	first = (first > 0) ? first : '';
-	last = (first > 0) ? '' : last_id;
-	last_max = data_res[data_res.length - 1][0];
-
-	if (!(first > 0) && (((Date.now() - last_max) / 1000) < candle_options[timeframe][0]))
-		return false;
-	
-	$.getJSON("includes/ajax.graph.php?timeframe="+timeframe+'&timeframe1='+candle_options[timeframe][1]+'&currency='+currency+'&last='+last+'&first='+first,function(json_data) {
-		if (first == '') {
-			candle_amount = Math.floor((Date.now() - last_max) / 1000) / candle_options[timeframe][0];
-			new_data = graphFillGaps(json_data.candles,candle_options[timeframe][0],candle_amount);
-			data_res = data_res.concat(new_data[0]);
-			data_vol = data_vol.concat(new_data[1]);
-			
-			c = data_res.length - 1;
-			data1 = json_data.history;
-			data1.push([data_res[c][0],data_res[c][2]]);
-			series1 = [{data:data1,color:'#00bdbd',lines:{show:true,lineWidth:1},shadowSize:0}];
-			max1 = data1[data1.length - 1][0];
-			axes1_max = Math.round(axes1.xaxis.p2c(max1));
-			
-			plot1.getAxes().xaxis.options.min = min1;
-			plot1.getAxes().xaxis.options.max = max1;
-			plot1.setData(series1);
-			plot1.setupGrid();
-			plot1.draw();
-			
-			if (max >= (last_max - candle_options[timeframe][0])) {
-				max = (data_res[data_res.length - 1][0] > max) ? data_res[data_res.length - 1][0] : max;
-				min += max - Math.max(last_max,0);
-				max_y = (thinned[3] > max_y) ? thinned[3] : max_y;
-				min_y = (thinned[4] > min_y) ? thinned[4] : min_y;
-				
-				thinned = graphThinData(data_res,data_zoom,max,min);
-				data = thinned[0];
-				volume_options.data = data_vol;
-				candlestick_options.lineWidth = Math.ceil((axes_total / (max - min)) * candle_w) + 'px';
-				candlestick_options.rangeWidth = Math.ceil((axes_total / (max - min)) * candle_line_w);
-
-				series = $.plot.candlestick.createCandlestick({
-					data:data,
-					candlestick:candlestick_options
+					if ((max_x - x_pix) < $('#tooltip').width())
+						flip = true;
+					else
+						flip = false;
+					
+					if (!flip) {
+						$('#tooltip').css('left',(x_pix+left_offset)+'px');
+						$('#tooltip').css('top',(y_pix-bottom_offset)+'px');
+					}
+					else {
+						$('#tooltip').css('left',(x_pix-$('#tooltip').width())+'px');
+						$('#tooltip').css('top',(y_pix-bottom_offset)+'px');
+					}
+					
+					plot.highlight(graph_i,graph_j);
 				});
-				
-				series.push({data:data_vol,bars:{show:true,lineWidth:0,barWidth:bar_width,fillColor:"#f0f0f0",fill:true,align:"center"},yaxis:2});
-				series.reverse();
-				
-				var j = 0;
-				for (i in window.indicators) {
-					indicators_options[i].data = thinned[3][j];
-					series.push(indicators_options[i]);
-					j++;
-				}
-				
-				plot.setData(series);
-				plot.getAxes().yaxis.options.min = min_y;
-				plot.getAxes().yaxis.options.max = max_y;
-				plot.getAxes().xaxis.options.max = max;
-				plot.setupGrid();
-				plot.draw();
+			}); 
 			
-			}
-			else {
-				diff = Math.max(data_res[data_res.length - 1][0] - last_max,0);
-				diff_pix = Math.ceil(axes1.xaxis.p2c(max1)) - Math.ceil(axes1.xaxis.p2c(max1 - diff));
-				zl_r -= diff_pix;
-				zr_l -= diff_pix;
-
-				$('.drag_zoom .bg').css('left',(parseInt($('.drag_zoom .bg').css('left')) - diff_pix)+'px');
-				$('.drag_zoom #zl').css('left',(parseInt($('.drag_zoom #zl').css('left')) - diff_pix)+'px');
-				$('.drag_zoom #zr').css('left',(parseInt($('.drag_zoom #zr').css('left')) - diff_pix)+'px');
-			}
-		}
-		else {
-			callback(json_data);
-		}
-	});
-}
-
-function graphSettings() {
-	if (!window.indicators) {
-		window.indicators = {
-			sma1:{value:$('#sma1').val(),data:[],color:'#77A0FF',type:'sma',active:($('#sma1').siblings('.check').is(':checked') && $('#sma1').val() > 0)},
-			sma2:{value:$('#sma2').val(),data:[],color:'#FFD877',type:'sma',active:($('#sma2').siblings('.check').is(':checked') && $('#sma2').val() > 0)},
-			ema1:{value:$('#ema1').val(),data:[],color:'#F67CFF',type:'ema',active:($('#ema1').siblings('.check').is(':checked') && $('#ema1').val() > 0)},
-			ema2:{value:$('#ema2').val(),data:[],color:'#77FF72',type:'ema',active:($('#ema2').siblings('.check').is(':checked') && $('#ema2').val() > 0)}
-		}
-	}
-	
-	$('.indicator').bind("keyup change",function(){
-		elem = $(this);
-		id = elem.attr('id');
-		val = elem.val();
-		
-		window.indicators[id].value = val;
-		$.get('includes/ajax.graph.php?action=indicators&'+id+'='+val, function(){});
-	});
-	
-	$('.indicators .check').bind("click",function(){
-		var checked = $(this).is(':checked');
-		$.get('includes/ajax.graph.php?action=indicators&'+($(this).attr('id'))+'='+(checked), function(){});
-		
-		series = $.plot.candlestick.createCandlestick({
-			data:data,
-			candlestick:candlestick_options
+			$("#graph_price_history").remove('.tp-loader');
 		});
 		
 		series.push(candlestick_options);
@@ -639,26 +169,17 @@ function graphResize() {
 	}
 }
 
-var plot_o,last_data;
+var last_data = null;
 function graphOrders(json_data) {
-	if (!plot_o)
-		$("#graph_orders").append('<div class="tp-loader"></div>');
-	
+	$("#graph_orders").append('<div class="tp-loader"></div>');
 	var currency = $('#graph_orders_currency').val();
+	
 	if (!json_data) {
 		try {
 			json_data = static_data;
 		}
 		catch (e) {
-			if ($('#ts_order_book').length > 0) {
-				$.getJSON('includes/ajax.graph.php?action=order_book&currency='+currency,function(json_data) {
-					graphOrders(json_data);
-				});
-				return false;
-			}
-			
 			console.log(e);
-			return false;
 		}
 	}
 	
@@ -718,14 +239,15 @@ function graphOrders(json_data) {
     	}
  	];
 	
-	if (plot_o) {
-		plot_o.setData(series);
-		plot_o.setupGrid();
-		plot_o.draw();
+	if (plot) {
+		plot.setData(series);
+		plot.setupGrid();
+		plot.draw();
 		return false;
 	}
 	 
-	plot_o = $.plot($("#graph_orders"),series,{
+	plot = $.plot($("#graph_orders"),series,
+ 	{
  		xaxis: {
  			tickLength: 0
  		},
@@ -745,23 +267,22 @@ function graphOrders(json_data) {
  	});
 	
 	var date_options = { year: "numeric", month: "short",day: "numeric" };
-	var axes = plot_o.getAxes();
-	var dataset = plot_o.getData();
+	var axes = plot.getAxes();
+	var dataset = plot.getData();
 	var left_offset = 30;
 	var bottom_offset = 50;
 	var flip;
 	var max_x;
 	var currency1 = currency.toUpperCase();
 	var last_type = false;
-	
 	$("#graph_orders").bind("plothover", function (event, pos, item) {
-		plot_o.unhighlight();
-
+		plot.unhighlight();
+		
 		if (pos.x < axes.xaxis.min || pos.x > axes.xaxis.max || pos.y < axes.yaxis.min || pos.y > axes.yaxis.max) {
 			$('#tooltip').css('display','none');
 			return false;
 		}
-
+		
 		updateLegend(pos,axes,dataset,false,function(graph_point,graph_i,graph_j) {
 			var ask = (graph_i == 1);
 			
@@ -812,104 +333,11 @@ function graphOrders(json_data) {
 				$('#tooltip').css('top',(y_pix-bottom_offset)+'px');
 			}
 			
-			plot_o.highlight(graph_i,graph_j);
+			plot.highlight(graph_i,graph_j);
 		});
 	}); 
 	
-	$("#graph_orders").remove('.tp-loader');
-}
-
-var plot_d;
-function graphDistribution() {
-	$.getJSON('includes/ajax.graph.php?action=distribution',function(json_data) {
-		var bar_width = 5;
-		if (json_data && json_data.length > 0) {
-			var b_min = json_data[json_data.length - 1][0];
-			var b_max = json_data[0][0];
-			bar_width = (b_max - b_min) / 30; 
-		}
-		
-		var series = [
-      	    {
-          	 data: json_data,
-               bars: { show: true, fill: true, align: 'center', barWidth: bar_width },
-               color: '#00bdbd'
-          	}
-       	];
-		
-		if (plot_d) {
-			plot_d.setData(series);
-			plot_d.setupGrid();
-			plot_d.draw();
-			return false;
-		}
-		
-		plot_d = $.plot($("#graph_distribution"),series,{
-	 		xaxis: {
-	 			tickLength: 0
-	 		},
-	 		yaxis: {
-	 		},
-	 		grid: { 
-	 			backgroundColor: '#FFFFFF',
-	 			borderWidth: 1,
-	 			borderColor: '#aaaaaa',
-	 			hoverable: true
-	 		},
-	 		crosshair: {
-	 			mode:"x",
-	 		    color: "#aaaaaa",
-	 		    lineWidth: 1
-	 		}
-	 	});
-		
-		var axes = plot_d.getAxes();
-		var dataset = plot_d.getData();
-		var left_offset = 30;
-		var bottom_offset = 50;
-		var flip;
-		var max_x;
-		var last_type = false;
-
-		$("#graph_distribution").bind("plothover", function (event, pos, item) {
-			plot_d.unhighlight();
-				
-			if (pos.x < axes.xaxis.min || pos.x > axes.xaxis.max || pos.y < axes.yaxis.min || pos.y > axes.yaxis.max) {
-				$('#tooltip1').css('display','none');
-				return false;
-			}
-		
-			updateLegend(pos,axes,dataset,true,function(graph_point,graph_i) {
-				if (!graph_point || graph_point == 0)
-					return false;
-				
-				$('#tooltip1').css('display','block');
-				$('#tooltip1 .price span').html(formatCurrency(graph_point[0]));
-				$('#tooltip1 .users span').html(graph_point[1]);
-				
-				var x_pix = dataset[graph_i].xaxis.p2c(graph_point[0]);
-				var y_pix = dataset[graph_i].yaxis.p2c(graph_point[1]);
-				max_x = dataset[graph_i].xaxis.p2c(axes.xaxis.max);
-				last_type = graph_i;
-		
-				if ((max_x - x_pix) < $('#tooltip1').width())
-					flip = true;
-				else
-					flip = false;
-				
-				if (!flip) {
-					$('#tooltip1').css('left',(x_pix+left_offset)+'px');
-					$('#tooltip1').css('top',(y_pix-bottom_offset)+'px');
-				}
-				else {
-					$('#tooltip1').css('left',(x_pix-$('#tooltip').width())+'px');
-					$('#tooltip1').css('top',(y_pix-bottom_offset)+'px');
-				}
-				
-				plot_d.highlight(graph_i,graph_j);
-			});
-		});
-	});
+	$("#graph_price_history").remove('.tp-loader');
 }
 
 function graphControls() {
@@ -921,326 +349,6 @@ function graphControls() {
 		graphPriceHistory($(this).attr('data-option'),currency);
 		return false;
 	});
-	
-	$('#graph_time').bind("keyup change", function(){
-		graphPriceHistory($(this).val(),$('#graph_price_history_currency').val());
-	});
-	
-	$('.graph_tabs a').click(function(e){
-		e.preventDefault();
-		
-		var op = $(this).attr('data-option');
-		$('.graph_contain').css('display','none');
-		$('.graph_tabs a').removeClass('selected');
-		$(this).addClass('selected');
-		
-		if (op == 'timeline') {
-			$('.graph_options').css('display','block');
-			$('#ts_timeline').css('display','block');
-		}
-		else if (op == 'order-book') {
-			$('.graph_options').css('display','none');
-			$('#ts_order_book').css('display','block');
-			
-			if (typeof plot_o == 'undefined')
-				graphOrders();
-		}
-		else if (op == 'distribution') {
-			$('.graph_options').css('display','none');
-			$('#ts_distribution').css('display','block');
-			graphDistribution();
-		}
-	});
-	
-	$('#fiat_currency').bind("keyup change", function(){
-		var params = '';
-		if ($('#buy_amount').length > 0)
-			params += '&buy_amount='+$('#buy_amount').val();
-		if ($('#sell_amount').length > 0)
-			params += '&sell_amount='+$('#sell_amount').val();
-		
-		window.location.href = window.location.pathname + '?currency=' + $(this).val() + params;
-	});
-}
-
-function graphFillGaps(json_data,candle_size,candle_amount,start) {
-	var filled = [];
-	var volume = [];
-	
-	var before = (start > 0);
-	var placeholder_date = window.d_placeholder;
-	var lc = (!start && data_res && data_res.length > 0) ? data_res[data_res.length - 1][1] : 0;
-	var c = candle_size * 1000;
-	var start = (!start) ? Date.now() : start;
-	var d = Math.round(start / c) * c - (c * candle_amount);
-	var d1 = d;
-	var d2 = d;
-	var max_y = 0;
-	var min_y = Number.POSITIVE_INFINITY;
-	var first_i = false;
-	var last_i = false;
-	var j = 0;
-	
-	/*
-	var indicators_options = {};
-	var indicators_cache = [];
-	var indicators_c = 0;
-	var last_ema = {};
-	var before_cache = [];
-
-	if (before && window.cache_before)
-		indicators_cache = window.cache_before;
-	else if (window.cache_after)
-		indicators_cache = window.cache_after;
-
-	for (i in window.indicators) {
-		indicators_options[i] = {value: window.indicators[i].value, type: window.indicators[i].type};
-		indicators_c = (window.indicators[i].value > 0) ? window.indicators[i].value : indicators_c;
-		last_ema[i] = 0;
-	}
-	*/
-
-	if (d > json_data[0][0]) {
-		var found = false;
-		for (i in json_data) {
-			if (json_data[i][0] < d) {
-				lc = json_data[i][1];
-			}
-			else
-				break;
-		}
-		
-		if (found) {
-			window.d_placeholder = false;
-			window.last_lc = lc;
-		}
-	}
-	else if (json_data.length > 0) {
-		lc = json_data[0][1];
-		window.last_lc = lc;
-		if (before)
-			window.d_placeholder = json_data[0][0];
-	}
-	else
-		lc = window.last_lc;
-	
-	while (d < start) {
-		var open = 0;
-		var close = 0;
-		var low = Number.POSITIVE_INFINITY;
-		var high = 0;
-		var vol = 0;
-		var found = false;
-		var item = [];
-		
-		for (i in json_data) {
-			if (json_data[i][0] >= d && json_data[i][0] < (d + c)) {
-				j++;
-				open = (!(open > 0)) ? json_data[i][1] : open;
-				close = json_data[i][1];
-				low = (json_data[i][1] < low) ? json_data[i][1] : low;
-				high = (json_data[i][1] > high) ? json_data[i][1] : high;
-				lc = json_data[i][1];
-				vol += (json_data[i][2]);
-				first_i = (first_i > 0) ? first_i : i;
-				last_i = i;
-				
-				found = true;
-				if (json_data[i][0] >= (d + c))
-					break;
-			}
-		}
-		
-		if (found) {
-			max_y = (high > max_y) ? high : max_y;
-			min_y = (low < min_y && low > 0) ? low : min_y;
-			item = [d,close,open,low,high];
-		}
-		else {
-			item = [d,lc,lc,lc,lc];
-		}
-		
-		if (item.length > 0) {
-			/*
-			indicators_cache.push(item[1]);
-			
-			if (indicators_cache.length > indicators_c)
-				indicators_cache.shift();
-			
-			var indicators_item = [];
-			for (i in indicators_options) {
-				if (indicators_options[i].value > indicators_cache.length) {
-					before_cache.push(item[1]);
-					indicators_item.push(false);
-					continue;
-				}
-				else if (before_cache.length <= indicators_c)
-					before_cache.push(item[1]);
-				
-				var slice = indicators_cache.slice(indicators_options[i].value * -1);
-				var sma = slice.reduce(function(a, b){return a+b;}) / slice.length;
-				
-				if (indicators_options[i].type == 'sma') {
-					indicators_item.push(sma);
-					continue;
-				}
-				else if (indicators_options[i].type == 'ema') {
-					var prev_ema = (i > slice.length) ? last_ema[i] : sma;
-					var ema = ((slice[slice.length - 1] - last_ema[i]) * (2/(slice.length + 1))) + last_ema[i];
-					
-					indicators_item.push(ema);
-					last_ema[i] = ema;
-					continue;
-				}
-			}
-			*/
-			//item = item.concat(indicators_item);
-			volume.push([d,vol]);
-			filled.push(item);
-		}
-		
-		d += c;
-	}
-
-	if (placeholder_date && data_res && before && j > 0) {
-		var found = false;
-		for (i in data_res) {
-			if (data_res[i][0] >= placeholder_date)
-				break;
-			
-			data_res[i][1] = lc;
-			data_res[i][2] = lc;
-			data_res[i][3] = lc;
-			data_res[i][4] = lc;
-			found = true;
-		}
-		if (found)
-			window.d_placeholder = false;
-	}
-
-	if (first_i && first_i != last_i) {
-		diff = last_i - first_i + 1;
-		json_data.splice(first_i,diff);
-	}
-	else if (first_i == last_i)
-		json_data.splice(first_i,1);
-	
-	min_y = (min_y < Number.POSITIVE_INFINITY) ? min_y : 0;
-	if (max_y > 0)
-		max_y = max_y + (max_y * 0.05);
-	else if (filled.length > 0)
-		max_y = filled[filled.length - 1][4];
-	
-	if (min_y < Number.POSITIVE_INFINITY)
-		min_y = Math.max(min_y - (min_y * 0.05),0);
-	else if (filled.length > 0)
-		min_y = filled[filled.length - 1][3];
-	/*
-	if (before)
-		window.cache_before = before_cache;
-	
-	window.cache_after = indicators_cache;
-*/
-	return [filled,volume,max_y,min_y,json_data];
-}
-
-function graphThinData(data,zoom,max,min) {
-	if (!data || data.length == 0)
-		return false;
-	
-	var max_y = 0;
-	var min_y = Number.POSITIVE_INFINITY;
-	var thinned = [];
-	var volume = [];
-	var indicators_data = [];
-	
-	for (i in window.indicators) {
-		indicators_data.push([]);
-	}
-
-	for (i = 0; i < data.length; i = i + zoom) {
-		if (max && data[i][0] > max)
-			continue;
-		if (min && data[i][0] < min)
-			continue;
-		
-		var c = 4;
-		max_y = (data[i][4] > max_y) ? data[i][4] : max_y;
-		min_y = (data[i][3] < min_y && data[i][3] > 0) ? data[i][3] : min_y;
-		thinned.push(data[i]);
-		
-		for (j in indicators_data) {
-			c++;
-			indicators_data[j].push([data[i][0],data[i][c]]);
-		}
-	}
-	
-	return [thinned,max_y,min_y,indicators_data];
-}
-
-function graphSetIndicators(data,before) {
-	var indicators_options = {};
-	var indicators_data = {};
-	var indicators_cache = [];
-	var indicators_c = 0;
-	var last_ema = {};
-	var before_cache = [];
-
-	if (before && window.cache_before)
-		indicators_cache = window.cache_before;
-	else if (window.cache_after)
-		indicators_cache = window.cache_after;
-
-	for (i in window.indicators) {
-		indicators_options[i] = {value: window.indicators[i].value, type: window.indicators[i].type};
-		indicators_data[i] = [];
-		indicators_c = (window.indicators[i].value > 0) ? window.indicators[i].value : indicators_c;
-		last_ema[i] = 0;
-	}
-	
-	for (i in data) {
-		var item = data[i];
-		indicators_cache.push(item[1]);
-		
-		if (indicators_cache.length > indicators_c)
-			indicators_cache.shift();
-		
-		for (i in indicators_options) {
-			if (indicators_options[i].value > indicators_cache.length) {
-				before_cache.push(item[1]);
-				indicators_data[i].push([item[0],false]);
-				continue;
-			}
-			else if (before_cache.length <= indicators_c)
-				before_cache.push(item[1]);
-			
-			var slice = indicators_cache.slice(indicators_options[i].value * -1);
-			var sma = slice.reduce(function(a, b){return a+b;}) / slice.length;
-			
-			if (indicators_options[i].type == 'sma') {
-				indicators_data[i].push([item[0],sma]);
-				continue;
-			}
-			else if (indicators_options[i].type == 'ema') {
-				var prev_ema = (i > slice.length) ? last_ema[i] : sma;
-				var ema = ((slice[slice.length - 1] - last_ema[i]) * (2/(slice.length + 1))) + last_ema[i];
-				
-				indicators_data[i].push([item[0],ema]);
-				last_ema[i] = ema;
-				continue;
-			}
-		}
-	}
-	
-	window.cache_before = before_cache;
-	window.cache_after = indicators_cache;
-	
-	for (i in window.indicators) {
-		if (before)
-			window.indicators[i].data = indicators_data[i].concat(window.indicators[i].data);
-		else
-			window.indicators[i].data = window.indicators[i].data.concat(indicators_data[i]);
-	}
 }
 
 function updateLegend(pos,axes,dataset,single_dataset,callback) {
@@ -1314,7 +422,7 @@ function updateTransactions() {
 			
 			$.getJSON("includes/ajax.trades.php?currency="+currency+((order_by) ? '&order_by='+order_by : '')+((notrades) ? '&notrades=1' : '')+((open_orders_user) ? '&user=1' : '&last_price=1')+((get_10) ? '&get10=1' : ''),function(json_data) {
 				var depth_chart_data = {bids:[],asks: []}; 
-				if (json_data.transactions[0] != null) {
+				if (!notrades && json_data.transactions[0] != null) {
 					var i = 0;
 					var insert_elem = ('#transactions_list tr:first');
 					$.each(json_data.transactions[0],function(i) {
@@ -1326,7 +434,7 @@ function updateTransactions() {
 						var this_fa_symbol = $('#curr_sym_'+currency_id).val();
 						
 						if (i == 0) {
-							current_price = (typeof this.btc_price == 'string') ? parseFloat(this.btc_price.replace(',','')) : this.btc_price;
+							current_price = parseFloat(this.btc_price.replace(',',''));
 							if (current_price > 0) {
 								if (this.maker_type == 'sell') {
 									$('#stats_last_price').parents('.stat1').removeClass('price-red').addClass('price-green');
@@ -1356,6 +464,7 @@ function updateTransactions() {
 								if (typeof json_data.last_price_cnv == 'object') {
 									for (key1 in json_data.last_price_cnv) {
 										$('.price_'+key1).html(json_data.last_price_cnv[key1]);
+										console.log(key1,this_currency_abbr1);
 										if (key1 == this_currency_abbr1) {
 											if (this.maker_type == 'sell')
 												$('.price_'+key1).parent().removeClass('price-red').addClass('price-green');
@@ -1365,8 +474,6 @@ function updateTransactions() {
 											
 									}
 								}
-								
-								drawGauges(this);
 							}
 						}
 						
@@ -1377,19 +484,17 @@ function updateTransactions() {
 						if (this.btc_price > current_max)
 							$('#stats_max').html(formatCurrency(this.btc_price));
 						
-						if (!notrades) {
-							var elem = $('<tr id="order_'+this.id+'"><td><span class="time_since"></span><input type="hidden" class="time_since_seconds" value="'+this.time_since+'" /></td><td>'+this.btc+' BTC</td><td>' + this_fa_symbol + formatCurrency(this.btc_price) + this_currency_abbr + '</td></tr>').insertAfter(insert_elem);
-							insert_elem = elem;
-							
-							timeSince($(elem).find('.time_since'));
-							$(elem).children('td').effect("highlight",{color:"#A2EEEE"},2000);
-							$('#stats_traded').html(formatCurrency(json_data.btc_traded));
-							
-							var active_transactions = $('#transactions_list tr:not(#no_transactions)').length;
-							if (active_transactions > 5)
-								$('#transactions_list tr:not(#no_transactions):last').remove();
-							
-						}
+						var elem = $('<tr id="order_'+this.id+'"><td><span class="time_since"></span><input type="hidden" class="time_since_seconds" value="'+this.time_since+'" /></td><td>'+this.btc+' BTC</td><td>' + this_fa_symbol + formatCurrency(this.btc_price) + this_currency_abbr + '</td></tr>').insertAfter(insert_elem);
+						insert_elem = elem;
+						
+						timeSince($(elem).find('.time_since'));
+						$(elem).children('td').effect("highlight",{color:"#A2EEEE"},2000);
+						$('#stats_traded').html(formatCurrency(json_data.btc_traded));
+						
+						var active_transactions = $('#transactions_list tr:not(#no_transactions)').length;
+						if (active_transactions > 5)
+							$('#transactions_list tr:not(#no_transactions):last').remove();
+						
 						i++;
 					});
 				}
@@ -1398,7 +503,7 @@ function updateTransactions() {
 				}
 				
 				$.each($('.bid_tr'),function(index) {
-					if (!index || index >= 30)
+					if (index >= 30)
 						return false;
 					
 					var elem = this;
@@ -1418,14 +523,11 @@ function updateTransactions() {
 				});
 				if (json_data.bids[0] != null) {
 					var cum_btc = 0;
-					$.each(json_data.bids[0],function(index) {
+					$.each(json_data.bids[0],function() {
 						if (this.btc && this.btc > 0) {
 							cum_btc += parseFloat(this.btc);
 							depth_chart_data.bids.push([this.btc_price,cum_btc]);
 						}
-						
-						if (index >= 10)
-							return true;
 						
 						var this_currency_id = (parseFloat($('#this_currency_id').val()) > 0 ? $('#this_currency_id').val() : this.currency);
 						var fa_symbol = $('#curr_sym_'+this_currency_id).val();
@@ -1433,8 +535,8 @@ function updateTransactions() {
 						
 						var this_bid = $('#bid_'+this.id);
 						if (this_bid.length > 0) {
-							$(this_bid).find('.order_amount').html(formatCurrency(this.btc,true));
-							$('#bid_'+this.id+'.double').find('.order_amount').html(formatCurrency(this.btc,true));
+							$(this_bid).find('.order_amount').html(this.btc);
+							$('#bid_'+this.id+'.double').find('.order_amount').html(this.btc);
 							$(this_bid).find('.order_price').html(formatCurrency((this.btc_price > 0) ? this.btc_price : this.stop_price));
 							$('#bid_'+this.id+'.double').find('.order_price').html(formatCurrency(this.stop_price));
 							if (notrades) {
@@ -1549,7 +651,7 @@ function updateTransactions() {
 				}
 	
 				$.each($('.ask_tr'),function(index) {
-					if (!index || index >= 30)
+					if (index >= 30)
 						return false;
 					
 					var elem = this;
@@ -1570,14 +672,11 @@ function updateTransactions() {
 				
 				if (json_data.asks[0] != null) {
 					var cum_btc = 0;
-					$.each(json_data.asks[0],function(index) {
+					$.each(json_data.asks[0],function() {
 						if (this.btc && this.btc > 0) {
 							cum_btc += parseFloat(this.btc);
 							depth_chart_data.asks.push([this.btc_price,cum_btc]);
 						}
-						
-						if (index >= 10)
-							return true;
 						
 						var this_currency_id = (parseFloat($('#this_currency_id').val()) > 0 ? $('#this_currency_id').val() : this.currency);
 						var fa_symbol = $('#curr_sym_'+this_currency_id).val();
@@ -1585,8 +684,8 @@ function updateTransactions() {
 						
 						var this_ask = $('#ask_'+this.id);
 						if (this_ask.length > 0) {
-							$(this_ask).find('.order_amount').html(formatCurrency(this.btc,true));
-							$('#ask_'+this.id+'.double').find('.order_amount').html(formatCurrency(this.btc,true));
+							$(this_ask).find('.order_amount').html(this.btc);
+							$('#ask_'+this.id+'.double').find('.order_amount').html(this.btc);
 							$(this_ask).find('.order_price').html(formatCurrency((this.btc_price > 0) ? this.btc_price : this.stop_price));
 							$('#ask_'+this.id+'.double').find('.order_price').html(formatCurrency(this.stop_price));
 							if (notrades) {
@@ -1850,6 +949,16 @@ function switchBuyCurrency() {
 		var currency = $(this).val();
 		while (!ajax_active) {
 			$.getJSON("includes/ajax.get_currency.php?currency="+currency,function(json_data) {
+				if ($('#unit_cost').length > 0) {
+					$('#usd_ask').val(json_data.currency_info.usd_ask);
+					$('.sell_currency_label,.buy_currency_label,.currency_label').html(currency.toUpperCase());
+					$('.sell_currency_char,.buy_currency_char,.currency_char').html(((json_data.currency_info.is_crypto != 'Y') ? json_data.currency_info.fa_symbol : ''));
+					$('#buy_currency,#sell_currency').val(currency);
+					$('#user_available').html(((json_data.currency_info.is_crypto != 'Y') ? json_data.available_fiat : json_data.available_btc));
+					calculateBuyPrice();
+					return false;
+				}
+				
 				$('#filters_area').load('buy-sell.php?bypass=1&currency='+currency);
 				$('#buy_currency,#sell_currency').val(currency);
 				$('.sell_currency_label,.buy_currency_label').html(currency.toUpperCase());
@@ -2047,6 +1156,15 @@ function calculateBuy() {
 }
 
 function calculateBuyPrice() {
+	if ($('#unit_cost').length > 0) {
+		var unit_cost = parseFloat($('#unit_cost').val()) / parseFloat($('#usd_ask').val());
+		var buy_amount = ($('#buy_amount').val()) ? parseFloat($('#buy_amount').val().replace(',','')) : 0;
+		var sell_amount = ($('#sell_amount').val()) ? parseFloat($('#sell_amount').val().replace(',','')) : 0;
+		$('#buy_total').html(formatCurrency(buy_amount * unit_cost));
+		$('#sell_total').html(formatCurrency(sell_amount * unit_cost));
+		return false;
+	}
+	
 	var user_fee = parseFloat($('#user_fee').val());
 	var user_fee1 = parseFloat($('#user_fee1').val());
 	
@@ -2277,6 +1395,7 @@ function startTicker() {
 		}
 		if (elem_f && elem_f.offset()) {
 			if ((elem_f.offset().left * -1) >= elem_f.outerWidth() && cloned) {
+				console.log(elem_f.offset().left);
 				elem_f.remove();
 				elem_f = $('.ticker .scroll:first');
 				cloned = false;
@@ -2287,64 +1406,15 @@ function startTicker() {
 	elem.animate({left:'-=50px'},properties);
 }
 
-function drawGauges(update_info) {
-	var m1 = $('#ts_meter_1h');
-	var m24 = $('#ts_meter_24h');
-	
-	if (update_info) {
-		m1.find('.ts_meter_sell span').html(update_info.btc_1h_sell);
-		m1.find('.ts_meter_buy span').html(update_info.btc_1h_buy);
-		m1.find('.ts_meter_total span').html(update_info.btc_1h);
-		m24.find('.ts_meter_sell span').html(update_info.btc_24h_sell);
-		m24.find('.ts_meter_buy span').html(update_info.btc_24h_buy);
-		m24.find('.ts_meter_total span').html(update_info.btc_24h);
-	}
-	
-	var m1_s = parseFloat(m1.find('.ts_meter_sell span').text());
-	var m1_b = parseFloat(m1.find('.ts_meter_buy span').text());
-	var m24_s = parseFloat(m24.find('.ts_meter_sell span').text());
-	var m24_b = parseFloat(m24.find('.ts_meter_buy span').text());
-	
-	if (typeof window.m1_m != 'undefined') {
-		window.m1_m.refresh(((m1_s / (m1_s + m1_b)) * 100));
-		window.m24_m.refresh(((m24_s / (m24_s + m24_b)) * 100));
-		return false;
-	}
-	
-	window.m1_m = new JustGage({
-		id: "ts_meter_m1",
-	    value: ((m1_s / (m1_s + m1_b)) * 100),
-	    min: 0,
-	    max: 100,
-	    gaugeColor: "#0DD84D",
-	    levelColors: ["#ff5151"],
-	    hideValue: true
-	});
-	
-	window.m24_m = new JustGage({
-		id: "ts_meter_m24",
-	    value: ((m24_s / (m24_s + m24_b)) * 100),
-	    min: 0,
-	    max: 100,
-	    gaugeColor: "#0DD84D",
-	    levelColors: ["#ff5151"],
-	    hideValue: true
-	});
-}
-
 $(document).ready(function() {
-	if ($(".ticker").length > 0) {
-		drawGauges();
+	if ($("#graph_price_history").length > 0) {
 		var currency = $('#graph_price_history_currency').val();
+		graphPriceHistory('1mon',currency);
 		startTicker();
-		graphPriceHistory();
 		graphClickAdd();
 	}
-	else if ($('#ts_meter_1h').length > 0) {
-		drawGauges();
-	}
 	
-	if ($("#graph_orders").length > 0 && $("#graph_orders").is(':visible')) {
+	if ($("#graph_orders").length > 0) {
 		graphOrders();
 		//var update = setInterval(graphOrders,10000);
 		updateTransactions();
@@ -2423,10 +1493,6 @@ $(document).ready(function() {
 		else if (!($(first_text).val().length > 0))
 			$(first_text).focus();
 	}
-	
-	$(window).resize(function() {
-		graphResize();
-	});
 	
 	$(window).scroll(function(){
         if ($(this).scrollTop() > 100) {

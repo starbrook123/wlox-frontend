@@ -18,8 +18,7 @@ include 'includes/head.php';
 <div class="container">
 	<? include 'includes/sidebar_topics.php'; ?>
 	<div class="content_right">
-		<h2><?= $content['title']?> </h2>
-    <div class="text1"><?= $content['content'] ?></div>
+    <div class="text"><?= $content['content'] ?></div>
     </div>
 	<div class="clearfix mar_top8"></div>
 </div>

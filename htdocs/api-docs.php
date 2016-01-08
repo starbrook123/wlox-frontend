@@ -137,7 +137,7 @@ String hash = Hex.encodeHexString(sha256_HMAC.doFinal(message.getBytes()));
 params.put("signature", hash);
 ';
 
-$code['api_url'] = 'https://1ex.trade/api';
+$code['api_url'] = 'https://1btcxe.com/api';
 
 
 if ($code) {

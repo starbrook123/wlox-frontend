@@ -377,8 +377,8 @@ include 'includes/head.php';
 								<label for="method"><?= Lang::string('security-method') ?></label>
 								<select name="method" id="method">
 									<option <?= ($_REQUEST['method'] == 'google') ? 'selected="selected"' : false ?> value="google">Google Authenticator</option>
-									<!-- option <?= ($_REQUEST['method'] == 'authy') ? 'selected="selected"' : false ?> value="authy">Authy</option-->
-									<!--option <?= ($_REQUEST['method'] == 'SMS') ? 'selected="selected"' : false ?> value="SMS">SMS</option-->
+									<option <?= ($_REQUEST['method'] == 'authy') ? 'selected="selected"' : false ?> value="authy">Authy</option>
+									<option <?= ($_REQUEST['method'] == 'SMS') ? 'selected="selected"' : false ?> value="SMS">SMS</option>
 								</select>
 								<div class="clear"></div>
 							</div>

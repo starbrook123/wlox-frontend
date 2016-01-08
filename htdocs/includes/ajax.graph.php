@@ -1,9 +1,7 @@
 <?php
 chdir('..');
 
-if ($_REQUEST['action'] == 'more')
-	$ajax = true;
-
+$ajax = true;
 include '../lib/common.php';
 
 $action = $_REQUEST['action'];
@@ -29,12 +27,6 @@ if ($action == 'indicators') {
 }
 else if ($action == 'chat_setting') {
 	$_SESSION['chat_height'] = $_REQUEST['height'];
-}
-else if ($action == 'distribution') {
-	API::add('User','getDistribution');
-	$query = API::send();
-	echo json_encode($query['User']['getDistribution']['results'][0]);
-	exit;
 }
 else if ($action == 'order_book') {
 	$currency1 = (!empty($CFG->currencies[strtoupper($_REQUEST['currency'])])) ? $_REQUEST['currency'] : 'usd';
@@ -84,49 +76,17 @@ else if ($action == 'order_book') {
 }
 
 $timeframe1 = (!empty($_REQUEST['timeframe'])) ? preg_replace("/[^0-9a-zA-Z]/", "",$_REQUEST['timeframe']) : false;
-$timeframe2 = (!empty($_REQUEST['timeframe1'])) ? preg_replace("/[^0-9a-zA-Z]/", "",$_REQUEST['timeframe1']) : false;
 $currency1 = (!empty($CFG->currencies[strtoupper($_REQUEST['currency'])])) ? $_REQUEST['currency'] : 'usd';
-$first = (!empty($_REQUEST['first'])) ? preg_replace("/[^0-9]/", "",$_REQUEST['first']) : false;
-$last = (!empty($_REQUEST['last'])) ? preg_replace("/[^0-9]/", "",$_REQUEST['last']) : false;
-$_SESSION['timeframe'] = $timeframe1;
+$action1 = (!empty($_REQUEST['action'])) ? preg_replace("/[^0-9a-zA-Z]/", "",$_REQUEST['action']) : false;
 
-if ($action != 'more')
-	API::add('Stats','getHistorical',array($timeframe2,$currency1));
-
-API::add('Transactions','candlesticks',array($timeframe1,$currency1,false,$first,$last));
-$query = API::send();
-
-if ($action != 'more') {
+if (!$action1) {
+	API::add('Stats','getHistorical',array($timeframe1,$currency1));
+	$query = API::send();
 	$stats = $query['Stats']['getHistorical']['results'][0];
-	$vars = array();
 	if ($stats) {
 		foreach ($stats as $row) {
 			$vars[] = '['.$row['date'].','.$row['price'].']';
 		}
 	}
-	$hist = '['.implode(',', $vars).']';
+	echo '['.implode(',', $vars).']';
 }
-else {
-	$hist = '[]';
-}
-
-$first_id = 0;
-$last_id = 0;
-
-$data = $query['Transactions']['candlesticks']['results'][0];
-$vars = array();
-if ($data) {
-	$c = count($data) - 1;
-	$first_id = ($data[0]['first_id']) ? $data[0]['first_id'] : $data[0]['id'];
-	$last_id = ($data[0]['last_id']) ? $data[0]['last_id'] : $data[$c]['id'];
-	
-	foreach ($data as $key => $row) {
-		if (!($row['t'] > 0) || $key == 's_final' || $key == 'e_final')
-			continue;
-		
-		$vars[] = '['.(strtotime($row['t']) * 1000).','.$row['price'].','.$row['vol'].','.$row['id'].']';
-	}
-}
-$candles = '['.implode(',', $vars).']';
-
-echo '{"history":'.$hist.',"candles":'.$candles.',"first_id":'.$first_id.',"last_id":'.$last_id.'}';

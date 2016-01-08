@@ -17,18 +17,8 @@ $currency_majors = array('USD','EUR','CNY','RUB','CHF','JPY','GBP','CAD','AUD');
 $c_majors = count($currency_majors);
 $currencies = $CFG->currencies;
 
-$sma = (!empty($_SESSION['sma']) || !isset($_SESSION['sma']));
-$sma1 = (!empty($_SESSION['sma1'])) ? preg_replace("/[^0-9]/", "",$_SESSION['sma1']) : 8;
-$sma2 = (!empty($_SESSION['sma2'])) ? preg_replace("/[^0-9]/", "",$_SESSION['sma2']) : 30;
-$ema = (!empty($_SESSION['ema']));
-$ema1 = (!empty($_SESSION['ema1'])) ? preg_replace("/[^0-9]/", "",$_SESSION['ema1']) : 8;
-$ema2 = (!empty($_SESSION['ema2'])) ? preg_replace("/[^0-9]/", "",$_SESSION['ema2']) : 30;
-
 $currencies1 = array();
 foreach ($currency_majors as $currency) {
-	if (empty($currencies[$currency]))
-		continue;
-
 	$currencies1[$currency] = $currencies[$currency];
 	unset($currencies[$currency]);
 }
@@ -57,7 +47,7 @@ $news = $query['News']['get']['results'][0];
 if ($stats['daily_change'] > 0)
 	$arrow = '<i id="up_or_down" class="fa fa-caret-up price-green"></i> ';
 elseif ($stats['daily_change'] < 0)
-	$arrow = '<i id="up_or_down" class="fa fa-caret-down price-red"></i> ';
+$arrow = '<i id="up_or_down" class="fa fa-caret-down price-red"></i> ';
 else
 	$arrow = '<i id="up_or_down" class="fa fa-minus"></i> ';
 
@@ -103,7 +93,7 @@ if (!User::isLoggedIn()) {
 				<?
 				if ($currencies) {
 					foreach ($currencies as $key => $currency) {
-						if (is_numeric($key) || $currency['is_crypto'] == 'Y')
+						if (is_numeric($key) || $currency['currency'] == 'BTC')
 							continue;
 				
 						$last_price = number_format($stats['last_price'] * ((empty($currency_info) || $currency_info['currency'] == 'USD') ? 1/$currency[$usd_field] : $currency_info[$usd_field] / $currency[$usd_field]),2);
@@ -182,7 +172,7 @@ if (!User::isLoggedIn()) {
 	        <? 
 	        if ($currencies) {
 				foreach ($currencies as $key => $currency) {
-					if (is_numeric($key) || $currency['is_crypto'] == 'Y')
+					if (is_numeric($key) || $currency['currency'] == 'BTC')
 						continue;
 						
 					$last_price = number_format($stats['last_price'] * ((empty($currency_info) || $currency_info['currency'] == 'USD') ? 1/$currency[$usd_field] : $currency_info[$usd_field] / $currency[$usd_field]),2);
@@ -203,76 +193,44 @@ if (!User::isLoggedIn()) {
         	<div class="repeat-line o10"></div>
         </div>
         <div class="graph_options">
-        	<div id="graph_time">
-				<a href="#" <?= ($_SESSION['timeframe'] == '1min') ? 'class="selected"' : '' ?> data-option="1min">1m</a>
-				<a href="#" <?= ($_SESSION['timeframe'] == '3min') ? 'class="selected"' : '' ?> data-option="3min">3m</a>
-	        	<a href="#" <?= (!$_SESSION['timeframe'] || $_SESSION['timeframe'] == '5min') ? 'class="selected"' : '' ?> data-option="5min">5m</a>
-	        	<a href="#" <?= ($_SESSION['timeframe'] == '15min') ? 'class="selected"' : '' ?> class="last" data-option="15min">15m</a>
-	        	<a href="#" <?= ($_SESSION['timeframe'] == '30min') ? 'class="selected"' : '' ?> data-option="30min">30m</a>
-	        	<a href="#" <?= ($_SESSION['timeframe'] == '1h') ? 'class="selected"' : '' ?> data-option="1h">1h</a>
-	        	<a href="#" <?= ($_SESSION['timeframe'] == '2h') ? 'class="selected"' : '' ?> data-option="2h">2h</a>
-	        	<a href="#" <?= ($_SESSION['timeframe'] == '4h') ? 'class="selected"' : '' ?> data-option="4h">4h</a>
-	        	<a href="#" <?= ($_SESSION['timeframe'] == '6h') ? 'class="selected"' : '' ?> data-option="6h">6h</a>
-	        	<a href="#" <?= ($_SESSION['timeframe'] == '12h') ? 'class="selected"' : '' ?> class="last" data-option="12h">12h</a>
-	        	<a href="#" <?= ($_SESSION['timeframe'] == '1d') ? 'class="selected"' : '' ?> data-option="1d">1d</a>
-	        	<a href="#" <?= ($_SESSION['timeframe'] == '3d') ? 'class="selected"' : '' ?> data-option="3d">3d</a>
-	        	<a href="#" <?= ($_SESSION['timeframe'] == '1w') ? 'class="selected"' : '' ?> class="last" data-option="1w">1w</a>
-	        	<div class="repeat-line o1"></div>
-	        	<div class="repeat-line o2"></div>
-	        	<div class="repeat-line o3"></div>
-	        	<div class="repeat-line o4"></div>
-	        	<div class="repeat-line o5"></div>
-	        	<div class="clear"></div>
-        	</div>
-        	<div id="graph_over">
-        		<span class="g_over"><b>Open:</b> <span id="g_open"></span></span>
-				<span class="g_over"><b>Close:</b> <span id="g_close"></span></span>
-				<span class="g_over"><b>High:</b> <span id="g_high"></span></span>
-				<span class="g_over"><b>Low:</b> <span id="g_low"></span></span>
-				<span class="g_over"><b>Vol:</b> <span id="g_vol"></span></span>
-				<div class="repeat-line o1"></div>
-	        	<div class="repeat-line o2"></div>
-	        	<div class="repeat-line o3"></div>
-	        	<div class="repeat-line o4"></div>
-	        	<div class="repeat-line o5"></div>
-        		<div class="clear"></div>
-        	</div>
+        	<a href="#" class="selected" data-option="1mon">1m</a>
+        	<a href="#" data-option="3mon">3m</a>
+        	<a href="#" data-option="6mon">6m</a>
+        	<a href="#" data-option="ytd">YTD</a>
+        	<a href="#" class="last" data-option="1year">1y</a>
         	<div class="clear"></div>
         </div>
+        <?php /*
+	        <div class="graph_options">
+	        	<a href="#" data-option="1mon">1m</a>
+	        	<a href="#" data-option="3mon">3m</a>
+	        	<a href="#" data-option="6mon">6m</a>
+	        	<a href="#" data-option="ytd">YTD</a>
+	        	<a href="#" class="selected last" data-option="1year">1y</a>
+	        	<span>
+	        	<label for="currency_selector"><?= Lang::string('currency') ?></label>
+	        	<select id="currency_selector">
+	        	<? 
+	        	if ($CFG->currencies) {
+					foreach ($CFG->currencies as $key => $currency) {
+						if (is_numeric($key) || $currency['currency'] == 'BTC')
+							continue;
+						
+						echo '<option value="'.strtolower($currency['currency']).'" '.(($currency1 == strtolower($currency['currency']) || (!$currency1 && strtolower($currency['currency']) == 'usd')) ? 'selected="selected"' : '').'>'.$currency['currency'].'</option>';
+					}
+				}
+	        	?>
+	        	</select>
+	        	</span>
+	        </div>
+	    */ ?>
         <div class="graph_contain">
         	<input type="hidden" id="graph_price_history_currency" value="<?= ($currency1) ? $currency1 : 'usd' ?>" />
-        	<div id="graph_candles"></div>
-	        <div class="clear_300"></div>
-	        <div class="clear"></div>
-	        <div id="graph_price_history"></div>
-	        <div class="drag_zoom">
-	        	<div class="contain">
-		        	<div id="zl" class="handle"></div>
-		        	<div id="zr" class="handle"></div>
-		        	<div class="bg"></div>
-	        	</div>
+        	<div id="graph_price_history"></div>
+        	<div id="tooltip">
+	        	<div class="date"></div>
+	        	<div class="price"></div>
 	        </div>
-	        <a id="graph_settings" class="fa fa-gear"></a>
-	        <div class="graph_settings">
-	        	<div class="label"><?= Lang::string('indicators') ?></div>
-	        	<div class="indicators">
-	        		<div class="row">
-	        			<input class="check" type="checkbox" id="sma" <?= ($sma) ? 'checked="checked"' : '' ?> />
-	        			<a class="selected" href="#">SMA</a>
-	        			<input id="sma1" class="indicator" value="<?= $sma1 ?>" type="text" style="background-color:#C4D5FF" />
-	        			<input id="sma2" class="indicator" value="<?= $sma2 ?>" type="text" style="background-color:#FFEFC4" />
-	        		</div>
-	        		<div class="row">
-	        			<input class="check" type="checkbox" id="ema" <?= ($ema) ? 'checked="checked"' : '' ?> />
-	        			<a class="selected" href="#">EMA</a>
-	        			<input id="ema1" class="indicator" value="<?= $ema1 ?>" type="text" style="background-color:#FCC4FF" />
-	        			<input id="ema2" class="indicator" value="<?= $ema2 ?>" type="text" style="background-color:#C5FFC4" />
-	        		</div>
-	        	</div>
-	        	<a class="highlight blue" href="#"><?= Lang::string('restore-defaults') ?></a>
-	        </div>
-	        <div class="clear_50"></div>
-	        <div class="clear"></div>
         </div>
         <div class="mar_top4"></div>
         <div class="one_half">

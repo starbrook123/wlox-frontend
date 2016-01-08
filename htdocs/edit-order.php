@@ -36,8 +36,6 @@ API::add('Orders','get',array(false,false,10,$currency1,false,false,1));
 API::add('Orders','get',array(false,false,10,$currency1,false,false,false,false,1));
 API::add('FeeSchedule','getRecord',array(User::$info['fee_schedule']));
 API::add('User','getAvailable');
-API::add('Stats','getCurrent',array($currency_info['id']));
-API::add('Transactions','get',array(false,false,1,$currency1));
 $query = API::send();
 
 $user_fee_both = $query['FeeSchedule']['getRecord']['results'][0];
@@ -46,8 +44,6 @@ $current_bid = $query['Orders']['getBidAsk']['results'][0]['bid'];
 $current_ask = $query['Orders']['getBidAsk']['results'][0]['ask'];
 $bids = $query['Orders']['get']['results'][0];
 $asks = $query['Orders']['get']['results'][1];
-$bank_accounts = $query['BankAccounts']['get']['results'][0];
-$stats = $query['Stats']['getCurrent']['results'][0];
 $buy_market_price1 = 0;
 $sell_market_price1 = 0;
 $buy_limit = 1;
@@ -180,26 +176,6 @@ if ($sell && !is_array(Errors::$errors)) {
 $user_available[strtoupper($currency1)] = $pre_fiat_available;
 $user_available['BTC'] = $pre_btc_available;
 
-if ($stats['daily_change'] > 0)
-	$arrow = '<i id="up_or_down" class="fa fa-caret-up price-green"></i> ';
-elseif ($stats['daily_change'] < 0)
-	$arrow = '<i id="up_or_down" class="fa fa-caret-down price-red"></i> ';
-else
-	$arrow = '<i id="up_or_down" class="fa fa-minus"></i> ';
-
-if ($query['Transactions']['get']['results'][0][0]['maker_type'] == 'sell') {
-	$arrow1 = '<i id="up_or_down1" class="fa fa-caret-up price-green"></i> ';
-	$p_color = 'price-green';
-}
-elseif ($query['Transactions']['get']['results'][0][0]['maker_type'] == 'buy') {
-	$arrow1 = '<i id="up_or_down1" class="fa fa-caret-down price-red"></i> ';
-	$p_color = 'price-red';
-}
-else {
-	$arrow1 = '<i id="up_or_down1" class="fa fa-minus"></i> ';
-	$p_color = '';
-}
-
 $page_title = Lang::string('edit-order');
 if (!$bypass) {
     $uniq_time = time();
@@ -217,180 +193,9 @@ if (!$bypass) {
 	</div>
 </div>
 <div class="container">
-	<div class="ts_head">
-		<div class="ts_title"><?= Lang::string('ts-live') ?></div>
-		<div class="ts_selectors filters">
-			<ul class="list_empty">
-				<li>
-					<label for="crypto_currency"><?= Lang::string('ts-currency') ?></label>
-					<select id="crypto_currency">
-					<?
-					if ($CFG->currencies) {
-						foreach ($CFG->currencies as $key => $currency) {
-							if (is_numeric($key) || $currency['is_crypto'] != 'Y')
-								continue;
-							
-							echo '<option '.((strtolower($currency['currency']) == $c_currency1) ? 'selected="selected"' : '').' value="'.strtolower($currency['currency']).'">'.$currency['currency'].'</option>';
-						}
-					}	
-					?>
-					</select>
-				</li>
-				<li>
-					<label for="fiat_currency"><?= Lang::string('ts-fiat') ?></label>
-					<select id="fiat_currency">
-					<?
-					if ($CFG->currencies) {
-						foreach ($CFG->currencies as $key => $currency) {
-							if (is_numeric($key) || $currency['is_crypto'] == 'Y')
-								continue;
-							
-							echo '<option '.((strtolower($currency['currency']) == $currency1) ? 'selected="selected"' : '').' value="'.strtolower($currency['currency']).'">'.$currency['currency'].'</option>';
-						}
-					}	
-					?>
-					</select>
-				</li>
-				<div class="clear"></div>
-			</ul>
-		</div>
-		<div class="ts_ticker ticker">
-			<div class="contain">
-				<div class="scroll">
-				<?
-				if ($CFG->currencies) {
-					foreach ($CFG->currencies as $key => $currency) {
-						if (is_numeric($key) || $currency['is_crypto'] == 'Y')
-							continue;
-				
-						$last_price = number_format($stats['last_price'] * ((empty($currency_info) || $currency_info['currency'] == 'USD') ? 1/$currency[$usd_field] : $currency_info[$usd_field] / $currency[$usd_field]),2);
-						echo '<a class="'.(($currency_info['id'] == $currency['id']) ? $p_color.' selected' : '').'" href="'.$CFG->self.'?currency='.strtolower($currency['currency']).'"><span class="abbr">'.$currency['currency'].'</span> <span class="price_'.$currency['currency'].'">'.$last_price.'</span></a>';
-					}
-				}
-				?>
-				</div>
-			</div>
-		</div>
-		<div class="clear"></div>
-	</div>
-	<div class="panel panel-default global_stats ts_stats">
-		<div class="panel-heading non-mobile">
-	       	<div class="one_fifth"><?= Lang::string('home-stats-last-price') ?></div>
-	        <div class="one_fifth"><?= Lang::string('home-stats-daily-change') ?></div>
-	        <div class="one_fifth"><?= Lang::string('home-stats-days-range') ?></div>
-	        <div class="one_fifth"><?= Lang::string('home-stats-todays-open') ?></div>
-	        <div class="one_fifth last"><?= Lang::string('home-stats-24h-volume') ?></div>
-			<div class="clear"></div>
-		</div>
-		<div class="panel-body">
-			<div class="one_fifth">
-	        	<div class="m_head"><?= Lang::string('home-stats-last-price') ?></div>
-	        	<p class="stat1 <?= ($query['Transactions']['get']['results'][0][0]['maker_type'] == 'sell') ? 'price-green' : 'price-red' ?>"><?= $arrow1.$currency_info['fa_symbol'].'<span id="stats_last_price">'.number_format($stats['last_price'],2).'</span>'?><small id="stats_last_price_curr"><?= ($query['Transactions']['get']['results'][0][0]['currency'] == $currency_info['id']) ? false : (($query['Transactions']['get']['results'][0][0]['currency1'] == $currency_info['id']) ? false : ' ('.$CFG->currencies[$query['Transactions']['get']['results'][0][0]['currency1']]['currency'].')') ?></small></p>
-	        </div>
-	        <div class="one_fifth">
-	        	<div class="m_head"><?= Lang::string('home-stats-daily-change') ?></div>
-	        	<p class="stat1"><?= $arrow.'<span id="stats_daily_change_abs">'.number_format(abs($stats['daily_change']),2).'</span>' ?> <small><?= '<span id="stats_daily_change_perc">'.number_format(abs($stats['daily_change_percent']),2).'</span>%'?></small></p>
-	        </div>
-	        <div class="one_fifth">
-	        	<div class="m_head"><?= Lang::string('home-stats-days-range') ?></div>
-	        	<p class="stat1"><?= $currency_info['fa_symbol'].'<span id="stats_min">'.number_format($stats['min'],2).'</span> - <span id="stats_max">'.number_format($stats['max'],2).'</span>' ?></p>
-	        </div>
-	        <div class="one_fifth">
-	        	<div class="m_head"><?= Lang::string('home-stats-todays-open') ?></div>
-	        	<p class="stat1"><?= $currency_info['fa_symbol'].'<span id="stats_open">'.number_format($stats['open'],2).'</span>'?></p>
-	        </div>
-	        <div class="one_fifth last">
-	        	<div class="m_head"><?= Lang::string('home-stats-24h-volume') ?></div>
-	        	<p class="stat1"><?= '<span id="stats_traded">'.number_format($stats['total_btc_traded'],2).'</span>' ?> BTC</p>
-	        </div>
-	        <div class="panel-divider"></div>
-	        <div class="one_third">
-	        	<h5><?= Lang::string('home-stats-market-cap') ?>: <em class="stat2">$<?= '<span id="stats_market_cap">'.number_format($stats['market_cap']).'</span>'?></em></h5>
-	        </div>
-	        <div class="one_third">
-	        	<h5><?= Lang::string('home-stats-total-btc') ?>: <em class="stat2"><?= '<span id="stats_total_btc">'.number_format($stats['total_btc']).'</span>' ?></em></h5>
-	        </div>
-	        <div class="one_third last">
-	        	<h5><?= Lang::string('home-stats-global-volume') ?>: <em class="stat2">$<?= '<span id="stats_trade_volume">'.number_format($stats['trade_volume']).'</span>' ?></em></h5>
-	        </div>
-	        <div class="clear"></div>
-		</div>
-	</div>
-	<? include 'includes/sidebar_ts.php'; ?>
+	<? include 'includes/sidebar_account.php'; ?>
 	<div class="content_right">
 		<? Errors::display(); ?>
-		<div class="ts_graphs">
-			<div class="graph_tabs">
-				<a href="#" data-option="timeline" class="ts_view selected"><i class="fa fa-line-chart"></i> <?= Lang::string('ts-timeline') ?></a>
-				<a href="#" data-option="order-book" class="ts_view"><i class="fa fa-area-chart"></i> <?= Lang::string('order-book') ?></a>
-				<a href="#" data-option="distribution" class="ts_view"><i class="fa fa-users"></i> <?= Lang::string('ts-distribution') ?></a>
-				<div class="clear"></div>
-			</div> 
-			<div class="graph_options">
-				<label for="graph_time"><i class="fa fa-clock-o"></i></label>
-	        	<select id="graph_time">
-					<option <?= ($_SESSION['timeframe'] == '1min') ? 'selected="selected"' : '' ?> value="1min">1m</a>
-					<option <?= ($_SESSION['timeframe'] == '3min') ? 'selected="selected"' : '' ?> value="3min">3m</a>
-		        	<option <?= (!$_SESSION['timeframe'] || $_SESSION['timeframe'] == '5min') ? 'selected="selected"' : '' ?> value="5min">5m</a>
-		        	<option <?= ($_SESSION['timeframe'] == '15min') ? 'selected="selected"' : '' ?>value="15min">15m</a>
-		        	<option <?= ($_SESSION['timeframe'] == '30min') ? 'selected="selected"' : '' ?> value="30min">30m</a>
-		        	<option <?= ($_SESSION['timeframe'] == '1h') ? 'selected="selected"' : '' ?> value="1h">1h</a>
-		        	<option <?= ($_SESSION['timeframe'] == '2h') ? 'selected="selected"' : '' ?> value="2h">2h</a>
-		        	<option <?= ($_SESSION['timeframe'] == '4h') ? 'selected="selected"' : '' ?> value="4h">4h</a>
-		        	<option <?= ($_SESSION['timeframe'] == '6h') ? 'selected="selected"' : '' ?> value="6h">6h</a>
-		        	<option <?= ($_SESSION['timeframe'] == '12h') ? 'selected="selected"' : '' ?> value="12h">12h</a>
-		        	<option <?= ($_SESSION['timeframe'] == '1d') ? 'selected="selected"' : '' ?> value="1d">1d</a>
-		        	<option <?= ($_SESSION['timeframe'] == '3d') ? 'selected="selected"' : '' ?> value="3d">3d</a>
-		        	<option <?= ($_SESSION['timeframe'] == '1w') ? 'selected="selected"' : '' ?> value="1w">1w</a>
-	        	</select>
-	        	<div id="graph_over">
-	        		<span class="g_over"><b>Open:</b> <span id="g_open"></span></span>
-					<span class="g_over"><b>Close:</b> <span id="g_close"></span></span>
-					<span class="g_over"><b>High:</b> <span id="g_high"></span></span>
-					<span class="g_over"><b>Low:</b> <span id="g_low"></span></span>
-					<span class="g_over"><b>Vol:</b> <span id="g_vol"></span></span>
-					<div class="repeat-line o1"></div>
-		        	<div class="repeat-line o2"></div>
-		        	<div class="repeat-line o3"></div>
-		        	<div class="repeat-line o4"></div>
-		        	<div class="repeat-line o5"></div>
-	        		<div class="clear"></div>
-	        	</div>
-	        	<div class="clear"></div>
-	        </div>
-	        <div id="ts_timeline" class="graph_contain">
-	        	<input type="hidden" id="graph_price_history_currency" value="<?= ($currency1) ? $currency1 : 'usd' ?>" />
-	        	<div id="graph_candles"></div>
-		        <div class="clear_300"></div>
-		        <div class="clear"></div>
-		        <div id="graph_price_history"></div>
-		        <div class="drag_zoom">
-		        	<div class="contain">
-			        	<div id="zl" class="handle"></div>
-			        	<div id="zr" class="handle"></div>
-			        	<div class="bg"></div>
-		        	</div>
-		        </div>
-		        <div class="clear_50"></div>
-		        <div class="clear"></div>
-	        </div>
-	        <div id="ts_order_book" class="graph_contain">
-				<input type="hidden" id="graph_orders_currency" value="<?= $currency1 ?>" />
-				<div id="graph_orders"></div>
-				<div id="tooltip">
-					<div class="price"></div>
-					<div class="bid"><?= Lang::string('orders-bid') ?> <span></span> BTC</div>
-					<div class="ask"><?= Lang::string('orders-ask') ?> <span></span> BTC</div>
-				</div>
-			</div>
-			<div id="ts_distribution" class="graph_contain">
-				<div id="graph_distribution"></div>
-				<div id="tooltip1">
-					<div class="price"><span></span> BTC</div>
-					<div class="users"><span></span> <?= Lang::string('ts-users') ?></div>
-				</div>
-			</div>
-		</div>
 		<div class="testimonials-4">
 			<input type="hidden" id="user_fee" value="<?= $user_fee_both['fee'] ?>" />
 			<input type="hidden" id="user_fee1" value="<?= $user_fee_both['fee1'] ?>" />
@@ -439,17 +244,17 @@ if (!$bypass) {
 							</div>
 							<div class="param lessbottom">
 								<input class="checkbox" name="buy_market_price" id="buy_market_price" type="checkbox" value="1" <?= ($buy_market_price1 && !$buy_stop) ? 'checked="checked"' : '' ?> <?= (!$asks) ? 'readonly="readonly"' : '' ?> />
-								<label for="buy_market_price"><?= Lang::string('buy-market-price') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href="help.php"><i class="fa fa-help.phpion-circle"></i></a></label>
+								<label for="buy_market_price"><?= Lang::string('buy-market-price') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href=""><i class="fa fa-question-circle"></i></a></label>
 								<div class="clear"></div>
 							</div>
 							<div class="param lessbottom">
 								<input class="checkbox" name="buy_limit" id="buy_limit" type="checkbox" value="1" <?= ($buy_limit && !$buy_market_price1) ? 'checked="checked"' : '' ?> />
-								<label for="buy_limit"><?= Lang::string('buy-limit') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href="help.php"><i class="fa fa-question-circle"></i></a></label>
+								<label for="buy_limit"><?= Lang::string('buy-limit') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href=""><i class="fa fa-question-circle"></i></a></label>
 								<div class="clear"></div>
 							</div>
 							<div class="param lessbottom">
 								<input class="checkbox" name="buy_stop" id="buy_stop" type="checkbox" value="1" <?= ($buy_stop && !$buy_market_price1) ? 'checked="checked"' : '' ?> />
-								<label for="buy_stop"><?= Lang::string('buy-stop') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href="help.php"><i class="fa fa-question-circle"></i></a></label>
+								<label for="buy_stop"><?= Lang::string('buy-stop') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href=""><i class="fa fa-question-circle"></i></a></label>
 								<div class="clear"></div>
 							</div>
 							<div id="buy_price_container" class="param" <?= (!$buy_limit && !$buy_market_price1) ? 'style="display:none;"' : '' ?>>
@@ -531,17 +336,17 @@ if (!$bypass) {
 							</div>
 							<div class="param lessbottom">
 								<input class="checkbox" name="sell_market_price" id="sell_market_price" type="checkbox" value="1" <?= ($sell_market_price1 && !$sell_stop) ? 'checked="checked"' : '' ?> <?= (!$bids) ? 'readonly="readonly"' : '' ?> />
-								<label for="sell_market_price"><?= Lang::string('sell-market-price') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href="help.php"><i class="fa fa-question-circle"></i></a></label>
+								<label for="sell_market_price"><?= Lang::string('sell-market-price') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href=""><i class="fa fa-question-circle"></i></a></label>
 								<div class="clear"></div>
 							</div>
 							<div class="param lessbottom">
 								<input class="checkbox" name="sell_limit" id="sell_limit" type="checkbox" value="1" <?= ($sell_limit && !$sell_market_price1) ? 'checked="checked"' : '' ?> />
-								<label for="sell_stop"><?= Lang::string('buy-limit') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href="help.php"><i class="fa fa-question-circle"></i></a></label>
+								<label for="sell_stop"><?= Lang::string('buy-limit') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href=""><i class="fa fa-question-circle"></i></a></label>
 								<div class="clear"></div>
 							</div>
 							<div class="param lessbottom">
 								<input class="checkbox" name="sell_stop" id="sell_stop" type="checkbox" value="1" <?= ($sell_stop && !$sell_market_price1) ? 'checked="checked"' : '' ?> />
-								<label for="sell_stop"><?= Lang::string('buy-stop') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href="help.php"><i class="fa fa-question-circle"></i></a></label>
+								<label for="sell_stop"><?= Lang::string('buy-stop') ?> <a title="<?= Lang::string('buy-market-rates-info') ?>" href=""><i class="fa fa-question-circle"></i></a></label>
 								<div class="clear"></div>
 							</div>
 							<div id="sell_price_container" class="param" <?= (!$sell_limit && !$sell_market_price1) ? 'style="display:none;"' : '' ?>>

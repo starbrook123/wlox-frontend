@@ -27,7 +27,7 @@ include 'includes/head.php';
 <div class="container">
 	<? include 'includes/sidebar_topics.php'; ?>
 	<div class="content_right">
-    	<div class="text1"><?= $content['content'] ?></div>
+    	<div class="text"><?= $content['content'] ?></div>
     	<div class="clearfix mar_top2"></div>
     	<div class="table-style">
     		<table class="table-list trades">
@@ -36,7 +36,7 @@ include 'includes/head.php';
 					<th><?= Lang::string('fee-schedule-fee') ?></th>
 					<th>
 						<?= Lang::string('fee-schedule-volume') ?>
-						<span class="graph_options" style="display: inline-block; padding: 0px; margin-left: 5px; top: 0px; position: relative;">
+						<span class="graph_options" style="margin-left:5px;">
 							<span style="margin:0;float:none;display:inline;">
 								<select id="fee_currency">
 								<? 
@@ -53,7 +53,7 @@ include 'includes/head.php';
 							</span>
 						</span>
 					</th>
-					<!--th><?= Lang::string('fee-schedule-flc') ?></th -->
+					<th><?= Lang::string('fee-schedule-flc') ?></th>
 				</tr>
 				<? 
 				if ($fee_schedule) {
@@ -67,7 +67,7 @@ include 'includes/head.php';
 					<?= ($fee['fee1'] != $last_fee1) ? '<td>'.$fee['fee1'].'%</td>' : '<td class="inactive"></td>' ?>
 					<td><?= $fee['fee'] ?>%</td>
 					<td><?= $symbol.' '.$fee['fa_symbol'].$from ?></td>
-					<?/*= ($fee['global_btc'] != $last_btc) ? '<td>'.number_format($fee['global_btc'],1).' BTC</td>' : '<td class="inactive"></td>' */ ?>
+					<?= ($fee['global_btc'] != $last_btc) ? '<td>'.number_format($fee['global_btc'],1).' BTC</td>' : '<td class="inactive"></td>' ?>
 				</tr>
 				<?
 						$last_fee1 = $fee['fee1'];

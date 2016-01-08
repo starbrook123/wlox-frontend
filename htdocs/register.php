@@ -70,7 +70,7 @@ include 'includes/head.php';
 	</div>
 </div>
 <div class="container">
-	<? //include 'includes/sidebar_account.php'; ?>
+	<? include 'includes/sidebar_account.php'; ?>
 	<div class="content_right">
 		<div class="testimonials-4">
 			<? 

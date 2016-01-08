@@ -7,9 +7,7 @@
 
 <head>
 	<title><?= $page_title ?></title>
-	<? if ($CFG->self != 'buy-sell.php' && $CFG->self != 'edit-order.php') { ?>
 	<base href="<?= $CFG->baseurl ?>" />
-	<? } ?>
 	
 	<meta charset="utf-8">
 	<meta name="keywords" content="" />
@@ -37,7 +35,7 @@
     <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
     
     <!-- responsive devices styles -->
-	<link rel="stylesheet" media="screen" href="css/responsive-leyouts.css?v=20150901" type="text/css" />
+	<link rel="stylesheet" media="screen" href="css/responsive-leyouts.css?v=20150730" type="text/css" />
     
 <!-- just remove the below comments witch color skin you want to use -->
     <!--<link rel="stylesheet" href="css/colors/lightblue.css" />-->
@@ -68,7 +66,7 @@
 	<script src='https://www.google.com/recaptcha/api.js<?= ((!empty($CFG->language) && $CFG->language != 'en') ? '?hl='.($CFG->language == 'zh' ? 'zh-CN' : $CFG->language) : '') ?>'></script>
 	<? } ?>
 	
-	<? /*Lang::url($CFG->self,1);*/ ?>
+	<?= Lang::url($CFG->self,1); ?>
 </head>
 
 <body>
@@ -118,6 +116,8 @@
                 <li>|</li>
                 <li><a href="<?= Lang::url('contact.php') ?>"><?= Lang::string('contact') ?></a></li>
                 <li>|</li>
+                <li><a target="_blank" href="https://github.com/wlox/wlox/"><i class="fa fa-github"></i> GitHub</a></li>
+                <li>|</li>
                 <li><a target="_blank" href="https://cryptocapital.co"><img src="images/crypto_logo.png" /></a></li>
             </ul>
         
@@ -129,7 +129,6 @@
                 <? } else { ?>
                 <li><a href="account.php"><i class="fa fa-user"></i> <?= User::$info['user'] ?></a> | <a href="logout.php?log_out=1&uniq=<?= $_SESSION["logout_uniq"] ?>"><i class="fa fa-unlock"></i> <?= Lang::string('log-out') ?></a></li>
                 <? } ?>
-		<? /*
                 <li class="empty margin-left">
                 	<label for="language_selector"><img src="images/<?= $CFG->language ?>.png" /></label>
                 	<select id="language_selector" class="lang">
@@ -139,8 +138,6 @@
                 		<option value="zh" <?= ($CFG->language == 'zh') ? 'selected="selected"' : '' ?>>中文</option>
                 	</select>
                 </li>
-		*/ ?>
-		<input type="hidden" id="language_selector" value="en" />
             </ul>
             
         </div>
@@ -202,6 +199,9 @@
                         <ul>
                         	<li><a href="open-orders.php"><?= Lang::string('open-orders') ?></a></li>
                             <li><a href="transactions.php"><?= Lang::string('transactions') ?></a></li>
+                            <? if (User::$info['shares_enabled']) {?>
+							<li><a href="shares.php"><?= Lang::string('shares') ?></a></li>
+							<? } ?>
                             <li><a href="security.php"><?= Lang::string('security') ?></a></li>
                             <li><a href="settings.php"><?= Lang::string('settings') ?></a></li>
                             <li><a href="bank-accounts.php"><?= Lang::string('bank-accounts') ?></a></li>

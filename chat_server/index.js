@@ -8,10 +8,11 @@ var db = new Datastore({ filename: './chat.db',autoload:true });
 db.persistence.setAutocompactionInterval(60000);
 var port = 2053;
 
-io.set('origins', 'https://1ex.trade:80');
 server.listen(port, function () {
   console.log('Server listening at port %d', port);
 });
+
+// Routing
 app.use(express.static(__dirname + '/public'));
 
 // Chatroom

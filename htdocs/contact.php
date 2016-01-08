@@ -80,7 +80,7 @@ include 'includes/head.php';
 	<? include 'includes/sidebar_topics.php'; ?>
 	<div class="content_right">
     	<div class="content_fullwidth">
-    		<div class="text1"><?= $content['content'] ?></div>
+    		<div class="text"><?= $content['content'] ?></div>
 			    <br>
 		    <div class="one_half">
 			    <h3><i><?= Lang::string('contact-inquiries') ?></i></h3>

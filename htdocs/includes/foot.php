@@ -24,7 +24,7 @@
             <ul class="list">
              	<li><a href="<?= Lang::url('index.php') ?>"><?= Lang::string('home') ?></a></li>
                 <li><a href="<?= Lang::url('order-book.php') ?>"><?= Lang::string('order-book') ?></a></li>
-                <li><a href="<?= (User::isLoggedIn()) ? 'help.php' : 'https://1ex.freshdesk.com' ?>"><?= Lang::string('help') ?></a></li>
+                <li><a href="<?= (User::isLoggedIn()) ? 'help.php' : 'https://support.1btcxe.com' ?>"><?= Lang::string('help') ?></a></li>
                 <li><a href="<?= Lang::url('contact.php') ?>"><?= Lang::string('contact') ?></a></li>
                 <li><a href="<?= Lang::url('terms.php') ?>"><?= Lang::string('terms') ?></a></li>
                 <li><a href="api-docs.php"><?= Lang::string('api-docs') ?></a></li>
@@ -38,6 +38,7 @@
              	<li><a href="blog.php"><?= Lang::string('blog') ?></a></li>
              	<li><a href="<?= Lang::url('press-releases.php') ?>"><?= Lang::string('news') ?></a></li>
              	<li><a href="<?= Lang::url('fee-schedule.php') ?>"><?= Lang::string('fee-schedule') ?></a></li>
+             	<li><a href="https://github.com/wlox/wlox/" target="_blank"><?= Lang::string('home-github') ?></a></li>
             </ul>
          </div>
          <? if (User::isLoggedIn()) { ?>
@@ -73,7 +74,9 @@
 <div class="copyright_info">
     <div class="container">
         <div class="one_half">
-            <b>Copyright &copy; 2015 1EX.Trade. All rights reserved.</b>
+
+            <b>Copyright &copy; 2014 WLOX. All rights reserved.</b>
+
         </div>
 
     	<div class="one_half last">
@@ -103,14 +106,11 @@
 <!-- main js -->
 <script type="text/javascript" src="js/ops.js?v=20151116"></script>
 
-<? if ($CFG->self == 'index.php' || $CFG->self == 'order-book.php' || $CFG->self == 'btc_to_currency.php' || $CFG->self == 'buy-sell.php' || $CFG->self == 'edit-order.php') { ?>
+<? if ($CFG->self == 'index.php' || $CFG->self == 'order-book.php' || $CFG->self == 'btc_to_currency.php') { ?>
 <!-- flot -->
 <script type="text/javascript" src="js/flot/jquery.flot.js"></script>
 <script type="text/javascript" src="js/flot/jquery.flot.time.js"></script>
 <script type="text/javascript" src="js/flot/jquery.flot.crosshairs.js"></script>
-<script type="text/javascript" src="js/flot/jquery.flot.candle.js"></script>
-<script type="text/javascript" src="js/raphael.js"></script>
-<script type="text/javascript" src="js/justgage.js"></script>
 <? } ?>
 
 <? if ($CFG->self == 'security.php') { ?>
