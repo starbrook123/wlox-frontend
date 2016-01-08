@@ -46,7 +46,7 @@ if (!empty($_REQUEST['last_price'])) {
 	$return['last_trans_color'] = ($query['Transactions']['get']['results'][0][0]['maker_type'] == 'sell') ? 'price-green' : 'price-red';
 	
 	if ($currency1) {
-		$return['available_fiat'] = (!empty($query['User']['getAvailable']['results'][0][strtoupper($currency1)])) ? number_format($query['User']['getAvailable']['results'][0][strtoupper($currency1)],2) : '0';
+		$return['available_fiat'] = (!empty($query['User']['getAvailable']['results'][0][strtoupper($currency1)])) ? number_format($query['User']['getAvailable']['results'][0][strtoupper($currency1)],($currency_info['is_crypto'] == 'Y' ? 8 : 2)) : '0';
 		$return['available_btc'] = (!empty($query['User']['getAvailable']['results'][0]['BTC'])) ? number_format($query['User']['getAvailable']['results'][0]['BTC'],8) : '0';
 	}
 	
