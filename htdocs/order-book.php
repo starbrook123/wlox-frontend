@@ -80,7 +80,7 @@ include 'includes/head.php';
 					</li>
 					<li>
 						<label for="last_price"><?= Lang::string('home-stats-last-price') ?></label>
-						<input type="text" id="last_price" class="<?= $last_trans_color ?>" value="<?= ($currency_info['is_crypto'] != 'Y' ? $last_trans_symbol : '').String::currency($last_transaction['btc_price']).($currency_info['is_crypto'] == 'Y' ? ' '.$last_trans_symbol : '').$last_trans_currency ?>" disabled="disabled" />
+						<input type="text" id="last_price" class="<?= $last_trans_color ?>" value="<?= ($currency_info['is_crypto'] != 'Y' ? $last_trans_symbol : '').String::currency($last_transaction['btc_price'],2,4).($currency_info['is_crypto'] == 'Y' ? ' '.$last_trans_symbol : '').$last_trans_currency ?>" disabled="disabled" />
 						<a target="_blank" href="" title="<?= Lang::string('order-book-last-price-explain') ?>"><i class="fa fa-question-circle"></i></a>
 					</li>
 				</ul>
