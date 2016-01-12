@@ -17,7 +17,7 @@ $query = API::send();
 $transactions = $query['Transactions']['get']['results'][0];
 if ($transactions) {
 	$output = fopen('php://output', 'w');
-	fputcsv($output, array(' '.Lang::string('transactions-type').' ',' '.Lang::string('transactions-time').' ',' '.Lang::string('transactions-btc').' ',' '.Lang::string('currency').' ',' '.Lang::string('transactions-fiat').' ',' '.Lang::string('transactions-price').' ',' '.Lang::string('transactions-fee').' '));
+	fputcsv($output, array(' '.Lang::string('transactions-type').' ',' '.Lang::string('transactions-time').' ',' '.Lang::string('orders-amount').' ',' '.Lang::string('currency').' ',' '.Lang::string('transactions-fiat').' ',' '.Lang::string('orders-price').' ',' '.Lang::string('transactions-fee').' '));
 	foreach ($transactions as $transaction) {
 		fputcsv($output,array(
 			' '.$transaction['type'].' ',

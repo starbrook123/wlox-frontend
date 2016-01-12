@@ -1835,11 +1835,26 @@ function updateTransactions() {
 	},(!notrades ? 2000 : 5000));
 }
 
-function formatCurrency(amount,is_btc) {
-	if (!is_btc)
-		return parseFloat(amount).toFixed(2).toString().replace('.',$('#cfg_decimal_separator').val()).replace(/\B(?=(\d{3})+(?!\d))/g,$('#cfg_thousands_separator').val());
+function formatCurrency(amount,is_btc,flex) {
+	amount = parseFloat(amount);
+	var decimal_sep = $('#cfg_decimal_separator').val();
+	var thousands_sep = $('#cfg_thousands_separator').val();
+	var dec_amount = (typeof is_btc != 'number') ? (is_btc ? 8 : 2) : is_btc;
+	
+	if (flex && String(amount).indexOf('.') >= 0) {
+		flex = (typeof flex != 'number') ? 8 : flex;
+		amount = String(amount);
+		dec_detect = amount.split('.')[1].replace(/[^0-9]/g,'').length - amount.split('.')[1].replace(/[^0-9]/g,'').replace(/^[0]+/g, '').length;
+		if (parseFloat(amount.split('.')[1]) > 0) {
+			dec_amount = Math.max(dec_amount,dec_detect + 1);
+			dec_amount = (dec_amount > flex) ? flex : dec_amount;
+		}
+	}
+	
+	if (dec_amount <= 3)
+		return parseFloat(amount).toFixed(dec_amount).toString().replace('.',$('#cfg_decimal_separator').val()).replace(/\B(?=(\d{3})+(?!\d))/g,$('#cfg_thousands_separator').val());
 	else
-		return parseFloat(amount).toFixed(8).toString().replace('.',$('#cfg_decimal_separator').val());
+		return parseFloat(amount).toFixed(dec_amount).toString().replace('.',$('#cfg_decimal_separator').val());
 }
 
 function updateTransactionsList() {
@@ -1984,14 +1999,14 @@ function switchBuyCurrency() {
 			var change_perc = formatCurrency(parseFloat(json_data.current_ask) - open_price);
 			var change_abs = Math.abs(parseFloat(change_perc));
 			
-			$('#stats_last_price').html(formatCurrency(json_data.current_ask));
+			$('#stats_last_price').html(formatCurrency(json_data.current_ask,2,4));
 			$('#stats_daily_change_abs').html(change_abs);
-			$('#stats_daily_change_perc').html(formatCurrency((change_abs/parseFloat(json_data.current_ask)) * 100));
-			$('#stats_min').html(formatCurrency(json_data.stats.min));
-			$('#stats_max').html(formatCurrency(json_data.stats.max));
-			$('#stats_open').html(formatCurrency(json_data.stats.open));
-			$('#stats_market_cap').html(formatCurrency(json_data.stats.market_cap));
-			$('#stats_trade_volume').html(formatCurrency(json_data.stats.trade_volume));
+			$('#stats_daily_change_perc').html(formatCurrency((change_abs/parseFloat(json_data.current_ask)) * 100),2,4);
+			$('#stats_min').html(formatCurrency(json_data.stats.min,2,4));
+			$('#stats_max').html(formatCurrency(json_data.stats.max,2,4));
+			$('#stats_open').html(formatCurrency(json_data.stats.open,2,4));
+			$('#stats_market_cap').html(formatCurrency(json_data.stats.market_cap,2,4));
+			$('#stats_trade_volume').html(formatCurrency(json_data.stats.trade_volume,2,4));
 			
 			if (json_data.currency_info.is_crypto == 'Y') {
 				$('.buy_currency_char,.sell_currency_char').addClass('cc');
@@ -2025,7 +2040,7 @@ function switchBuyCurrency() {
 			if ($('.c_currencies_prices').length > 0) {
 				$('.c_currencies_prices').each(function(){
 					var abbr = $(this).find('.c_currency_abbr').val();
-					$(this).find('.price').html(formatCurrency(json_data.market_stats[abbr].last_price));
+					$(this).find('.price').html(formatCurrency(json_data.market_stats[abbr].last_price,2,4));
 					$(this).find('.percent').html(formatCurrency(Math.abs(json_data.market_stats[abbr].daily_change_percent)));
 				});
 			}
