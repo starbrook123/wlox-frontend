@@ -45,6 +45,8 @@ function graphPriceHistory(refresh) {
 		if (plot && refresh) {
 			plot.shutdown();
 			plot1.shutdown();
+			plot = false;
+			plot1 = false;
 		}
 		
 		// get indicators
@@ -642,6 +644,7 @@ var plot_o,last_data;
 function graphOrders(json_data,refresh) {
 	if (plot && refresh) {
 		plot_o.shutdown();
+		plot_o = false;
 	}
 	
 	if (!plot_o)
@@ -1418,10 +1421,10 @@ function updateTransactions() {
 							var change_perc = formatCurrency(current_price - open_price);
 							var change_abs = Math.abs(change_perc);
 							
-							$('#stats_last_price').html(formatCurrency(current_price));
+							$('#stats_last_price').html(formatCurrency(current_price,2,8));
 							$('#stats_last_price_curr').html((this.currency == currency_id) ? '' : ((this.currency1 == currency_id) ? '' : ' ('+($('#curr_abbr_'+this.currency1).val())+')'));
-							$('#stats_daily_change_abs').html(change_abs);
-							$('#stats_daily_change_perc').html(formatCurrency((change_abs/current_price) * 100));
+							$('#stats_daily_change_abs').html(formatCurrency(change_abs,2,8));
+							$('#stats_daily_change_perc').html(formatCurrency((change_abs/current_price) * 100,2,8));
 							
 							if (this_c_currency_abbr && $('#c_currency_'+this_c_currency_abbr).length > 0) {
 								$('#c_currency_'+this_c_currency_abbr).find('.price').html(formatCurrency(current_price));
@@ -1795,7 +1798,7 @@ function updateTransactions() {
 			
 			if (parseFloat(json_data.last_price) && $('#last_price').length > 0) {
 				var lp_prev = $('#last_price').val();
-				var lp_now = $('<div/>').html(json_data.fa_symbol + formatCurrency(json_data.last_price) + json_data.last_price_curr).text();
+				var lp_now = $('<div/>').html((is_crypto ? '' :json_data.fa_symbol) + formatCurrency(json_data.last_price,2,8) + (is_crypto ? ' '+json_data.fa_symbol : '') + json_data.last_price_curr).text();
 				$('#last_price').val(lp_now);
 				
 				if (json_data.last_trans_color == 'price-green')
@@ -2048,6 +2051,8 @@ function switchBuyCurrency() {
 			if ($(".ticker").length > 0) {
 				$('#graph_price_history_currency').val(currency);
 				$('#graph_orders_currency').val(currency);
+				graphPriceHistory(true);
+				graphOrders(false,true);
 			}
 			
 			reorderLabels((json_data.currency_info.is_crypto == 'Y'));
