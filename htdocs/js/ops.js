@@ -142,6 +142,7 @@ function graphPriceHistory(refresh) {
 		}
 		
 		// candlestick chart
+		var is_crypto = ($('#is_crypto').val() == 'Y');
 		var last_d = new Date();
 		plot = $.plot($("#graph_candles"),series,{
 			series: {candlestick:{active:true}},
@@ -184,7 +185,10 @@ function graphPriceHistory(refresh) {
  		    	max: max_y,
  		    	min: min_y,
  		    	tickFormatter: function (val, axis) {
- 		    		return val.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+ 		    		if (!is_crypto)
+ 		    			return val.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+ 		    		else
+ 		    			return val.toFixed(8);
  		    	}
      		},
      		{
