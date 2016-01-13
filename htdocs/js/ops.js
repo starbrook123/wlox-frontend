@@ -120,7 +120,7 @@ function graphPriceHistory(refresh) {
 			axes1_max = Math.round(axes1.xaxis.p2c(max1));
 			axes1_total = max1 - min1;
 			axes_total = max - min;
-			p_min_x = Math.ceil(axes1.xaxis.p2c(min)) - 14;
+			p_min_x = Math.max(Math.ceil(axes1.xaxis.p2c(min)) - 14,0);
 			p_max_x = Math.ceil(axes1.xaxis.p2c(max)) - 7;
 			p_diff = p_max_x - (p_min_x + 7);
 			zl_r = p_min_x + 7;
@@ -222,7 +222,7 @@ function graphPriceHistory(refresh) {
 		axes1_max = Math.round(axes1.xaxis.p2c(max1));
 		axes1_total = max1 - min1;
 		axes_total = max - min;
-		p_min_x = Math.ceil(axes1.xaxis.p2c(min)) - 14;
+		p_min_x = Math.max(Math.ceil(axes1.xaxis.p2c(min)) - 14,0);
 		p_max_x = Math.ceil(axes1.xaxis.p2c(max)) - 7;
 		p_diff = p_max_x - (p_min_x + 7);
 		zl_r = p_min_x + 7;
@@ -627,7 +627,7 @@ function graphResize() {
 			axes1_max = Math.round(axes1.xaxis.p2c(max1));
 			axes1_total = max1 - min1;
 			axes_total = max - min;
-			p_min_x = Math.ceil(axes1.xaxis.p2c(min)) - 14;
+			p_min_x = Math.max(Math.ceil(axes1.xaxis.p2c(min)) - 14,0);
 			p_max_x = Math.ceil(axes1.xaxis.p2c(max)) - 7;
 			p_diff = p_max_x - (p_min_x + 7);
 			zl_r = p_min_x + 7;
