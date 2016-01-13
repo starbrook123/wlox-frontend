@@ -1,7 +1,7 @@
 <?php
 chdir('..');
 
-if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'more')
+if (empty($_REQUEST['action']) || ($_REQUEST['action'] != 'indicators' && $_REQUEST['action'] != 'chat_setting'))
 	$ajax = true;
 
 include '../lib/common.php';
