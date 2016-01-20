@@ -1843,7 +1843,7 @@ function updateTransactions() {
 }
 
 function formatCurrency(amount,is_btc,flex) {
-	amount = parseFloat(amount);
+	amount = parseFloat(amount).toFixed(8);
 	var decimal_sep = $('#cfg_decimal_separator').val();
 	var thousands_sep = $('#cfg_thousands_separator').val();
 	var dec_amount = (typeof is_btc != 'number') ? (is_btc ? 8 : 2) : is_btc;
@@ -2002,18 +2002,14 @@ function switchBuyCurrency() {
 			$('#is_crypto').val(json_data.currency_info.is_crypto);
 			$('#fiat_currency').val(json_data.currency_info.id);
 			
-			var open_price = parseFloat(json_data.stats.open);
-			var change_perc = formatCurrency(parseFloat(json_data.current_ask) - open_price);
-			var change_abs = Math.abs(parseFloat(change_perc));
-			
-			$('#stats_last_price').html(formatCurrency(json_data.current_ask,2,4));
-			$('#stats_daily_change_abs').html(change_abs);
-			$('#stats_daily_change_perc').html(formatCurrency((change_abs/parseFloat(json_data.current_ask)) * 100),2,4);
-			$('#stats_min').html(formatCurrency(json_data.stats.min,2,4));
-			$('#stats_max').html(formatCurrency(json_data.stats.max,2,4));
-			$('#stats_open').html(formatCurrency(json_data.stats.open,2,4));
-			$('#stats_market_cap').html(formatCurrency(json_data.stats.market_cap,2,4));
-			$('#stats_trade_volume').html(formatCurrency(json_data.stats.trade_volume,2,4));
+			$('#stats_last_price').html(formatCurrency(json_data.current_ask,2,8));
+			$('#stats_daily_change_abs').html(formatCurrency(Math.abs(parseFloat(json_data.stats.daily_change)),2,8));
+			$('#stats_daily_change_perc').html(formatCurrency(Math.abs(parseFloat(json_data.stats.daily_change_percent))));
+			$('#stats_min').html(formatCurrency(json_data.stats.min,2,8));
+			$('#stats_max').html(formatCurrency(json_data.stats.max,2,8));
+			$('#stats_open').html(formatCurrency(json_data.stats.open,2,8));
+			$('#stats_market_cap').html(formatCurrency(json_data.stats.market_cap,2,8));
+			$('#stats_trade_volume').html(formatCurrency(json_data.stats.trade_volume,2,8));
 			
 			if (json_data.currency_info.is_crypto == 'Y') {
 				$('.buy_currency_char,.sell_currency_char').addClass('cc');
