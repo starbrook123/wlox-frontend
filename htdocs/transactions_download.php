@@ -17,16 +17,17 @@ $query = API::send();
 $transactions = $query['Transactions']['get']['results'][0];
 if ($transactions) {
 	$output = fopen('php://output', 'w');
-	fputcsv($output, array(' '.Lang::string('transactions-type').' ',' '.Lang::string('transactions-time').' ',' '.Lang::string('orders-amount').' ',' '.Lang::string('currency').' ',' '.Lang::string('transactions-fiat').' ',' '.Lang::string('orders-price').' ',' '.Lang::string('transactions-fee').' '));
+	fputcsv($output, array(' '.Lang::string('transactions-type').' ',' '.Lang::string('transactions-time').' ',' '.Lang::string('market').' ',' '.Lang::string('currency').' ',' '.Lang::string('orders-amount').' ',' '.Lang::string('transactions-fiat').' ',' '.Lang::string('orders-price').' ',' '.Lang::string('transactions-fee').' '));
 	foreach ($transactions as $transaction) {
 		fputcsv($output,array(
 			' '.$transaction['type'].' ',
 			' '.date('M j, Y, H:i',strtotime($transaction['date']) + $CFG->timezone_offset).' UTC ',
+			' '.$CFG->currencies[$transaction['c_currency']]['currency'].' ',
+			' '.$CFG->currencies[$transaction['currency']]['currency'].' ',
 			' '.String::currency($transaction['btc'],true).' ',
-			' '.$transaction['currency'].' ',
-			' '.String::currency($transaction['btc_net'] * $transaction['fiat_price']).' ',
-			' '.String::currency($transaction['fiat_price']).' ',
-			' '.String::currency($transaction['fee'] * $transaction['fiat_price']).' ',
+			' '.String::currency($transaction['btc_net'] * $transaction['fiat_price'],($transaction['is_crypto'] == 'Y')).' ',
+			' '.String::currency($transaction['fiat_price'],($transaction['is_crypto'] == 'Y')).' ',
+			' '.String::currency($transaction['fee'] * $transaction['fiat_price'],($transaction['is_crypto'] == 'Y')).' ',
 		));
 	}
 }
