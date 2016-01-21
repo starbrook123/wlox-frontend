@@ -44,11 +44,10 @@ params.api_key = api_key;
 params.nonce = Math.round(new Date().getTime() / 1000);
 	
 // create the signature
-var hash = CryptoJS.HmacSHA256(JSON.stringify(data), api_secret);
-var hashInBase64 = CryptoJS.enc.Hex.stringify(hash);
+var hash = CryptoJS.HmacSHA256(CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(JSON.stringify(data))), api_secret).toString()
 	
 // add signature to request parameters
-params.signature = hashInBase64;
+params.signature = hash;
 ';
 
 $code['api_sign_php'] = '// PHP Example
@@ -60,7 +59,7 @@ $commands[\'api_key\'] = $api_key;
 $commands[\'nonce\'] = time();
 	
 // create the signature
-$signature = hash_hmac(\'sha256\', json_encode($commands), $api_secret);
+$signature = hash_hmac(\'sha256\', base64_encode(json_encode($commands)), $api_secret);
 	
 // add signature to request parameters
 $commands[\'signature\'] = $signature;

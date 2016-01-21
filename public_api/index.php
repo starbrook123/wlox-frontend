@@ -173,10 +173,11 @@ elseif ($endpoint == 'balances-and-info') {
 
 				if (empty($query['error'])) {
 					$return['balances-and-info'] = $query['User']['getBalancesAndInfo']['results'][0];
-					$return['balances-and-info']['isx_volume'] = ($return['balances-and-info']['usd_volume']) ? $return['balances-and-info']['usd_volume'] : 0;
-					unset($return['balances-and-info']['usd_volume']);
-					$return['balances-and-info']['global_aur_volume'] = ($return['balances-and-info']['global_btc_volume']) ? $return['balances-and-info']['global_btc_volume'] : 0;
+					$return['balances-and-info'][strtolower($CFG->currencies[$main['fiat']]['currency']).'_volume'] = ($return['balances-and-info']['usd_volume']) ? $return['balances-and-info']['usd_volume'] : 0;
+					$return['balances-and-info']['exchange_'.strtolower($CFG->currencies[$main['crypto']]['currency']).'_volume'] = ($return['balances-and-info']['global_btc_volume']) ? $return['balances-and-info']['global_btc_volume'] : 0;
 					unset($return['balances-and-info']['global_btc_volume']);
+					if ($CFG->currencies[$main['fiat']]['currency'] != 'USD')
+						unset($return['balances-and-info']['usd_volume']);
 				}
 				else
 					$return['errors'][] = array('message'=>'Invalid authentication.','code'=>$query['error']);
@@ -253,26 +254,30 @@ elseif ($endpoint == 'user-transactions') {
 	else
 		$return['errors'][] = array('message'=>'Invalid HTTP method.','code'=>'AUTH_INVALID_HTTP_METHOD');
 }
-elseif ($endpoint == 'btc-deposit-address/get') {
+elseif ($endpoint == 'btc-deposit-address/get' || $endpoint == 'crypto-deposit-address/get') {
 	if ($post) {
 		if (!$invalid_signature && $api_key1 && $nonce1 > 0) {
-			if ($permissions['p_view'] == 'Y') {
-				$limit1 = (!empty($_REQUEST['limit'])) ? preg_replace("/[^0-9]/","",$_REQUEST['limit']) : false;
-				$limit1 = (!$limit1) ? 10 : $limit1;
-				
-				API::add('BitcoinAddresses','get',array(false,false,$limit1,false,false,false,1));
-				API::apiKey($api_key1);
-				API::apiSignature($api_signature1,$params_json);
-				API::apiUpdateNonce();
-				$query = API::send($nonce1);
-				
-				if (empty($query['error']))
-					$return['btc-deposit-address-get'] = ($query['BitcoinAddresses']['get']['results'][0]) ? $query['BitcoinAddresses']['get']['results'][0] : array();
+			if ($c_currency_info['id'] > 0 || $invalid_c_currency) {
+				if ($permissions['p_view'] == 'Y') {
+					$limit1 = (!empty($_REQUEST['limit'])) ? preg_replace("/[^0-9]/","",$_REQUEST['limit']) : false;
+					$limit1 = (!$limit1) ? 10 : $limit1;
+					
+					API::add('BitcoinAddresses','get',array(false,false,$c_currency_info['id'],$limit1,false,false,false,1));
+					API::apiKey($api_key1);
+					API::apiSignature($api_signature1,$params_json);
+					API::apiUpdateNonce();
+					$query = API::send($nonce1);
+					
+					if (empty($query['error']))
+						$return['btc-deposit-address-get'] = ($query['BitcoinAddresses']['get']['results'][0]) ? $query['BitcoinAddresses']['get']['results'][0] : array();
+					else
+						$return['errors'][] = array('message'=>'Invalid authentication.','code'=>$query['error']);
+				}
 				else
-					$return['errors'][] = array('message'=>'Invalid authentication.','code'=>$query['error']);
+					$return['errors'][] = array('message'=>'Not authorized.','code'=>'AUTH_NOT_AUTHORIZED');
 			}
 			else
-				$return['errors'][] = array('message'=>'Not authorized.','code'=>'AUTH_NOT_AUTHORIZED');
+				$return['errors'][] = array('message'=>'A valid cryptocurrency is required for the [market] parameter.','code'=>'CRYPTO_ADDRESS_INVALID_CRYPTOCURRENCY');
 		}
 		elseif (!$invalid_signature)
 			$return['errors'][] = array('message'=>'Invalid authentication.','code'=>'AUTH_ERROR');
