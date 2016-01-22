@@ -26,8 +26,8 @@ $api_key1 = (!empty($_POST['api_key'])) ? preg_replace("/[^0-9a-zA-Z]/","",$_POS
 $api_signature1 = (!empty($_POST['signature'])) ? preg_replace("/[^0-9a-zA-Z]/","",$_POST['signature']) : false;
 $nonce1 = (!empty($_POST['nonce'])) ? preg_replace("/[^0-9]/","",$_POST['nonce']) : false;
 $CFG->language = (!empty($_POST['lang'])) ? preg_replace("/[^a-z]/","",$_POST['lang']) : 'en';
-$currency1 = (!empty($_REQUEST['currency'])) ? preg_replace("/[^a-zA-Z]/","",$_REQUEST['currency']) : false;
-$c_currency1 = (!empty($_REQUEST['market'])) ? preg_replace("/[^a-zA-Z]/","",$_REQUEST['market']) : false;
+$currency1 = (!empty($_REQUEST['currency'])) ? preg_replace("/[^a-zA-Z0-9]/","",$_REQUEST['currency']) : false;
+$c_currency1 = (!empty($_REQUEST['market'])) ? preg_replace("/[^a-zA-Z0-9]/","",$_REQUEST['market']) : false;
 $currency_info = array('id'=>false);
 $c_currency_info = array('id'=>false);
 $endpoint = $_REQUEST['endpoint'];
@@ -66,6 +66,7 @@ else {
 
 if ($endpoint == 'stats') {
 	if (!$invalid_currency && !$invalid_c_currency) {
+		error_log(print_r(array($c_currency1,$c_currency_info),1),3,ini_get('error_log'));
 		API::add('Stats','getCurrent',array((strtolower($c_currency1) == 'all' ? 'all' : $c_currency_info['id']),$currency_info['id']));
 		$query = API::send();
 		
