@@ -66,7 +66,6 @@ else {
 
 if ($endpoint == 'stats') {
 	if (!$invalid_currency && !$invalid_c_currency) {
-		error_log(print_r(array($c_currency1,$c_currency_info),1),3,ini_get('error_log'));
 		API::add('Stats','getCurrent',array((strtolower($c_currency1) == 'all' ? 'all' : $c_currency_info['id']),$currency_info['id']));
 		$query = API::send();
 		
@@ -86,13 +85,13 @@ if ($endpoint == 'stats') {
 				$result[$key]['market_cap'] = ($stats['market_cap']) ? $stats['market_cap'] : 0;
 				$result[$key]['global_units'] = ($stats['total_btc']) ? $stats['total_btc'] : 0;
 				$result[$key]['global_volume'] = ($stats['trade_volume']) ? $stats['trade_volume'] : 0;
-				$result[$key]['24h_volume'] = ($stats['btc_24h']) ? number_format(round(($stats['btc_24h'] * $CFG->currencies[$stats['market']]['usd_ask'])/$CFG->currencies[$stats['currency']]['usd_ask'],8,PHP_ROUND_HALF_UP),8,'.','') : 0;
-				$result[$key]['24h_volume_buy'] = ($stats['btc_24h_buy']) ? number_format(round(($stats['btc_24h_buy'] * $CFG->currencies[$stats['market']]['usd_ask'])/$CFG->currencies[$stats['currency']]['usd_ask'],8,PHP_ROUND_HALF_UP),8,'.','') : 0;
-				$result[$key]['24h_volume_sell'] = ($stats['btc_24h_sell']) ? number_format(round(($stats['btc_24h_sell'] * $CFG->currencies[$stats['market']]['usd_ask'])/$CFG->currencies[$stats['currency']]['usd_ask'],8,PHP_ROUND_HALF_UP),8,'.','') : 0;
-				$result[$key]['1h_volume'] = ($stats['btc_1h']) ? number_format(round(($stats['btc_1h'] * $CFG->currencies[$stats['market']]['usd_ask'])/$CFG->currencies[$stats['currency']]['usd_ask'],8,PHP_ROUND_HALF_UP),8,'.','') : 0;
-				$result[$key]['1h_volume_buy'] = ($stats['btc_1h_buy']) ? number_format(round(($stats['btc_1h_buy'] * $CFG->currencies[$stats['market']]['usd_ask'])/$CFG->currencies[$stats['currency']]['usd_ask'],8,PHP_ROUND_HALF_UP),8,'.','') : 0;
-				$result[$key]['1h_volume_sell'] = ($stats['btc_1h_sell']) ? number_format(round(($stats['btc_1h_sell'] * $CFG->currencies[$stats['market']]['usd_ask'])/$CFG->currencies[$stats['currency']]['usd_ask'],8,PHP_ROUND_HALF_UP),8,'.','') : 0;
-				
+				$result[$key]['24h_volume'] = ($stats['btc_24h']) ? number_format(round(($stats['btc_24h'] * $CFG->currencies[$stats['market']]['usd_ask'])/$CFG->currencies[$stats['request_currency']]['usd_ask'],8,PHP_ROUND_HALF_UP),8,'.','') : 0;
+				$result[$key]['24h_volume_buy'] = ($stats['btc_24h_buy']) ? number_format(round(($stats['btc_24h_buy'] * $CFG->currencies[$stats['market']]['usd_ask'])/$CFG->currencies[$stats['request_currency']]['usd_ask'],8,PHP_ROUND_HALF_UP),8,'.','') : 0;
+				$result[$key]['24h_volume_sell'] = ($stats['btc_24h_sell']) ? number_format(round(($stats['btc_24h_sell'] * $CFG->currencies[$stats['market']]['usd_ask'])/$CFG->currencies[$stats['request_currency']]['usd_ask'],8,PHP_ROUND_HALF_UP),8,'.','') : 0;
+				$result[$key]['1h_volume'] = ($stats['btc_1h']) ? number_format(round(($stats['btc_1h'] * $CFG->currencies[$stats['market']]['usd_ask'])/$CFG->currencies[$stats['request_currency']]['usd_ask'],8,PHP_ROUND_HALF_UP),8,'.','') : 0;
+				$result[$key]['1h_volume_buy'] = ($stats['btc_1h_buy']) ? number_format(round(($stats['btc_1h_buy'] * $CFG->currencies[$stats['market']]['usd_ask'])/$CFG->currencies[$stats['request_currency']]['usd_ask'],8,PHP_ROUND_HALF_UP),8,'.','') : 0;
+				$result[$key]['1h_volume_sell'] = ($stats['btc_1h_sell']) ? number_format(round(($stats['btc_1h_sell'] * $CFG->currencies[$stats['market']]['usd_ask'])/$CFG->currencies[$stats['request_currency']]['usd_ask'],8,PHP_ROUND_HALF_UP),8,'.','') : 0;
+				$result[$key]['currency'] = $stats['request_currency'];
 				unset($result[$key]['total_btc_traded']);
 				unset($result[$key]['total_btc']);
 				unset($result[$key]['global_btc']);
@@ -103,6 +102,7 @@ if ($endpoint == 'stats') {
 				unset($result[$key]['btc_1h']);
 				unset($result[$key]['btc_1h_buy']);
 				unset($result[$key]['btc_1h_sell']);
+				unset($result[$key]['request_currency']);
 			}
 			
 			if ($all)
