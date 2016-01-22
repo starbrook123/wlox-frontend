@@ -48,7 +48,7 @@ elseif ($api_key1 && $api_signature1) {
 }
 
 // check if currency is supported
-if ($currency1 && (!is_array($CFG->currencies[strtoupper($currency1)]))) {
+if ($currency1 && (strtolower($currency1) != 'all' && $endpoint == 'stats') && (!is_array($CFG->currencies[strtoupper($currency1)]))) {
 	$return['errors'][] = array('message'=>'Invalid currency.','code'=>'INVALID_CURRENCY');
 	$invalid_currency = true;
 }
@@ -66,7 +66,7 @@ else {
 
 if ($endpoint == 'stats') {
 	if (!$invalid_currency && !$invalid_c_currency) {
-		API::add('Stats','getCurrent',array((strtolower($c_currency1) == 'all' ? 'all' : $c_currency_info['id']),$currency_info['id']));
+		API::add('Stats','getCurrent',array((strtolower($c_currency1) == 'all' ? 'all' : $c_currency_info['id']),(strtolower($currency1) == 'all' ? 'all' : $currency_info['id'])));
 		$query = API::send();
 		
 		$all = false;
