@@ -2434,7 +2434,7 @@ function calculateWithdrawal() {
 	var fiat_fee = ($('#withdraw_fiat_fee').html()) ? parseFloat($('#withdraw_fiat_fee').html().replace(window.tho,'')) : 0;
 	var fiat_total = (fiat_amount > 0) ? fiat_amount - fiat_fee : 0;
 	
-	$('#withdraw_btc_total').html(formatCurrency(btc_total,1));
+	$('#withdraw_btc_total').html(formatCurrency(btc_total,8));
 	$('#withdraw_fiat_total').html(formatCurrency(fiat_total));
 }
 
