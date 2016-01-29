@@ -97,9 +97,9 @@ if (!empty($_REQUEST['bitcoins'])) {
 	if (($btc_amount1 - $wallet['bitcoin_sending_fee']) < 0.00000001)
 		Errors::add(Lang::string('withdraw-amount-zero'));
 	if ($btc_amount1 > $user_available[$c_currency_info['currency']])
-		Errors::add(Lang::string('withdraw-too-much'));
+		Errors::add(str_replace('[c_currency]',$c_currency_info['currency'],Lang::string('withdraw-too-much')));
 	if (!$query['BitcoinAddresses']['validateAddress']['results'][0])
-		Errors::add(Lang::string('withdraw-address-invalid'));
+		Errors::add(str_replace('[c_currency]',$c_currency_info['currency'],Lang::string('withdraw-address-invalid')));
 	
 	if (!is_array(Errors::$errors)) {
 		if (User::$info['confirm_withdrawal_email_btc'] == 'Y' && !$request_2fa && !$token1) {
