@@ -75,7 +75,7 @@ if (empty($_REQUEST['bypass'])) {
 						</div>
 						<div class="spacer"></div>
 						<div class="calc">
-							<img class="qrcode" src="includes/qrcode.php?code=<?= $CFG->currencies[$currencies['c_currency']]['currency'].':'.$bitcoin_addresses[0]['address'] ?>" />
+							<img class="qrcode" src="includes/qrcode.php?code=<?= $bitcoin_addresses[0]['address'] ?>" />
 						</div>
 						<div class="spacer"></div>
 						<div class="calc">
