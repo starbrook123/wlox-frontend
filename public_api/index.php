@@ -88,12 +88,12 @@ if ($endpoint == 'stats') {
 				$result[$key]['market_cap'] = (!empty($stats['market_cap'])) ? $stats['market_cap'] : 0;
 				$result[$key]['global_units'] = (!empty($stats['total_btc'])) ? $stats['total_btc'] : 0;
 				$result[$key]['global_volume'] = (!empty($stats['trade_volume'])) ? $stats['trade_volume'] : 0;
-				$result[$key]['24h_volume'] = (!empty($stats['btc_24h'])) ? number_format(round(($stats['btc_24h'] * $CFG->currencies[$stats['market']]['usd_ask'])/$CFG->currencies[$stats['request_currency']]['usd_ask'],8,PHP_ROUND_HALF_UP),8,'.','') : 0;
-				$result[$key]['24h_volume_buy'] = (!empty($stats['btc_24h_buy'])) ? number_format(round(($stats['btc_24h_buy'] * $CFG->currencies[$stats['market']]['usd_ask'])/$CFG->currencies[$stats['request_currency']]['usd_ask'],8,PHP_ROUND_HALF_UP),8,'.','') : 0;
-				$result[$key]['24h_volume_sell'] = (!empty($stats['btc_24h_sell'])) ? number_format(round(($stats['btc_24h_sell'] * $CFG->currencies[$stats['market']]['usd_ask'])/$CFG->currencies[$stats['request_currency']]['usd_ask'],8,PHP_ROUND_HALF_UP),8,'.','') : 0;
-				$result[$key]['1h_volume'] = (!empty($stats['btc_1h'])) ? number_format(round(($stats['btc_1h'] * $CFG->currencies[$stats['market']]['usd_ask'])/$CFG->currencies[$stats['request_currency']]['usd_ask'],8,PHP_ROUND_HALF_UP),8,'.','') : 0;
-				$result[$key]['1h_volume_buy'] = (!empty($stats['btc_1h_buy'])) ? number_format(round(($stats['btc_1h_buy'] * $CFG->currencies[$stats['market']]['usd_ask'])/$CFG->currencies[$stats['request_currency']]['usd_ask'],8,PHP_ROUND_HALF_UP),8,'.','') : 0;
-				$result[$key]['1h_volume_sell'] = (!empty($stats['btc_1h_sell'])) ? number_format(round(($stats['btc_1h_sell'] * $CFG->currencies[$stats['market']]['usd_ask'])/$CFG->currencies[$stats['request_currency']]['usd_ask'],8,PHP_ROUND_HALF_UP),8,'.','') : 0;
+				$result[$key]['24h_volume'] = (!empty($stats['btc_24h'])) ? $stats['btc_24h'] : 0;
+				$result[$key]['24h_volume_buy'] = (!empty($stats['btc_24h_buy'])) ? $stats['btc_24h_buy'] : 0;
+				$result[$key]['24h_volume_sell'] = (!empty($stats['btc_24h_sell'])) ? $stats['btc_24h_sell'] : 0;
+				$result[$key]['1h_volume'] = (!empty($stats['btc_1h'])) ? $stats['btc_1h'] : 0;
+				$result[$key]['1h_volume_buy'] = (!empty($stats['btc_1h_buy'])) ? $stats['btc_1h_buy'] : 0;
+				$result[$key]['1h_volume_sell'] = (!empty($stats['btc_1h_sell'])) ? $stats['btc_1h_sell'] : 0;
 				$result[$key]['currency'] = $stats['request_currency'];
 				unset($result[$key]['total_btc_traded']);
 				unset($result[$key]['total_btc']);
