@@ -668,8 +668,6 @@ function graphOrders(json_data,refresh) {
 				});
 				return false;
 			}
-			
-			console.log(e);
 			return false;
 		}
 	}
@@ -710,7 +708,7 @@ function graphOrders(json_data,refresh) {
 				item[1] += diff;
 				return item;
 			}).filter(function(item) {
-				if (window.ob_max_bid && window.ob_c_asks > 1 && ((window.ob_max_bid - item[0]) >  window.ob_lower_range))
+				if (window.ob_max_bid && window.ob_c_asks > 1 && ((window.ob_max_bid - item[0]) <  window.ob_lower_range))
 					return false;
 				
 				return (parseFloat(item[0]) <= c_price);
@@ -721,7 +719,7 @@ function graphOrders(json_data,refresh) {
 		}
 		else {
 			json_data.bids = last_data.bids.filter(function(item) {
-				if (window.ob_max_bid && window.ob_c_asks > 1 && ((window.ob_max_bid - item[0]) >  window.ob_lower_range))
+				if (window.ob_max_bid && window.ob_c_asks > 1 && ((window.ob_max_bid - item[0]) <  window.ob_lower_range))
 					return false;
 				
 				return true;
@@ -809,7 +807,7 @@ function graphOrders(json_data,refresh) {
 	var bottom_offset = 50;
 	var flip;
 	var max_x;
-	var currency1 = currency.toUpperCase();
+	var currency1 = $('#curr_abbr_'+currency).val();
 	var last_type = false;
 	
 	$("#graph_orders").bind("plothover", function (event, pos, item) {
@@ -1843,6 +1841,9 @@ function updateTransactions() {
 }
 
 function formatCurrency(amount,is_btc,flex) {
+	if (isNaN(parseFloat(amount)))
+		return '0';
+		
 	amount = parseFloat(amount).toFixed(8);
 	var decimal_sep = $('#cfg_decimal_separator').val();
 	var thousands_sep = $('#cfg_thousands_separator').val();
@@ -1858,10 +1859,14 @@ function formatCurrency(amount,is_btc,flex) {
 		}
 	}
 	
-	if (dec_amount <= 3)
-		return parseFloat(amount).toFixed(dec_amount).toString().replace('.',$('#cfg_decimal_separator').val()).replace(/\B(?=(\d{3})+(?!\d))/g,$('#cfg_thousands_separator').val());
-	else
-		return parseFloat(amount).toFixed(dec_amount).toString().replace('.',$('#cfg_decimal_separator').val());
+	var string = parseFloat(amount).toFixed(dec_amount).toString();
+	if (string.indexOf('.') >= 0) {
+		var string_parts = string.split('.');
+		string = string_parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,$('#cfg_thousands_separator').val()) + $('#cfg_decimal_separator').val() + string_parts[1];
+		return string;
+	}
+	
+	return parseFloat(amount).toFixed(dec_amount).toString().replace('.',$('#cfg_decimal_separator').val()).replace(/\B(?=(\d{3})+(?!\d))/g,$('#cfg_thousands_separator').val());
 }
 
 function updateTransactionsList() {
@@ -2001,8 +2006,7 @@ function switchBuyCurrency() {
 			$('#this_currency_id').val(json_data.currency_info.id);
 			$('#is_crypto').val(json_data.currency_info.is_crypto);
 			$('#fiat_currency').val(json_data.currency_info.id);
-			
-			$('#stats_last_price').html(formatCurrency(json_data.current_ask,2,8));
+			$('#stats_last_price').html(formatCurrency(json_data.stats.last_price,2,8));
 			$('#stats_daily_change_abs').html(formatCurrency(Math.abs(parseFloat(json_data.stats.daily_change)),2,8));
 			$('#stats_daily_change_perc').html(formatCurrency(Math.abs(parseFloat(json_data.stats.daily_change_percent))));
 			$('#stats_min').html(formatCurrency(json_data.stats.min,2,8));
@@ -2300,7 +2304,7 @@ function calculateBuy() {
 	});
 }
 
-function calculateBuyPrice() {
+function calculateBuyPrice(all) {
 	if ($('#unit_cost').length > 0) {
 		var unit_cost = (parseFloat($('#unit_cost').val()) / parseFloat($('#usd_ask').val())).toFixed(($('#is_crypto').val() == 'Y' ? '8' : '2'));
 		var unit_cost_sell = (parseFloat($('#unit_cost_sell').val()) / parseFloat($('#usd_ask').val())).toFixed(($('#is_crypto').val() == 'Y' ? '8' : '2'));
@@ -2310,6 +2314,9 @@ function calculateBuyPrice() {
 		$('#sell_total').html(formatCurrency(sell_amount * unit_cost_sell,($('#is_crypto').val() == 'Y')));
 		return false;
 	}
+	
+	if (!all)
+		$('#buy_all').val('');
 	
 	var user_fee = parseFloat($('#user_fee').val());
 	var user_fee1 = parseFloat($('#user_fee1').val());
@@ -2339,6 +2346,87 @@ function calculateBuyPrice() {
 	$('#sell_subtotal').html(formatCurrency(sell_subtotal,($('#is_crypto').val() == 'Y')));
 	$('#sell_total').html(formatCurrency(sell_total,($('#is_crypto').val() == 'Y')));
 	$('#sell_user_fee').html(((sell_price > 0 && sell_price <= first_bid) || $('#sell_market_price').is(':checked')) ? user_fee.toFixed(2) : user_fee1.toFixed(2));
+}
+
+function setFullBalance() {
+	$('#buy_user_available').click(function(e){
+		e.preventDefault();
+		
+		var is_market = $('#buy_market_price').is(':checked');
+		var fiat_amount = parseFloat($(this).text().replace($('#cfg_thousands_separator').val(),''));
+		var orig_fiat_amount = fiat_amount;
+		var fee = parseFloat($('#user_fee').val()) * 0.01;
+		var limit_price = 0;
+		var total_crypto = 0;
+		var last_price = 0;
+		var decimals = ($('#is_crypto').val() == 'Y') ? 100000000 : 100;
+
+		$('.ask_tr').each(function(){
+			if ($(this).find('.fa-user').length > 0)
+				return true;
+			
+			var o_price = parseFloat($(this).find('.order_price').text());
+			var o_amount = parseFloat($(this).find('.order_amount').text());
+			var this_amount = ((fiat_amount/o_price) > o_amount) ? o_amount : (fiat_amount/o_price);
+			total_crypto += this_amount;
+			fiat_amount -= Math.round(this_amount * o_price * decimals) / decimals;
+			last_price = o_price;
+			
+			if ((Math.round(fiat_amount * decimals) / decimals) <= 0)
+				return false;
+		});
+		
+		if (!is_market && $('.ask_tr').length > 0) {
+			total_crypto += (fiat_amount/last_price);
+			fiat_amount -= Math.round((fiat_amount/last_price) * decimals) / decimals;
+			$('#buy_price').val(last_price);
+		}
+		
+		var test = (last_price + (fee * last_price)) / orig_fiat_amount;
+		total_crypto -= total_crypto * fee;
+		
+		$('#buy_amount').val(formatCurrency(total_crypto,8));
+		calculateBuyPrice(true);
+		
+		if ((Math.round(fiat_amount * decimals) / decimals) <= 0.00001) {
+			$('#buy_all').val(1);
+			$('#buy_total').html($(this).text());
+		}
+		else
+			$('#buy_all').val('');
+	});
+	$('#sell_user_available').click(function(e){
+		e.preventDefault();
+		
+		var is_market = $('#sell_market_price').is(':checked');
+		var crypto_amount = parseFloat($(this).text().replace($('#cfg_thousands_separator').val(),''));
+		var limit_price = 0;
+		var total_crypto = 0;
+		var last_price = 0;
+
+		$('.bid_tr').each(function(){
+			if ($(this).find('.fa-user').length > 0)
+				return true;
+			
+			var o_price = parseFloat($(this).find('.order_price').text());
+			var o_amount = parseFloat($(this).find('.order_amount').text());
+			var this_amount = (crypto_amount > o_amount) ? o_amount : crypto_amount;
+			total_crypto += this_amount;
+			crypto_amount -= this_amount;
+			last_price = o_price;
+			
+			if (crypto_amount <= 0)
+				return false;
+		});
+		
+		if (!is_market && $('.bid_tr').length > 0) {
+			total_crypto += crypto_amount;
+			$('#sell_price').val(last_price);
+		}
+		
+		$('#sell_amount').val(formatCurrency(total_crypto,8));
+		calculateBuyPrice();
+	});
 }
 
 function buttonDisable() {
@@ -2571,6 +2659,7 @@ $(document).ready(function() {
 		startTicker();
 		graphPriceHistory();
 		graphClickAdd();
+		setFullBalance();
 	}
 	
 	if ($("#graph_orders").length > 0 && $("#graph_orders").is(':visible')) {

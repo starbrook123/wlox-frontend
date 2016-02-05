@@ -410,14 +410,14 @@ elseif ($endpoint == 'orders/new') {
 				elseif (is_array($json))
 					$orders = $json;
 				else
-					$orders[] = array('side'=>((!empty($_POST['side'])) ? $_POST['side'] : false),'type'=>((!empty($_POST['type'])) ? $_POST['type'] : false),'c_currency'=>$c_currency_info['id'],'currency'=>$currency_info['id'],'limit_price'=>((!empty($_POST['limit_price'])) ? $_POST['limit_price'] : false),'stop_price'=>((!empty($_POST['stop_price'])) ? $_POST['stop_price'] : false),'amount'=>((!empty($_POST['amount'])) ? $_POST['amount'] : false));
+					$orders[] = array('side'=>((!empty($_POST['side'])) ? $_POST['side'] : false),'type'=>((!empty($_POST['type'])) ? $_POST['type'] : false),'market'=>$c_currency_info['id'],'currency'=>$currency_info['id'],'limit_price'=>((!empty($_POST['limit_price'])) ? $_POST['limit_price'] : false),'stop_price'=>((!empty($_POST['stop_price'])) ? $_POST['stop_price'] : false),'amount'=>((!empty($_POST['amount'])) ? $_POST['amount'] : false));
 				
 				if (is_array($orders)) {
 					$i = 1;
 					foreach ($orders as $order) {
 						$order['side'] = (!empty($order['side'])) ? strtolower(preg_replace("/[^a-zA-Z]/","",$order['side'])) : false;
 						$order['type'] = (!empty($order['type'])) ? strtolower(preg_replace("/[^a-zA-Z]/","",$order['type'])) : false;
-						$order['c_currency'] = (!empty($order['c_currency'])) ? $CFG->currencies[strtoupper(preg_replace("/[^a-zA-Z0-9]/","",$order['c_currency']))]['id'] : false;
+						$order['market'] = (!empty($order['market'])) ? $CFG->currencies[strtoupper(preg_replace("/[^a-zA-Z0-9]/","",$order['market']))]['id'] : false;
 						$order['currency'] = (!empty($order['currency'])) ? $CFG->currencies[strtoupper(preg_replace("/[^a-zA-Z0-9]/","",$order['currency']))]['id'] : false;
 						$order['limit_price'] = (!empty($order['limit_price']) && $order['limit_price'] > 0) ? number_format(preg_replace("/[^0-9.]/", "",$order['limit_price']),8,'.','') : false;
 						$order['stop_price'] = (!empty($order['type']) && $order['type'] == 'stop' && $order['stop_price'] > 0) ? number_format(preg_replace("/[^0-9.]/", "",$order['stop_price']),8,'.','') : false;
@@ -436,7 +436,7 @@ elseif ($endpoint == 'orders/new') {
 							$return['errors'][] = array('message'=>'Invalid order type (must be market, limit or stop).','code'=>'ORDER_INVALID_TYPE');
 							continue;
 						}
-						elseif (!$CFG->currencies[$order['c_currency']]) {
+						elseif (!$CFG->currencies[$order['market']]) {
 							$return['errors'][] = array('message'=>'Invalid market.','code'=>'INVALID_MARKET');
 							continue;
 						}
@@ -457,7 +457,7 @@ elseif ($endpoint == 'orders/new') {
 							continue;
 						}
 						
-						API::add('Orders','executeOrder',array(($order['side'] == 'buy'),$order['limit_price'],$order['amount'],$order['c_currency'],$order['currency'],false,($order['type'] == 'market'),false,false,false,$order['stop_price'],false,1));
+						API::add('Orders','executeOrder',array(($order['side'] == 'buy'),$order['limit_price'],$order['amount'],$order['market'],$order['currency'],false,($order['type'] == 'market'),false,false,false,$order['stop_price'],false,1));
 						API::apiKey($api_key1);
 						API::apiSignature($api_signature1,$params_json);
 						

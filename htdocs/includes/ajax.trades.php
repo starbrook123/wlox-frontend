@@ -55,7 +55,7 @@ if (!empty($_REQUEST['last_price'])) {
 	
 	if ($CFG->currencies) {
 		foreach ($CFG->currencies as $key => $currency) {
-			if (is_numeric($key) || $currency['id'] == $c_currency1 || $currency['id'] == $currency1)
+			if (is_numeric($key))
 				continue;
 	
 			$last_price = String::currency($return['last_price'] * ((empty($currency_info) || $currency_info['currency'] == 'USD') ? 1/$currency[$usd_field] : $currency_info[$usd_field] / $currency[$usd_field]),($currency_info['is_crypto'] == 'Y'));

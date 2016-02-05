@@ -4708,6 +4708,13 @@ ul.list_empty.form_buttons {
 	font-size:16px;
 	color:#444;
 }
+.buyform .calc .value a{
+	text-decoration:underline;
+	color: #383634;
+}
+.buyform .calc .value a:hover{
+	color: #727272;
+}
 .buyform .calc.bigger{
 	margin: 20px 0;
 }
@@ -4984,9 +4991,10 @@ body{font:12px/28px ;}
     display: inline-block;
     padding: 3px 0 4px 0;
     position: relative;
-    width: 97px;
+    width: 115px;
     z-index: 2;
     text-align: center;
+	white-space: nowrap;
 }
 .currencies a .abbr{
 	color:#444;

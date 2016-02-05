@@ -14,6 +14,7 @@ $buy = (!empty($_REQUEST['buy']));
 $sell = (!empty($_REQUEST['sell']));
 $buy = (!empty($_REQUEST['buy']));
 $sell = (!empty($_REQUEST['sell']));
+$buy_all1 = (!empty($_REQUEST['buy_all']));
 
 if ($buy || $sell) {
 	if (empty($_SESSION["editorder_uniq"]) || empty($_REQUEST['uniq']) || !in_array($_REQUEST['uniq'],$_SESSION["editorder_uniq"]))
@@ -134,7 +135,7 @@ if ($buy && !is_array(Errors::$errors)) {
 	$buy_limit = (!$buy_stop && !$buy_market_price1) ? 1 : $buy_limit;
 	$buy_price1 = ($buy_market_price1) ? $current_ask : $buy_price1;
 
-	API::add('Orders','executeOrder',array(1,(($buy_stop && !$buy_limit) ? $buy_stop_price1 : $buy_price1),$buy_amount1,$c_currency1,$currency1,$user_fee_bid,$buy_market_price1,$order_info['id'],false,false,$buy_stop_price1));
+	API::add('Orders','executeOrder',array(1,(($buy_stop && !$buy_limit) ? $buy_stop_price1 : $buy_price1),$buy_amount1,$c_currency1,$currency1,$user_fee_bid,$buy_market_price1,$order_info['id'],false,false,$buy_stop_price1,false,false,$buy_all1));
 	$query = API::send();
 	$operations = $query['Orders']['executeOrder']['results'][0];
 	
@@ -243,7 +244,7 @@ if (!$bypass) {
 							<div class="spacer"></div>
 							<div class="calc dotted">
 								<div class="label"><?= str_replace('[currency]','<span class="sell_currency_label">'.$currency_info['currency'].'</span>',Lang::string('buy-fiat-available')) ?></div>
-								<div class="value"><span class="buy_currency_char"><?= $currency_info['fa_symbol'] ?></span><span id="buy_user_available"><?= ((!empty($user_available[strtoupper($currency_info['currency'])])) ? String::currency($user_available[strtoupper($currency_info['currency'])],($currency_info['is_crypto'] == 'Y')) : '0.00') ?></span></div>
+								<div class="value"><span class="buy_currency_char"><?= $currency_info['fa_symbol'] ?></span><a id="buy_user_available" href="#" title="<?= Lang::string('orders-click-full-buy') ?>"><?= ((!empty($user_available[strtoupper($currency_info['currency'])])) ? String::currency($user_available[strtoupper($currency_info['currency'])],($currency_info['is_crypto'] == 'Y')) : '0.00') ?></a></div>
 								<div class="clear"></div>
 							</div>
 							<div class="spacer"></div>
@@ -316,6 +317,7 @@ if (!$bypass) {
 								<div class="clear"></div>
 							</div>
 							<input type="hidden" name="buy" value="1" />
+							<input type="hidden" name="buy_all" id="buy_all" value="<?= $buy_all1 ?>" />
 							<input type="hidden" name="uniq" value="<?= $_SESSION["editorder_uniq"][$uniq_time] ?>" />
 							<input type="submit" name="submit" value="<?= $page_title ?>" class="but_user" />
 						</div>
@@ -335,7 +337,7 @@ if (!$bypass) {
 							<div class="spacer"></div>
 							<div class="calc dotted">
 								<div class="label"><?= str_replace('[c_currency]',$c_currency_info['currency'],Lang::string('sell-btc-available')) ?></div>
-								<div class="value"><span id="sell_user_available"><?= String::currency($user_available[strtoupper($c_currency_info['currency'])],true) ?></span> <?= $c_currency_info['currency']?></div>
+								<div class="value"><a id="sell_user_available"  href="#" title="<?= Lang::string('orders-click-full-sell') ?>"><?= String::currency($user_available[strtoupper($c_currency_info['currency'])],true) ?></a> <?= $c_currency_info['currency']?></div>
 								<div class="clear"></div>
 							</div>
 							<div class="spacer"></div>
