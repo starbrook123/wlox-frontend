@@ -104,7 +104,7 @@
 <script type="text/javascript" src="js/chat.js?v=20151202"></script>
 
 <!-- main js -->
-<script type="text/javascript" src="js/ops.js?v=20160204"></script>
+<script type="text/javascript" src="js/ops.js?v=20160205"></script>
 
 <? if ($CFG->self == 'index.php' || $CFG->self == 'order-book.php' || $CFG->self == 'btc_to_currency.php') { ?>
 <!-- flot -->

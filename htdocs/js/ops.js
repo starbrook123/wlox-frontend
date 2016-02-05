@@ -593,24 +593,28 @@ function graphClickAdd() {
 		$('#sell_price').val($(this).text());
 		blink('#sell_price');
 		$("html, body").animate({ scrollTop: $('.testimonials-4').offset().top }, 500);
+		calculateBuyPrice();
 		e.preventDefault();
 	});
 	$('#bids_list .order_amount').click(function(e){
 		$('#sell_amount').val($(this).text());
 		blink('#sell_amount');
 		$("html, body").animate({ scrollTop: $('.testimonials-4').offset().top }, 500);
+		calculateBuyPrice();
 		e.preventDefault();
 	});
 	$('#asks_list .order_price').click(function(e){
 		$('#buy_price').val($(this).text());
 		blink('#buy_price');
 		$("html, body").animate({ scrollTop: $('.testimonials-4').offset().top }, 500);
+		calculateBuyPrice();
 		e.preventDefault();
 	});
 	$('#asks_list .order_amount').click(function(e){
 		$('#buy_amount').val($(this).text());
 		blink('#buy_amount');
 		$("html, body").animate({ scrollTop: $('.testimonials-4').offset().top }, 500);
+		calculateBuyPrice();
 		e.preventDefault();
 	});
 }
@@ -2315,9 +2319,6 @@ function calculateBuyPrice(all) {
 		return false;
 	}
 	
-	if (!all)
-		$('#buy_all').val('');
-	
 	var user_fee = parseFloat($('#user_fee').val());
 	var user_fee1 = parseFloat($('#user_fee1').val());
 	var dec = $('#cfg_decimal_separator').val();
@@ -2352,79 +2353,17 @@ function setFullBalance() {
 	$('#buy_user_available').click(function(e){
 		e.preventDefault();
 		
-		var is_market = $('#buy_market_price').is(':checked');
 		var fiat_amount = parseFloat($(this).text().replace($('#cfg_thousands_separator').val(),''));
-		var orig_fiat_amount = fiat_amount;
 		var fee = parseFloat($('#user_fee').val()) * 0.01;
-		var limit_price = 0;
-		var total_crypto = 0;
-		var last_price = 0;
-		var decimals = ($('#is_crypto').val() == 'Y') ? 100000000 : 100;
+		var limit_price = parseFloat($('#buy_price').val().replace($('#cfg_thousands_separator').val(),''));
 
-		$('.ask_tr').each(function(){
-			if ($(this).find('.fa-user').length > 0)
-				return true;
-			
-			var o_price = parseFloat($(this).find('.order_price').text());
-			var o_amount = parseFloat($(this).find('.order_amount').text());
-			var this_amount = ((fiat_amount/o_price) > o_amount) ? o_amount : (fiat_amount/o_price);
-			total_crypto += this_amount;
-			fiat_amount -= Math.round(this_amount * o_price * decimals) / decimals;
-			last_price = o_price;
-			
-			if ((Math.round(fiat_amount * decimals) / decimals) <= 0)
-				return false;
-		});
-		
-		if (!is_market && $('.ask_tr').length > 0) {
-			total_crypto += (fiat_amount/last_price);
-			fiat_amount -= Math.round((fiat_amount/last_price) * decimals) / decimals;
-			$('#buy_price').val(last_price);
-		}
-		
-		var test = (last_price + (fee * last_price)) / orig_fiat_amount;
-		total_crypto -= total_crypto * fee;
-		
-		$('#buy_amount').val(formatCurrency(total_crypto,8));
-		calculateBuyPrice(true);
-		
-		if ((Math.round(fiat_amount * decimals) / decimals) <= 0.00001) {
-			$('#buy_all').val(1);
-			$('#buy_total').html($(this).text());
-		}
-		else
-			$('#buy_all').val('');
+		$('#buy_amount').val(((Math.round((fiat_amount / limit_price) * 100000000) / 100000000) - ((Math.round((fiat_amount / limit_price) * 100000000) / 100000000) * fee)).toString());
+		calculateBuyPrice();
 	});
 	$('#sell_user_available').click(function(e){
 		e.preventDefault();
-		
-		var is_market = $('#sell_market_price').is(':checked');
-		var crypto_amount = parseFloat($(this).text().replace($('#cfg_thousands_separator').val(),''));
-		var limit_price = 0;
-		var total_crypto = 0;
-		var last_price = 0;
 
-		$('.bid_tr').each(function(){
-			if ($(this).find('.fa-user').length > 0)
-				return true;
-			
-			var o_price = parseFloat($(this).find('.order_price').text());
-			var o_amount = parseFloat($(this).find('.order_amount').text());
-			var this_amount = (crypto_amount > o_amount) ? o_amount : crypto_amount;
-			total_crypto += this_amount;
-			crypto_amount -= this_amount;
-			last_price = o_price;
-			
-			if (crypto_amount <= 0)
-				return false;
-		});
-		
-		if (!is_market && $('.bid_tr').length > 0) {
-			total_crypto += crypto_amount;
-			$('#sell_price').val(last_price);
-		}
-		
-		$('#sell_amount').val(formatCurrency(total_crypto,8));
+		$('#sell_amount').val($(this).text().replace($('#cfg_thousands_separator').val()));
 		calculateBuyPrice();
 	});
 }
