@@ -2363,7 +2363,7 @@ function setFullBalance() {
 	$('#sell_user_available').click(function(e){
 		e.preventDefault();
 
-		$('#sell_amount').val($(this).text().replace($('#cfg_thousands_separator').val()),'');
+		$('#sell_amount').val($(this).text().replace($('#cfg_thousands_separator').val(),''));
 		calculateBuyPrice();
 	});
 }
