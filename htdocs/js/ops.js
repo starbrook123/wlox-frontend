@@ -712,7 +712,7 @@ function graphOrders(json_data,refresh) {
 				item[1] += diff;
 				return item;
 			}).filter(function(item) {
-				if (window.ob_max_bid && window.ob_c_asks > 1 && ((window.ob_max_bid - item[0]) <  window.ob_lower_range))
+				if (window.ob_max_bid && window.ob_c_asks > 1 && item[0] < window.ob_min_bid)
 					return false;
 				
 				return (parseFloat(item[0]) <= c_price);
@@ -723,7 +723,7 @@ function graphOrders(json_data,refresh) {
 		}
 		else {
 			json_data.bids = last_data.bids.filter(function(item) {
-				if (window.ob_max_bid && window.ob_c_asks > 1 && ((window.ob_max_bid - item[0]) <  window.ob_lower_range))
+				if (window.ob_max_bid && window.ob_c_asks > 1 && item[0] < window.ob_min_bid)
 					return false;
 				
 				return true;
@@ -742,7 +742,7 @@ function graphOrders(json_data,refresh) {
 				item[1] += diff;
 				return item;
 			}).filter(function(item) {
-				if (window.ob_max_ask && window.ob_c_bids > 1 && ((window.ob_max_ask - item[0]) >  window.ob_lower_range))
+				if (window.ob_max_ask && window.ob_c_bids > 1 && item[0] > window.ob_max_ask)
 					return false;
 				
 				return (parseFloat(item[0]) >= c_price);
@@ -753,7 +753,7 @@ function graphOrders(json_data,refresh) {
 		}
 		else {
 			json_data.asks = last_data.asks.filter(function(item) {
-				if (window.ob_max_ask && window.ob_c_bids > 1 && ((window.ob_max_ask - item[0]) >  window.ob_lower_range))
+				if (window.ob_max_ask && window.ob_c_bids > 1 && item[0] > window.ob_max_ask)
 					return false;
 				
 				return true;
