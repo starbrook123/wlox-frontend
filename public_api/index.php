@@ -235,7 +235,7 @@ elseif ($endpoint == 'user-transactions') {
 				$limit1 = (!$limit1) ? 10 : $limit1;
 				$type1 = (!empty($_REQUEST['side'])) ? preg_replace("/[^a-zA-Z]/","",$_REQUEST['side']) : false;
 				
-				API::add('Transactions','get',array(false,false,$limit1,$currency1,1,false,strtolower($type1),false,false,1));
+				API::add('Transactions','get',array(false,false,$limit1,$c_currency1,$currency1,1,false,strtolower($type1),false,false,1));
 				API::apiKey($api_key1);
 				API::apiSignature($api_signature1,$params_json);
 				API::apiUpdateNonce();
@@ -467,7 +467,7 @@ elseif ($endpoint == 'orders/new') {
 						$query = API::send($nonce1);
 						$result = $query['Orders']['executeOrder']['results'][0];
 						
-						if ($result && empty($result['error'])) {
+						if ($result && empty($query['error'])) {
 							unset($result['order_info']['comp_orig_prices']);
 							unset($result['order_info']['replaced']);
 							unset($result['edit_order']);
@@ -479,7 +479,7 @@ elseif ($endpoint == 'orders/new') {
 							$return['orders-new'][] = ($result) ? $result : array();
 						}
 						else
-							$return['errors'][] = $result['error'];
+							$return['errors'][] = $query['error'];
 						
 						$i++;
 					}
@@ -552,7 +552,7 @@ elseif ($endpoint == 'orders/edit') {
 						$query = API::send($nonce1);
 						$result = $query['Orders']['executeOrder']['results'][0];
 							
-						if ($result && empty($result['error'])) {
+						if ($result && empty($query['error'])) {
 							unset($result['order_info']['comp_orig_prices']);
 							unset($result['new_order']);
 							unset($result['executed']);
@@ -563,7 +563,7 @@ elseif ($endpoint == 'orders/edit') {
 							$return['orders-edit'][] = ($result) ? $result : array();
 						}
 						else
-							$return['errors'][] = $result['error'];
+							$return['errors'][] = $query['error'];
 							
 						$i++;
 					}
