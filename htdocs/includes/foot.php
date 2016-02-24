@@ -38,7 +38,7 @@
              	<li><a href="blog.php"><?= Lang::string('blog') ?></a></li>
              	<li><a href="<?= Lang::url('press-releases.php') ?>"><?= Lang::string('news') ?></a></li>
              	<li><a href="<?= Lang::url('fee-schedule.php') ?>"><?= Lang::string('fee-schedule') ?></a></li>
-             	<li><a href="https://github.com/wlox/wlox/" target="_blank"><?= Lang::string('home-github') ?></a></li>
+             	<li><a href="https://github.com/mbassan/wlox/" target="_blank"><?= Lang::string('home-github') ?></a></li>
             </ul>
          </div>
          <? if (User::isLoggedIn()) { ?>

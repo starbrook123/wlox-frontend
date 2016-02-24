@@ -84,8 +84,7 @@ if (!User::isLoggedIn()) {
 	<div class="mobilebanner">
 		<div class="container">
 			<h1 <?= ($CFG->language == 'ru') ? 'class="caption_ru"' : false ?>><?= $content['title'] ?></h1>
-			<p class="text"><?= wordwrap(strip_tags($content['content']),$wordwrap,'<br/>') ?> <a class="morestuff" href="<?= Lang::url('about.php') ?>">>></a></p>   
-			<div class="crypto_logo"><a target="_blank" href="https://cryptocapital.co">Integrated With <img src="images/crypto_logo.png" /></a></div>
+			<p class="text"><?= wordwrap(strip_tags($content['content']),$wordwrap,'<br/>') ?> <a class="morestuff" href="<?= Lang::url('about.php') ?>">>></a></p>
 			<a href="login.php" class="button_slider"><i class="fa fa-key"></i>&nbsp;&nbsp;<?= Lang::string('home-login') ?></a>       
 			<a href="<?= Lang::url('register.php') ?>" class="button_slider"><i class="fa fa-user"></i>&nbsp;&nbsp;<?= Lang::string('home-register') ?></a>
 			<div class="clear"></div>
