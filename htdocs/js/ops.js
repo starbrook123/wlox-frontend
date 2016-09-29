@@ -462,7 +462,7 @@ function graphPriceHistory(refresh) {
 function graphLoadNew(first,callback) {
 	var currency = $('#graph_price_history_currency').val();
 	var c_currency = $('#c_currency').val();
-	timeframe = timeframe = ($('#graph_time').is('select')) ? $('#graph_time').val() : $('#graph_time a.selected').attr('data-option');
+	timeframe = ($('#graph_time').is('select')) ? $('#graph_time').val() : $('#graph_time a.selected').attr('data-option');
 	first = (first > 0) ? first : '';
 	last = (first > 0) ? '' : last_id;
 	last_max = data_res[data_res.length - 1][0];
