@@ -459,7 +459,7 @@ height: 0;
 .price-green{color:#0DD84D !important;}
 .price-red{color:#FF5151 !important;}
 
-.mobilebanner{background:url(../images/bg1.jpg) no-repeat left top / cover;padding: 20px 0px;position:relative;}
+.mobilebanner{background:url(../images/bg2.jpg) no-repeat left top / cover;padding: 20px 0px;position:relative;margin-top: -1px;}
 .mobilebanner h1{color: #fff;font-family: "Open Sans",sans;font-size:34px;font-weight: bold;letter-spacing: 0;margin: 0 10px 0px 0;padding: 0;text-shadow: none;text-transform: uppercase;}
 .mobilebanner h1.caption_ru {font-size: 48px;}
 .mobilebanner .line{background: url("../../../../images/opacity-line.png") repeat-x scroll left top rgba(0, 0, 0, 0);height: 1px;}
@@ -754,14 +754,14 @@ ul.tci_list {
 }
 
 a.button_slider {
-	background-color: #444444;
+	background-color: #FFF;
 	float: left;
 	padding: 13px 30px;
 	margin:30px 20px 0 0;
 	font-weight: normal;
 	font-size: 18px;
 	text-transform: uppercase;
-	color: #fff;
+	color: #444;
 	border: 1px solid #fff;
 	border-radius: 4px;
 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=70)";
@@ -1145,11 +1145,11 @@ a.button_slider:hover {
 .fresh_projects {
 	float: left;
 	width: 100%;
-	background-color: #f0f0f0;
+	background-color: #fff;
 	text-align: center;
-	-webkit-box-shadow: inset 0px 2px 2px 0px rgba(0, 0, 0, 0.1), 0px 4px 0px 0px #FFF;
-  	-moz-box-shadow: inset 0px 2px 2px 0px rgba(0, 0, 0, 0.1), 0px 4px 0px 0px #FFF;
-  	box-shadow: inset 0px 2px 2px 0px rgba(0, 0, 0, 0.1), 0px 4px 0px 0px #FFF;
+	-webkit-box-shadow: 0 0px 10px 5px rgba(0, 0, 0, 0.1) inset, 0 4px 0 0 #fff;
+  	-moz-box-shadow: 0 0px 10px 5px rgba(0, 0, 0, 0.1) inset, 0 4px 0 0 #fff;
+  	box-shadow: 0 0px 10px 5px rgba(0, 0, 0, 0.1) inset, 0 4px 0 0 #fff;
 }
 .fresh_projects h2 {
 	font-size: 40px;
@@ -1638,8 +1638,11 @@ a.forgot:hover{color:#ddd;}
 .footer {
 	float: left;
 	width: 100%;
-	background: #383634 url(../images/elements/dark_mosaic.png) repeat left top;
+	background-color:#eee;
 	color: #999;
+	-webkit-box-shadow: 0 0px 10px 5px rgba(0, 0, 0, 0.1) inset, 0 4px 0 0 #fff;
+  	-moz-box-shadow: 0 0px 10px 5px rgba(0, 0, 0, 0.1) inset, 0 4px 0 0 #fff;
+  	box-shadow: 0 0px 10px 5px rgba(0, 0, 0, 0.1) inset, 0 4px 0 0 #fff;
 }
 .footer .one_fourth{
 	float: left;
@@ -1648,20 +1651,22 @@ a.forgot:hover{color:#ddd;}
 }
 
 .footer h2 {
-	font-size: 23px;
-	color: #fff;
-	font-weight: 300;
-	margin-bottom: 20px;
+	color: #00bdbd;
+    font-size: 23px;
+    font-weight: 400;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #00bdbd;
+    padding-bottom: 10px;
 }
 .footer h2 i {
 	font-weight: normal;
 	font-style: normal;
 }
 .footer a {
-	color: #999;
+	color: #333;
 }
 .footer a:hover {
-	color: #fff;
+	color: #999;
 }
 .footer a img {
 	width: 128px;

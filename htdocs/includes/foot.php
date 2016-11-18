@@ -11,10 +11,10 @@
     
    		<div class="one_fourth">
             
-            <div class="footer_logo"><img src="images/logo4.png" alt="" /></div>
+            <div class="footer_logo"><img src="images/logo1.png" alt="" /></div>
             
             <ul class="contact_address">
-                <li><img src="images/footer-wmap.png" alt="" /></li>
+                <li></li>
             </ul>
             
         </div>
@@ -24,7 +24,7 @@
             <ul class="list">
              	<li><a href="<?= Lang::url('index.php') ?>"><?= Lang::string('home') ?></a></li>
                 <li><a href="<?= Lang::url('order-book.php') ?>"><?= Lang::string('order-book') ?></a></li>
-                <li><a href="<?= (User::isLoggedIn()) ? 'help.php' : 'https://support.1btcxe.com' ?>"><?= Lang::string('help') ?></a></li>
+                <li><a href="<?= 'help.php' ?>"><?= Lang::string('help') ?></a></li>
                 <li><a href="<?= Lang::url('contact.php') ?>"><?= Lang::string('contact') ?></a></li>
                 <li><a href="<?= Lang::url('terms.php') ?>"><?= Lang::string('terms') ?></a></li>
                 <li><a href="api-docs.php"><?= Lang::string('api-docs') ?></a></li>
@@ -38,7 +38,6 @@
              	<li><a href="blog.php"><?= Lang::string('blog') ?></a></li>
              	<li><a href="<?= Lang::url('press-releases.php') ?>"><?= Lang::string('news') ?></a></li>
              	<li><a href="<?= Lang::url('fee-schedule.php') ?>"><?= Lang::string('fee-schedule') ?></a></li>
-             	<li><a href="https://github.com/mbassan/wlox/" target="_blank"><?= Lang::string('home-github') ?></a></li>
             </ul>
          </div>
          <? if (User::isLoggedIn()) { ?>
@@ -75,18 +74,18 @@
     <div class="container">
         <div class="one_half">
 
-            <b>Copyright &copy; 2014 WLOX. All rights reserved.</b>
+            <b>Copyright &copy; 2016 Exccy. All rights reserved.</b>
 
         </div>
 
-    	<div class="one_half last">
+    	<!--div class="one_half last">
      		
             <ul class="footer_social_links">
                 <li><a href="#"><i class="fa fa-facebook"></i></a></li>
                 <li><a href="#"><i class="fa fa-linkedin"></i></a></li>
             </ul>
                 
-    	</div>
+    	</div -->
     
     </div>
 </div><!-- end copyright info -->
@@ -94,14 +93,14 @@
 
 <a href="#" class="scrollup">Scroll</a><!-- end scroll to top of the page-->
 
-<? include 'includes/chat.php'; ?>
+<? /* include 'includes/chat.php'; */ ?>
 </div>
 
 <!-- ######### JS FILES ######### -->
 <script type="text/javascript" src="js/socket.io.js"></script>
 <script type="text/javascript" src="js/universal/jquery.js"></script>
 <script type="text/javascript" src="js/universal/jquery-ui-1.10.3.custom.min.js"></script>
-<script type="text/javascript" src="js/chat.js?v=20151202"></script>
+<!-- script type="text/javascript" src="js/chat.js?v=20151202"></script -->
 
 <!-- main js -->
 <script type="text/javascript" src="js/ops.js?v=20160210"></script>

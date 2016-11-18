@@ -118,8 +118,6 @@
                 <li><a href="help.php"><?= Lang::string('help') ?></a></li>
                 <li>|</li>
                 <li><a href="<?= Lang::url('contact.php') ?>"><?= Lang::string('contact') ?></a></li>
-                <li>|</li>
-                <li><a target="_blank" href="https://github.com/mbassan/wlox/"><i class="fa fa-github"></i> GitHub</a></li>
             </ul>
         
             <ul class="tci_list">
