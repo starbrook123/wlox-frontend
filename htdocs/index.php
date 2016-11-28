@@ -74,7 +74,7 @@ if (!User::isLoggedIn()) {
 
 <div class="container_full">
 	<?php 
-	if ($CFG->language == 'en' || $CFG->language == 'es' || empty($CFG->language))
+	if ($CFG->language == 'en' || $CFG->language == 'es' || $CFG->language == 'pt' || empty($CFG->language))
 		$wordwrap = 80;
 	elseif ($CFG->language == 'ru')
 		$wordwrap = 150;
